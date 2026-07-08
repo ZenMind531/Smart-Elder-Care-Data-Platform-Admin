@@ -1,28 +1,42 @@
 # Build outputs
 target/
 dist/
+dist-ssr/
 build/
 out/
+coverage/
 
 # Dependencies
 node_modules/
 
-# IDE files
-.idea/
-.vscode/
-*.iml
-
-# OS files
-.DS_Store
-Thumbs.db
-
 # Runtime logs
-*.log
 logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
 
 # Environment files
 .env
 .env.*
+*.local
+
+# IDE files
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.iml
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS files
+.DS_Store
+Thumbs.db
 
 # Local Codex/agent workspace files
 .codex/
@@ -31,8 +45,20 @@ logs/
 # Temporary files
 *.tmp
 *.temp
+*.tsbuildinfo
+*.timestamp-*-*.mjs
 ~$*
+
+# Deployment
+.vercel/
 
 # Local training log drafts
 student_log_work.docx
 *学生实训日志*.docx
+
+# Cypress
+/cypress/videos/
+/cypress/screenshots/
+
+# Vitest
+__screenshots__/
