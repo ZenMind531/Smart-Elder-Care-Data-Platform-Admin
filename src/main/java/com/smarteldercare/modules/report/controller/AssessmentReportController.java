@@ -1,4 +1,5 @@
 package com.smarteldercare.modules.report.controller;
+
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.smarteldercare.common.result.ApiResponse;
@@ -8,7 +9,12 @@ import com.smarteldercare.modules.report.service.AssessmentReportService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-public class AssessmentReportController { private AssessmentReportService assessmentReportService;
+@RestController
+@RequestMapping("/api/assessment-reports")
+public class AssessmentReportController {
+
+    @Autowired
+    private AssessmentReportService assessmentReportService;
 
     @GetMapping
     public ApiResponse<PageResult<AssessmentReport>> list(
@@ -18,13 +24,11 @@ public class AssessmentReportController { private AssessmentReportService assess
             @RequestParam(required = false) String riskLevel) {
         Page<AssessmentReport> p = new Page<>(page, size);
         LambdaQueryWrapper<AssessmentReport> q = new LambdaQueryWrapper<>();
-        if (elderlyId != null) q.eq(AssessmentReport::getId, elderlyId);
+        if (elderlyId != null) q.eq(AssessmentReport::getElderlyId, elderlyId);
         if (riskLevel != null) q.eq(AssessmentReport::getRiskLevel, riskLevel);
         q.orderByDesc(AssessmentReport::getCreateTime);
         assessmentReportService.page(p, q);
-        return ApiResponse.success(new PageResult<>(p.getRecords(), p.getTotal(),
-                p.getCurrent(), p.getSize()));
-
+        return ApiResponse.success(new PageResult<>(p.getRecords(), p.getTotal(), p.getCurrent(), p.getSize()));
     }
 
     @GetMapping("/{id}")
@@ -41,8 +45,7 @@ public class AssessmentReportController { private AssessmentReportService assess
     }
 
     @PutMapping("/{id}")
-    public ApiResponse<Void> update(@PathVariable Long id, @RequestBody
-    AssessmentReport report) {
+    public ApiResponse<Void> update(@PathVariable Long id, @RequestBody AssessmentReport report) {
         report.setId(id);
         assessmentReportService.updateById(report);
         return ApiResponse.success();
@@ -53,5 +56,4 @@ public class AssessmentReportController { private AssessmentReportService assess
         assessmentReportService.removeById(id);
         return ApiResponse.success();
     }
-
 }
