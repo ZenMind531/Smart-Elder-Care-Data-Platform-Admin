@@ -16,10 +16,18 @@
       <button
         type="button"
         class="inline-flex w-fit items-center justify-center rounded-lg bg-brand-600 px-4 py-2.5 text-theme-sm font-medium text-white shadow-theme-xs hover:bg-brand-700"
+        @click="recoverAllAttentionDevices"
       >
-        绑定新设备
+        一键复联异常设备
       </button>
     </div>
+
+    <p
+      v-if="feedback"
+      class="mb-6 w-fit rounded-full bg-success-50 px-3 py-1 text-theme-xs font-medium text-success-700 dark:bg-success-500/15 dark:text-success-400"
+    >
+      {{ feedback }}
+    </p>
 
     <section class="grid grid-cols-1 gap-4 md:grid-cols-4 md:gap-6">
       <article
@@ -107,9 +115,19 @@
                 </td>
                 <td class="py-4 pr-4 text-theme-sm text-gray-500 dark:text-gray-400">{{ device.lastSync }}</td>
                 <td class="py-4 whitespace-nowrap">
-                  <span class="rounded-full px-2 py-0.5 text-theme-xs font-medium" :class="statusClassMap[device.status]">
-                    {{ device.status }}
-                  </span>
+                  <div class="flex flex-wrap items-center gap-2">
+                    <span class="rounded-full px-2 py-0.5 text-theme-xs font-medium" :class="statusClassMap[device.status]">
+                      {{ device.status }}
+                    </span>
+                    <button
+                      v-if="device.status !== '在线'"
+                      type="button"
+                      class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-theme-xs font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
+                      @click="recoverDevice(device.id)"
+                    >
+                      {{ device.status === '低电量' ? '更换电池' : '恢复在线' }}
+                    </button>
+                  </div>
                 </td>
               </tr>
             </tbody>
@@ -133,9 +151,13 @@
                     {{ device.room }} · {{ device.boundElder }} · {{ device.lastSync }}
                   </p>
                 </div>
-                <span class="rounded-full px-2 py-0.5 text-theme-xs font-medium" :class="statusClassMap[device.status]">
-                  {{ device.status }}
-                </span>
+                <button
+                  type="button"
+                  class="rounded-lg bg-brand-600 px-3 py-2 text-theme-xs font-medium text-white shadow-theme-xs hover:bg-brand-700"
+                  @click="recoverDevice(device.id)"
+                >
+                  处理
+                </button>
               </div>
             </article>
           </div>
@@ -163,6 +185,7 @@ import type { DeviceRecord } from '@/stores/operations'
 const operations = useOperationsStore()
 const search = ref('')
 const status = ref<DeviceRecord['status'] | '全部状态'>('全部状态')
+const feedback = ref('')
 
 const stats = computed(() => [
   { label: '设备总数', value: operations.devices.length, note: '已绑定设备' },
@@ -201,5 +224,16 @@ const batteryClass = (battery: number) => {
   if (battery <= 20) return 'bg-error-600'
   if (battery <= 45) return 'bg-warning-500'
   return 'bg-success-600'
+}
+
+const recoverDevice = (id: string) => {
+  operations.recoverDevice(id)
+  feedback.value = '设备已恢复在线并刷新同步时间'
+}
+
+const recoverAllAttentionDevices = () => {
+  attentionDevices.value.forEach((device) => operations.recoverDevice(device.id))
+  status.value = '全部状态'
+  feedback.value = '异常设备已批量恢复在线'
 }
 </script>

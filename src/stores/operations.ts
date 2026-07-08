@@ -137,7 +137,7 @@ export const useOperationsStore = defineStore('operations', {
         status: '需复测',
         measuredAt: '今日 07:58',
       },
-    ] satisfies HealthRecord[],
+    ] as HealthRecord[],
     alerts: [
       {
         id: 3001,
@@ -183,7 +183,7 @@ export const useOperationsStore = defineStore('operations', {
         time: '昨日 18:40',
         owner: '刘护士',
       },
-    ] satisfies AlertRecord[],
+    ] as AlertRecord[],
     devices: [
       {
         id: 'WB-A302-01',
@@ -235,7 +235,7 @@ export const useOperationsStore = defineStore('operations', {
         status: '维护中',
         lastSync: '今日 08:20',
       },
-    ] satisfies DeviceRecord[],
+    ] as DeviceRecord[],
     careRecords: [
       {
         id: 5001,
@@ -277,7 +277,7 @@ export const useOperationsStore = defineStore('operations', {
         status: '待补录',
         time: '今日 15:20',
       },
-    ] satisfies CareRecord[],
+    ] as CareRecord[],
     serviceAppointments: [
       {
         id: 7001,
@@ -319,7 +319,7 @@ export const useOperationsStore = defineStore('operations', {
         status: '已完成',
         assignee: '郑护士',
       },
-    ] satisfies ServiceAppointment[],
+    ] as ServiceAppointment[],
     roles: [
       {
         id: 1,
@@ -349,7 +349,14 @@ export const useOperationsStore = defineStore('operations', {
         scope: '个人端健康状态、服务预约、消息通知',
         enabled: true,
       },
-    ] satisfies RoleRecord[],
+      {
+        id: 5,
+        name: '设备管理员',
+        users: 3,
+        scope: '设备接入、在线状态、维护巡检',
+        enabled: true,
+      },
+    ] as RoleRecord[],
     notificationRules: [
       {
         id: 1,
@@ -372,7 +379,7 @@ export const useOperationsStore = defineStore('operations', {
         target: '护理组长',
         enabled: true,
       },
-    ] satisfies NotificationRule[],
+    ] as NotificationRule[],
   }),
   getters: {
     unresolvedAlerts: (state) => state.alerts.filter((alert) => alert.status !== '已处理').length,
@@ -381,5 +388,132 @@ export const useOperationsStore = defineStore('operations', {
       state.serviceAppointments.filter((service) => service.status === '待确认').length,
     todayCareDone: (state) =>
       state.careRecords.filter((record) => record.status === '已完成').length,
+  },
+  actions: {
+    addHealthRecord() {
+      const nextId = Math.max(...this.healthRecords.map((item) => item.id), 0) + 1
+
+      this.healthRecords.unshift({
+        id: nextId,
+        elderName: '刘玉梅',
+        room: 'C-212',
+        heartRate: 82,
+        bloodPressure: '128/80',
+        temperature: '36.6',
+        bloodOxygen: 97,
+        sleepHours: 6.8,
+        status: '正常',
+        measuredAt: '刚刚',
+      })
+    },
+    requestHealthRetest(id: number) {
+      const record = this.healthRecords.find((item) => item.id === id)
+      if (record) {
+        record.status = '需复测'
+        record.measuredAt = '刚刚'
+      }
+    },
+    markHealthNormal(id: number) {
+      const record = this.healthRecords.find((item) => item.id === id)
+      if (record) {
+        record.status = '正常'
+        record.heartRate = Math.min(Math.max(record.heartRate, 70), 88)
+        record.bloodOxygen = Math.max(record.bloodOxygen, 97)
+        record.measuredAt = '刚刚'
+      }
+    },
+    addManualAlert() {
+      const nextId = Math.max(...this.alerts.map((item) => item.id), 3000) + 1
+
+      this.alerts.unshift({
+        id: nextId,
+        elderName: '刘玉梅',
+        room: 'C-212',
+        type: '人工巡房提醒',
+        level: '关注',
+        source: '护理员上报',
+        status: '待处理',
+        time: '刚刚',
+        owner: '王护工',
+      })
+    },
+    startAlert(id: number) {
+      const alert = this.alerts.find((item) => item.id === id)
+      if (alert && alert.status === '待处理') {
+        alert.status = '处理中'
+      }
+    },
+    resolveAlert(id: number) {
+      const alert = this.alerts.find((item) => item.id === id)
+      if (alert) {
+        alert.status = '已处理'
+      }
+    },
+    recoverDevice(id: string) {
+      const device = this.devices.find((item) => item.id === id)
+      if (device) {
+        device.status = '在线'
+        device.battery = Math.max(device.battery, 80)
+        device.lastSync = '刚刚'
+      }
+    },
+    addCareRecord() {
+      const nextId = Math.max(...this.careRecords.map((item) => item.id), 5000) + 1
+
+      this.careRecords.unshift({
+        id: nextId,
+        elderName: '刘玉梅',
+        room: 'C-212',
+        type: '临时巡房',
+        content: '已完成临时巡房，老人状态稳定，设备连接正常。',
+        caregiver: '王护工',
+        status: '已完成',
+        time: '刚刚',
+      })
+    },
+    addServiceAppointment() {
+      const nextId = Math.max(...this.serviceAppointments.map((item) => item.id), 7000) + 1
+
+      this.serviceAppointments.unshift({
+        id: nextId,
+        elderName: '刘玉梅',
+        room: 'C-212',
+        service: '康复训练',
+        requester: '刘晨',
+        scheduledAt: '明日 10:30',
+        status: '待确认',
+        assignee: '康复师王敏',
+      })
+    },
+    confirmService(id: number) {
+      const service = this.serviceAppointments.find((item) => item.id === id)
+      if (service && service.status === '待确认') {
+        service.status = '已预约'
+      }
+    },
+    startService(id: number) {
+      const service = this.serviceAppointments.find((item) => item.id === id)
+      if (service && service.status === '已预约') {
+        service.status = '服务中'
+      }
+    },
+    completeService(id: number) {
+      const service = this.serviceAppointments.find((item) => item.id === id)
+      if (service) {
+        service.status = '已完成'
+      }
+    },
+    toggleRole(id: number) {
+      const role = this.roles.find((item) => item.id === id)
+      if (role) {
+        role.enabled = !role.enabled
+      }
+    },
+    toggleNotificationRule(id: number) {
+      const rule = this.notificationRules.find((item) => item.id === id)
+      if (rule) {
+        rule.enabled = !rule.enabled
+      }
+    },
   },
 })

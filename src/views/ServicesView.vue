@@ -13,10 +13,21 @@
         </p>
       </div>
 
-      <button type="button" class="inline-flex w-fit items-center justify-center rounded-lg bg-brand-600 px-4 py-2.5 text-theme-sm font-medium text-white shadow-theme-xs hover:bg-brand-700">
+      <button
+        type="button"
+        class="inline-flex w-fit items-center justify-center rounded-lg bg-brand-600 px-4 py-2.5 text-theme-sm font-medium text-white shadow-theme-xs hover:bg-brand-700"
+        @click="addAppointment"
+      >
         新建预约
       </button>
     </div>
+
+    <p
+      v-if="feedback"
+      class="mb-4 w-fit rounded-lg border border-success-200 bg-success-50 px-3 py-2 text-theme-sm text-success-700 dark:border-success-500/30 dark:bg-success-500/10 dark:text-success-300"
+    >
+      {{ feedback }}
+    </p>
 
     <div class="grid grid-cols-12 gap-4 md:gap-6">
       <section class="col-span-12 rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-white/[0.03] xl:col-span-8">
@@ -48,7 +59,8 @@
                 <th class="py-3 pr-4 text-left text-theme-xs font-medium text-gray-500">预约时间</th>
                 <th class="py-3 pr-4 text-left text-theme-xs font-medium text-gray-500">申请人</th>
                 <th class="py-3 pr-4 text-left text-theme-xs font-medium text-gray-500">负责人</th>
-                <th class="py-3 text-left text-theme-xs font-medium text-gray-500">状态</th>
+                <th class="py-3 pr-4 text-left text-theme-xs font-medium text-gray-500">状态</th>
+                <th class="py-3 text-left text-theme-xs font-medium text-gray-500">操作</th>
               </tr>
             </thead>
             <tbody>
@@ -65,10 +77,37 @@
                 <td class="py-4 pr-4 text-theme-sm text-gray-700 dark:text-gray-300">{{ service.scheduledAt }}</td>
                 <td class="py-4 pr-4 text-theme-sm text-gray-700 dark:text-gray-300">{{ service.requester }}</td>
                 <td class="py-4 pr-4 text-theme-sm text-gray-700 dark:text-gray-300">{{ service.assignee }}</td>
-                <td class="py-4 whitespace-nowrap">
+                <td class="py-4 pr-4 whitespace-nowrap">
                   <span class="rounded-full px-2 py-0.5 text-theme-xs font-medium" :class="statusClassMap[service.status]">
                     {{ service.status }}
                   </span>
+                </td>
+                <td class="py-4 whitespace-nowrap">
+                  <button
+                    v-if="service.status === '待确认'"
+                    type="button"
+                    class="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-theme-xs font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-white/[0.03]"
+                    @click="confirmService(service)"
+                  >
+                    确认预约
+                  </button>
+                  <button
+                    v-else-if="service.status === '已预约'"
+                    type="button"
+                    class="rounded-lg border border-brand-200 bg-brand-50 px-3 py-1.5 text-theme-xs font-medium text-brand-700 shadow-theme-xs hover:bg-brand-100 dark:border-brand-500/30 dark:bg-brand-500/10 dark:text-brand-300"
+                    @click="startService(service)"
+                  >
+                    开始服务
+                  </button>
+                  <button
+                    v-else-if="service.status === '服务中'"
+                    type="button"
+                    class="rounded-lg border border-success-200 bg-success-50 px-3 py-1.5 text-theme-xs font-medium text-success-700 shadow-theme-xs hover:bg-success-100 dark:border-success-500/30 dark:bg-success-500/10 dark:text-success-300"
+                    @click="completeService(service)"
+                  >
+                    完成服务
+                  </button>
+                  <span v-else class="text-theme-xs text-gray-500 dark:text-gray-400">已归档</span>
                 </td>
               </tr>
             </tbody>
@@ -109,6 +148,7 @@ import type { ServiceAppointment } from '@/stores/operations'
 
 const operations = useOperationsStore()
 const status = ref<ServiceAppointment['status'] | '全部状态'>('全部状态')
+const feedback = ref('')
 
 const filteredServices = computed(() =>
   operations.serviceAppointments.filter(
@@ -128,5 +168,26 @@ const statusClassMap: Record<ServiceAppointment['status'], string> = {
   已预约: 'bg-brand-50 text-brand-700 dark:bg-brand-500/15 dark:text-brand-300',
   服务中: 'bg-error-50 text-error-700 dark:bg-error-500/15 dark:text-error-400',
   已完成: 'bg-success-50 text-success-700 dark:bg-success-500/15 dark:text-success-400',
+}
+
+const addAppointment = () => {
+  operations.addServiceAppointment()
+  status.value = '全部状态'
+  feedback.value = '已新建一条待确认的康复训练预约'
+}
+
+const confirmService = (service: ServiceAppointment) => {
+  operations.confirmService(service.id)
+  feedback.value = `${service.room} ${service.elderName} 的预约已确认`
+}
+
+const startService = (service: ServiceAppointment) => {
+  operations.startService(service.id)
+  feedback.value = `${service.room} ${service.elderName} 的服务已开始`
+}
+
+const completeService = (service: ServiceAppointment) => {
+  operations.completeService(service.id)
+  feedback.value = `${service.room} ${service.elderName} 的服务已完成`
 }
 </script>

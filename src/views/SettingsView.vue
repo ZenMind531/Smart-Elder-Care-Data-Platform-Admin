@@ -12,6 +12,13 @@
       </p>
     </div>
 
+    <p
+      v-if="feedback"
+      class="mb-4 w-fit rounded-lg border border-success-200 bg-success-50 px-3 py-2 text-theme-sm text-success-700 dark:border-success-500/30 dark:bg-success-500/10 dark:text-success-300"
+    >
+      {{ feedback }}
+    </p>
+
     <div class="grid grid-cols-12 gap-4 md:gap-6">
       <section class="col-span-12 rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-white/[0.03] xl:col-span-5">
         <h2 class="text-lg font-semibold text-gray-800 text-balance dark:text-white/90">机构资料</h2>
@@ -40,7 +47,11 @@
               class="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-theme-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-white/[0.03] dark:text-white/90"
             ></textarea>
           </label>
-          <button type="button" class="w-fit rounded-lg bg-brand-600 px-4 py-2.5 text-theme-sm font-medium text-white shadow-theme-xs hover:bg-brand-700">
+          <button
+            type="button"
+            class="w-fit rounded-lg bg-brand-600 px-4 py-2.5 text-theme-sm font-medium text-white shadow-theme-xs hover:bg-brand-700"
+            @click="saveOrganization"
+          >
             保存机构资料
           </button>
         </div>
@@ -61,7 +72,7 @@
                   {{ role.scope }}
                 </p>
               </div>
-              <div class="flex items-center gap-3">
+              <div class="flex flex-wrap items-center gap-3">
                 <span class="text-theme-xs text-gray-500 tabular-nums dark:text-gray-400">{{ role.users }} 人</span>
                 <span
                   class="rounded-full px-2 py-0.5 text-theme-xs font-medium"
@@ -69,6 +80,13 @@
                 >
                   {{ role.enabled ? '启用' : '停用' }}
                 </span>
+                <button
+                  type="button"
+                  class="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-theme-xs font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-white/[0.03]"
+                  @click="toggleRole(role)"
+                >
+                  {{ role.enabled ? '停用' : '启用' }}
+                </button>
               </div>
             </div>
           </article>
@@ -90,12 +108,21 @@
                   {{ rule.channel }} · {{ rule.target }}
                 </p>
               </div>
-              <span
-                class="w-fit rounded-full px-2 py-0.5 text-theme-xs font-medium"
-                :class="rule.enabled ? 'bg-success-50 text-success-700 dark:bg-success-500/15 dark:text-success-400' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300'"
-              >
-                {{ rule.enabled ? '启用' : '停用' }}
-              </span>
+              <div class="flex flex-wrap items-center gap-3">
+                <span
+                  class="w-fit rounded-full px-2 py-0.5 text-theme-xs font-medium"
+                  :class="rule.enabled ? 'bg-success-50 text-success-700 dark:bg-success-500/15 dark:text-success-400' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300'"
+                >
+                  {{ rule.enabled ? '启用' : '停用' }}
+                </span>
+                <button
+                  type="button"
+                  class="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-theme-xs font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-white/[0.03]"
+                  @click="toggleNotificationRule(rule)"
+                >
+                  {{ rule.enabled ? '停用' : '启用' }}
+                </button>
+              </div>
             </div>
           </article>
         </div>
@@ -118,11 +145,13 @@
 </template>
 
 <script setup lang="ts">
-import { reactive } from 'vue'
+import { reactive, ref } from 'vue'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
 import { useOperationsStore } from '@/stores/operations'
+import type { NotificationRule, RoleRecord } from '@/stores/operations'
 
 const operations = useOperationsStore()
+const feedback = ref('')
 
 const organization = reactive({
   name: '青松智慧养老服务中心',
@@ -136,4 +165,18 @@ const dictionaries = [
   { name: '告警等级', count: 3, desc: '紧急、关注、普通，对应不同通知策略。' },
   { name: '服务项目', count: 4, desc: '健康咨询、康复训练、陪诊服务、上门护理。' },
 ]
+
+const saveOrganization = () => {
+  feedback.value = `机构资料已保存：${organization.name}`
+}
+
+const toggleRole = (role: RoleRecord) => {
+  operations.toggleRole(role.id)
+  feedback.value = `${role.name} 已${role.enabled ? '启用' : '停用'}`
+}
+
+const toggleNotificationRule = (rule: NotificationRule) => {
+  operations.toggleNotificationRule(rule.id)
+  feedback.value = `${rule.name} 已${rule.enabled ? '启用' : '停用'}`
+}
 </script>

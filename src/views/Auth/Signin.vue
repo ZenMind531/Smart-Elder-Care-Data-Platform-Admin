@@ -63,6 +63,22 @@
                 </div>
               </div>
 
+              <div>
+                <label for="role" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                  登录角色
+                </label>
+                <select
+                  id="role"
+                  v-model="role"
+                  class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800"
+                >
+                  <option value="护理管理员">护理管理员</option>
+                  <option value="医生">医生</option>
+                  <option value="设备管理员">设备管理员</option>
+                  <option value="家属账号">家属账号</option>
+                </select>
+              </div>
+
               <div class="flex items-center justify-between gap-4">
                 <label class="flex items-center gap-3 text-theme-sm text-gray-600 dark:text-gray-400">
                   <input
@@ -120,8 +136,16 @@ const account = ref('')
 const password = ref('')
 const showPassword = ref(false)
 const rememberMe = ref(true)
+const role = ref('护理管理员')
+
+const roleLandingMap: Record<string, string> = {
+  护理管理员: '/',
+  医生: '/health',
+  设备管理员: '/devices',
+  家属账号: '/services',
+}
 
 const handleSubmit = () => {
-  router.push('/')
+  router.push(roleLandingMap[role.value] ?? '/')
 }
 </script>

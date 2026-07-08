@@ -127,7 +127,7 @@ export const useElderlyStore = defineStore('elderly', {
         lastCheck: '今日 09:02',
         admissionDate: '2022-12-19',
       },
-    ] satisfies ElderRecord[],
+    ] as ElderRecord[],
   }),
   getters: {
     totalCount: (state) => state.records.length,
@@ -136,5 +136,18 @@ export const useElderlyStore = defineStore('elderly', {
     specialCareCount: (state) =>
       state.records.filter((record) => record.careLevel === '特级照护').length,
     offlineCount: (state) => state.records.filter((record) => record.status === '离线').length,
+  },
+  actions: {
+    addRecord(record: Omit<ElderRecord, 'id' | 'lastCheck' | 'admissionDate'>) {
+      const nextId = Math.max(...this.records.map((item) => item.id), 1000) + 1
+      const today = new Date().toISOString().slice(0, 10)
+
+      this.records.unshift({
+        ...record,
+        id: nextId,
+        lastCheck: '待采集',
+        admissionDate: today,
+      })
+    },
   },
 })

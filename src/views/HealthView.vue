@@ -16,10 +16,18 @@
       <button
         type="button"
         class="inline-flex w-fit items-center justify-center rounded-lg bg-brand-600 px-4 py-2.5 text-theme-sm font-medium text-white shadow-theme-xs hover:bg-brand-700"
+        @click="addHealthRecord"
       >
         新增体征记录
       </button>
     </div>
+
+    <p
+      v-if="feedback"
+      class="mb-4 w-fit rounded-lg border border-success-200 bg-success-50 px-3 py-2 text-theme-sm text-success-700 dark:border-success-500/30 dark:bg-success-500/10 dark:text-success-300"
+    >
+      {{ feedback }}
+    </p>
 
     <section class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4 md:gap-6">
       <article
@@ -87,7 +95,8 @@
                 <th class="py-3 pr-4 text-left text-theme-xs font-medium text-gray-500">体温</th>
                 <th class="py-3 pr-4 text-left text-theme-xs font-medium text-gray-500">血氧</th>
                 <th class="py-3 pr-4 text-left text-theme-xs font-medium text-gray-500">睡眠</th>
-                <th class="py-3 text-left text-theme-xs font-medium text-gray-500">状态</th>
+                <th class="py-3 pr-4 text-left text-theme-xs font-medium text-gray-500">状态</th>
+                <th class="py-3 text-left text-theme-xs font-medium text-gray-500">操作</th>
               </tr>
             </thead>
             <tbody>
@@ -117,13 +126,31 @@
                 <td class="py-4 pr-4 text-theme-sm text-gray-700 tabular-nums dark:text-gray-300">
                   {{ record.sleepHours }}h
                 </td>
-                <td class="py-4 whitespace-nowrap">
+                <td class="py-4 pr-4 whitespace-nowrap">
                   <span
                     class="rounded-full px-2 py-0.5 text-theme-xs font-medium"
                     :class="statusClassMap[record.status]"
                   >
                     {{ record.status }}
                   </span>
+                </td>
+                <td class="py-4 whitespace-nowrap">
+                  <button
+                    v-if="record.status === '正常'"
+                    type="button"
+                    class="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-theme-xs font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-white/[0.03]"
+                    @click="requestRetest(record)"
+                  >
+                    发起复测
+                  </button>
+                  <button
+                    v-else
+                    type="button"
+                    class="rounded-lg border border-success-200 bg-success-50 px-3 py-1.5 text-theme-xs font-medium text-success-700 shadow-theme-xs hover:bg-success-100 dark:border-success-500/30 dark:bg-success-500/10 dark:text-success-300"
+                    @click="markNormal(record)"
+                  >
+                    复测完成
+                  </button>
                 </td>
               </tr>
             </tbody>
@@ -157,6 +184,13 @@
                   {{ record.status }}
                 </span>
               </div>
+              <button
+                type="button"
+                class="mt-3 rounded-lg border border-success-200 bg-success-50 px-3 py-1.5 text-theme-xs font-medium text-success-700 shadow-theme-xs hover:bg-success-100 dark:border-success-500/30 dark:bg-success-500/10 dark:text-success-300"
+                @click="markNormal(record)"
+              >
+                复测完成
+              </button>
             </article>
           </div>
         </section>
@@ -187,6 +221,7 @@ import type { HealthRecord } from '@/stores/operations'
 const operations = useOperationsStore()
 const search = ref('')
 const status = ref<HealthRecord['status'] | '全部状态'>('全部状态')
+const feedback = ref('')
 
 const metrics = computed(() => {
   const records = operations.healthRecords
@@ -224,5 +259,21 @@ const statusClassMap: Record<HealthRecord['status'], string> = {
   正常: 'bg-success-50 text-success-700 dark:bg-success-500/15 dark:text-success-400',
   需复测: 'bg-warning-50 text-warning-700 dark:bg-warning-500/15 dark:text-warning-400',
   异常: 'bg-error-50 text-error-700 dark:bg-error-500/15 dark:text-error-400',
+}
+
+const addHealthRecord = () => {
+  operations.addHealthRecord()
+  status.value = '全部状态'
+  feedback.value = '已新增一条实时体征记录'
+}
+
+const requestRetest = (record: HealthRecord) => {
+  operations.requestHealthRetest(record.id)
+  feedback.value = `${record.room} ${record.elderName} 已加入复测提醒`
+}
+
+const markNormal = (record: HealthRecord) => {
+  operations.markHealthNormal(record.id)
+  feedback.value = `${record.room} ${record.elderName} 复测完成，状态已恢复正常`
 }
 </script>

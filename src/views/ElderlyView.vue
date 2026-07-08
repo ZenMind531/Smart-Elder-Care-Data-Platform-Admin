@@ -16,10 +16,151 @@
       <button
         type="button"
         class="inline-flex w-fit items-center justify-center rounded-lg bg-brand-600 px-4 py-2.5 text-theme-sm font-medium text-white shadow-theme-xs hover:bg-brand-700"
+        @click="showAddForm = !showAddForm"
       >
-        新增老人档案
+        {{ showAddForm ? '收起新增' : '新增老人档案' }}
       </button>
     </div>
+
+    <section
+      v-if="showAddForm"
+      class="mb-6 rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-white/[0.03]"
+    >
+      <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h2 class="text-lg font-semibold text-gray-800 text-balance dark:text-white/90">
+            新增老人档案
+          </h2>
+          <p class="mt-1 text-theme-sm text-gray-500 text-pretty dark:text-gray-400">
+            填写基础信息后会立即加入档案列表，后续可接入真实保存接口。
+          </p>
+        </div>
+        <p
+          v-if="feedback"
+          class="rounded-full bg-success-50 px-3 py-1 text-theme-xs font-medium text-success-700 dark:bg-success-500/15 dark:text-success-400"
+        >
+          {{ feedback }}
+        </p>
+      </div>
+
+      <form class="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4" @submit.prevent="submitNewRecord">
+        <label class="block">
+          <span class="mb-1.5 block text-theme-sm font-medium text-gray-700 dark:text-gray-300">
+            姓名
+          </span>
+          <input
+            v-model="newRecord.name"
+            type="text"
+            required
+            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-theme-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-white/[0.03] dark:text-white/90"
+          />
+        </label>
+
+        <label class="block">
+          <span class="mb-1.5 block text-theme-sm font-medium text-gray-700 dark:text-gray-300">
+            房间号
+          </span>
+          <input
+            v-model="newRecord.room"
+            type="text"
+            required
+            placeholder="例如 D-101"
+            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-theme-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-white/[0.03] dark:text-white/90"
+          />
+        </label>
+
+        <label class="block">
+          <span class="mb-1.5 block text-theme-sm font-medium text-gray-700 dark:text-gray-300">
+            照护等级
+          </span>
+          <select
+            v-model="newRecord.careLevel"
+            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-3 py-2.5 text-theme-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
+          >
+            <option v-for="level in careLevels" :key="level" :value="level">{{ level }}</option>
+          </select>
+        </label>
+
+        <label class="block">
+          <span class="mb-1.5 block text-theme-sm font-medium text-gray-700 dark:text-gray-300">
+            责任护理员
+          </span>
+          <input
+            v-model="newRecord.caregiver"
+            type="text"
+            required
+            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-theme-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-white/[0.03] dark:text-white/90"
+          />
+        </label>
+
+        <label class="block">
+          <span class="mb-1.5 block text-theme-sm font-medium text-gray-700 dark:text-gray-300">
+            年龄
+          </span>
+          <input
+            v-model.number="newRecord.age"
+            type="number"
+            min="60"
+            max="120"
+            required
+            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-theme-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-white/[0.03] dark:text-white/90"
+          />
+        </label>
+
+        <label class="block">
+          <span class="mb-1.5 block text-theme-sm font-medium text-gray-700 dark:text-gray-300">
+            性别
+          </span>
+          <select
+            v-model="newRecord.gender"
+            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-3 py-2.5 text-theme-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
+          >
+            <option value="男">男</option>
+            <option value="女">女</option>
+          </select>
+        </label>
+
+        <label class="block">
+          <span class="mb-1.5 block text-theme-sm font-medium text-gray-700 dark:text-gray-300">
+            紧急联系人
+          </span>
+          <input
+            v-model="newRecord.contactName"
+            type="text"
+            required
+            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-theme-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-white/[0.03] dark:text-white/90"
+          />
+        </label>
+
+        <label class="block">
+          <span class="mb-1.5 block text-theme-sm font-medium text-gray-700 dark:text-gray-300">
+            联系电话
+          </span>
+          <input
+            v-model="newRecord.contactPhone"
+            type="text"
+            required
+            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-theme-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-white/[0.03] dark:text-white/90"
+          />
+        </label>
+
+        <div class="md:col-span-2 xl:col-span-4 flex flex-col gap-3 sm:flex-row sm:items-center">
+          <button
+            type="submit"
+            class="inline-flex w-fit items-center justify-center rounded-lg bg-brand-600 px-4 py-2.5 text-theme-sm font-medium text-white shadow-theme-xs hover:bg-brand-700"
+          >
+            保存档案
+          </button>
+          <button
+            type="button"
+            class="inline-flex w-fit items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-white/[0.03]"
+            @click="resetNewRecord"
+          >
+            重置表单
+          </button>
+        </div>
+      </form>
+    </section>
 
     <section class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4 md:gap-6">
       <article
@@ -284,9 +425,26 @@ const elderlyStore = useElderlyStore()
 const search = ref('')
 const statusFilter = ref<ElderStatus | '全部状态'>('全部状态')
 const levelFilter = ref<CareLevel | '全部等级'>('全部等级')
+const showAddForm = ref(false)
+const feedback = ref('')
 
 const statuses: ElderStatus[] = ['正常', '需关注', '异常', '离线']
 const careLevels: CareLevel[] = ['一级照护', '二级照护', '三级照护', '特级照护']
+
+const createEmptyRecord = () => ({
+  name: '',
+  gender: '女' as '男' | '女',
+  age: 75,
+  room: '',
+  careLevel: '二级照护' as CareLevel,
+  status: '正常' as ElderStatus,
+  diseases: ['待完善'],
+  contactName: '',
+  contactPhone: '',
+  caregiver: '',
+})
+
+const newRecord = ref(createEmptyRecord())
 
 const stats = computed(() => [
   {
@@ -355,5 +513,18 @@ const resetFilters = () => {
   search.value = ''
   statusFilter.value = '全部状态'
   levelFilter.value = '全部等级'
+}
+
+const resetNewRecord = () => {
+  newRecord.value = createEmptyRecord()
+}
+
+const submitNewRecord = () => {
+  elderlyStore.addRecord({ ...newRecord.value })
+  search.value = ''
+  statusFilter.value = '全部状态'
+  levelFilter.value = '全部等级'
+  feedback.value = `已新增 ${newRecord.value.name} 的档案`
+  resetNewRecord()
 }
 </script>

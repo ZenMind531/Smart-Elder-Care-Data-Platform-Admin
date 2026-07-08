@@ -13,10 +13,21 @@
         </p>
       </div>
 
-      <button type="button" class="inline-flex w-fit items-center justify-center rounded-lg bg-brand-600 px-4 py-2.5 text-theme-sm font-medium text-white shadow-theme-xs hover:bg-brand-700">
+      <button
+        type="button"
+        class="inline-flex w-fit items-center justify-center rounded-lg bg-brand-600 px-4 py-2.5 text-theme-sm font-medium text-white shadow-theme-xs hover:bg-brand-700"
+        @click="addCareRecord"
+      >
         新增护理记录
       </button>
     </div>
+
+    <p
+      v-if="feedback"
+      class="mb-4 w-fit rounded-lg border border-success-200 bg-success-50 px-3 py-2 text-theme-sm text-success-700 dark:border-success-500/30 dark:bg-success-500/10 dark:text-success-300"
+    >
+      {{ feedback }}
+    </p>
 
     <div class="grid grid-cols-12 gap-4 md:gap-6">
       <section class="col-span-12 rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-white/[0.03] xl:col-span-8">
@@ -100,6 +111,7 @@ import type { CareRecord } from '@/stores/operations'
 
 const operations = useOperationsStore()
 const status = ref<CareRecord['status'] | '全部状态'>('全部状态')
+const feedback = ref('')
 
 const filteredRecords = computed(() =>
   operations.careRecords.filter((record) => status.value === '全部状态' || record.status === status.value),
@@ -116,5 +128,11 @@ const statusClassMap: Record<CareRecord['status'], string> = {
   已完成: 'bg-success-50 text-success-700 dark:bg-success-500/15 dark:text-success-400',
   进行中: 'bg-brand-50 text-brand-700 dark:bg-brand-500/15 dark:text-brand-300',
   待补录: 'bg-warning-50 text-warning-700 dark:bg-warning-500/15 dark:text-warning-400',
+}
+
+const addCareRecord = () => {
+  operations.addCareRecord()
+  status.value = '全部状态'
+  feedback.value = '已新增一条临时巡房护理记录'
 }
 </script>

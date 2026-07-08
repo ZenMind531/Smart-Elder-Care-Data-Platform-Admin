@@ -16,10 +16,18 @@
       <button
         type="button"
         class="inline-flex w-fit items-center justify-center rounded-lg bg-brand-600 px-4 py-2.5 text-theme-sm font-medium text-white shadow-theme-xs hover:bg-brand-700"
+        @click="addManualAlert"
       >
         新增人工告警
       </button>
     </div>
+
+    <p
+      v-if="feedback"
+      class="mb-6 w-fit rounded-full bg-success-50 px-3 py-1 text-theme-xs font-medium text-success-700 dark:bg-success-500/15 dark:text-success-400"
+    >
+      {{ feedback }}
+    </p>
 
     <section class="grid grid-cols-1 gap-4 md:grid-cols-3 md:gap-6">
       <article
@@ -96,9 +104,27 @@
                   来源：{{ alert.source }} · 责任人：{{ alert.owner }}
                 </p>
               </div>
-              <span class="w-fit rounded-full px-2 py-0.5 text-theme-xs font-medium" :class="statusClassMap[alert.status]">
-                {{ alert.status }}
-              </span>
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="w-fit rounded-full px-2 py-0.5 text-theme-xs font-medium" :class="statusClassMap[alert.status]">
+                  {{ alert.status }}
+                </span>
+                <button
+                  v-if="alert.status === '待处理'"
+                  type="button"
+                  class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-theme-xs font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
+                  @click="startAlert(alert.id)"
+                >
+                  开始处理
+                </button>
+                <button
+                  v-if="alert.status !== '已处理'"
+                  type="button"
+                  class="rounded-lg bg-brand-600 px-3 py-2 text-theme-xs font-medium text-white shadow-theme-xs hover:bg-brand-700"
+                  @click="resolveAlert(alert.id)"
+                >
+                  标记已处理
+                </button>
+              </div>
             </div>
           </article>
         </div>
@@ -142,6 +168,7 @@ import type { AlertRecord } from '@/stores/operations'
 const operations = useOperationsStore()
 const level = ref<AlertRecord['level'] | '全部等级'>('全部等级')
 const status = ref<AlertRecord['status'] | '全部状态'>('全部状态')
+const feedback = ref('')
 
 const stats = computed(() => [
   { label: '今日告警', value: operations.alerts.length, note: '含系统自动告警和人工记录' },
@@ -175,5 +202,22 @@ const statusClassMap: Record<AlertRecord['status'], string> = {
   待处理: 'bg-error-50 text-error-700 dark:bg-error-500/15 dark:text-error-400',
   处理中: 'bg-warning-50 text-warning-700 dark:bg-warning-500/15 dark:text-warning-400',
   已处理: 'bg-success-50 text-success-700 dark:bg-success-500/15 dark:text-success-400',
+}
+
+const addManualAlert = () => {
+  operations.addManualAlert()
+  level.value = '全部等级'
+  status.value = '全部状态'
+  feedback.value = '已新增一条人工巡房提醒'
+}
+
+const startAlert = (id: number) => {
+  operations.startAlert(id)
+  feedback.value = '告警已进入处理中'
+}
+
+const resolveAlert = (id: number) => {
+  operations.resolveAlert(id)
+  feedback.value = '告警已标记为已处理'
 }
 </script>
