@@ -27,7 +27,7 @@ const router = createRouter({
     {
       path: '/health',
       name: 'Health',
-      component: () => import('../views/PlaceholderView.vue'),
+      component: () => import('../views/HealthView.vue'),
       meta: {
         title: '健康监测',
         subtitle: '查看心率、血压、体温、睡眠和活动趋势',
@@ -36,7 +36,7 @@ const router = createRouter({
     {
       path: '/alerts',
       name: 'AlertsCenter',
-      component: () => import('../views/PlaceholderView.vue'),
+      component: () => import('../views/AlertsCenterView.vue'),
       meta: {
         title: '告警中心',
         subtitle: '处理摔倒、离床、心率异常和设备离线等告警',
@@ -45,7 +45,7 @@ const router = createRouter({
     {
       path: '/devices',
       name: 'Devices',
-      component: () => import('../views/PlaceholderView.vue'),
+      component: () => import('../views/DevicesView.vue'),
       meta: {
         title: '设备管理',
         subtitle: '管理智能手环、睡眠监测垫、门磁和呼叫按钮',
@@ -54,7 +54,7 @@ const router = createRouter({
     {
       path: '/care-records',
       name: 'CareRecords',
-      component: () => import('../views/PlaceholderView.vue'),
+      component: () => import('../views/CareRecordsView.vue'),
       meta: {
         title: '护理记录',
         subtitle: '记录巡房、服药、康复训练和异常处置过程',
@@ -63,7 +63,7 @@ const router = createRouter({
     {
       path: '/services',
       name: 'Services',
-      component: () => import('../views/PlaceholderView.vue'),
+      component: () => import('../views/ServicesView.vue'),
       meta: {
         title: '服务预约',
         subtitle: '安排上门护理、康复训练、健康咨询和陪诊服务',
@@ -72,7 +72,7 @@ const router = createRouter({
     {
       path: '/settings',
       name: 'Settings',
-      component: () => import('../views/PlaceholderView.vue'),
+      component: () => import('../views/SettingsView.vue'),
       meta: {
         title: '系统设置',
         subtitle: '配置机构、角色权限、通知规则和基础字典',
