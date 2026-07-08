@@ -8,40 +8,33 @@ cd "$SCRIPT_DIR"
 # 首次运行：交互式配置
 if [ ! -f ".env" ]; then
     echo "=============================="
-    echo "  首次启动，请选择数据库账号"
+    echo "  首次启动，请配置数据库信息"
     echo "=============================="
     echo ""
-    echo "A) reader   - 只读账号（密码: Reader123!）"
-    echo "B) admin    - 万能账号（密码: Admin123!）"
-    echo "C) backup   - 备份账号（密码: Backup123!）"
-    echo "D) 自定义"
+    echo "选择数据库账号："
+    echo "  A) reader   - 只读查询"
+    echo "  B) admin    - 万能账号"
+    echo "  C) backup   - 备份专用"
+    echo "  D) 自定义"
     echo ""
 
     read -p "请选择 [A/B/C/D]: " choice
 
     case $choice in
-        A|a)
-            DB_USERNAME=reader
-            DB_PASSWORD=Reader123!
-            ;;
-        B|b)
-            DB_USERNAME=admin
-            DB_PASSWORD=Admin123!
-            ;;
-        C|c)
-            DB_USERNAME=backup
-            DB_PASSWORD=Backup123!
-            ;;
+        A|a) DB_USERNAME=reader ;;
+        B|b) DB_USERNAME=admin ;;
+        C|c) DB_USERNAME=backup ;;
         D|d)
             read -p "请输入数据库用户名: " DB_USERNAME
-            read -s -p "请输入数据库密码: " DB_PASSWORD
-            echo ""
             ;;
         *)
             echo "❌ 无效选择"
             exit 1
             ;;
     esac
+
+    read -s -p "请输入数据库密码: " DB_PASSWORD
+    echo ""
 
     if [ -z "$DB_PASSWORD" ]; then
         echo "❌ 密码不能为空"
