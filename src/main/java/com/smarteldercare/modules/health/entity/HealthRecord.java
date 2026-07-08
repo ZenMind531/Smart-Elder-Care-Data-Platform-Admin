@@ -1,11 +1,12 @@
 package com.smarteldercare.modules.health.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.smarteldercare.common.entity.BaseEntity;
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import com.smarteldercare.common.BaseEntity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -27,4 +28,6 @@ public class HealthRecord extends BaseEntity {
     private LocalDateTime recordTime;
 
     private String remark;
+
+
 }

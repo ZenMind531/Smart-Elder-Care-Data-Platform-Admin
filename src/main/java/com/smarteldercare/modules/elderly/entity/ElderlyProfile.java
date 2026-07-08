@@ -1,7 +1,7 @@
 package com.smarteldercare.modules.elderly.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.smarteldercare.common.entity.BaseEntity;
+import com.smarteldercare.common.BaseEntity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 

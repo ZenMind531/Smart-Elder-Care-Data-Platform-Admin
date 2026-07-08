@@ -1,7 +1,7 @@
 package com.smarteldercare.modules.health.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.smarteldercare.common.entity.BaseEntity;
+import com.smarteldercare.common.BaseEntity;
 import java.time.LocalDateTime;
 import lombok.Data;
 import lombok.EqualsAndHashCode;

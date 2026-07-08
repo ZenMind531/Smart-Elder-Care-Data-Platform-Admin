@@ -12,17 +12,18 @@ import com.smarteldercare.modules.health.entity.HealthRecord;
 import com.smarteldercare.modules.health.entity.HealthWarning;
 import com.smarteldercare.modules.health.mapper.HealthRecordMapper;
 import com.smarteldercare.modules.health.mapper.HealthWarningMapper;
-import com.smarteldercare.modules.health.service.HealthRiskLevelService;
 import com.smarteldercare.modules.health.service.HealthRecordService;
+import com.smarteldercare.modules.health.service.HealthRiskLevelService;
 import com.smarteldercare.modules.health.vo.HealthRecordTrendVO;
 import com.smarteldercare.modules.health.vo.HealthRecordVO;
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
