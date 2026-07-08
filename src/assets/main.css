@@ -336,6 +336,14 @@ layer(base);
 .apexcharts-tooltip.apexcharts-theme-light {
   @apply gap-1 !rounded-lg !border-gray-200 p-3 !shadow-theme-sm dark:!border-gray-800 dark:!bg-gray-900;
 }
+.apexcharts-tooltip,
+.apexcharts-xaxistooltip {
+  pointer-events: none !important;
+}
+
+.apexcharts-marker {
+  transition: none !important;
+}
 
 .apexcharts-legend-text {
   @apply !pl-5 !text-gray-700 dark:!text-gray-400;

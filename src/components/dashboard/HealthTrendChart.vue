@@ -64,6 +64,9 @@ const chartOptions = computed(() => ({
     toolbar: {
       show: false,
     },
+    zoom: {
+      enabled: false,
+    },
     animations: {
       enabled: false,
     },
@@ -74,8 +77,12 @@ const chartOptions = computed(() => ({
     width: [3, 3],
   },
   markers: {
-    size: 4,
+    size: 0,
     strokeWidth: 0,
+    hover: {
+      size: 5,
+      sizeOffset: 0,
+    },
   },
   dataLabels: {
     enabled: false,
@@ -109,9 +116,30 @@ const chartOptions = computed(() => ({
     },
   },
   tooltip: {
+    shared: true,
+    intersect: false,
+    followCursor: false,
+    marker: {
+      show: false,
+    },
+    onDatasetHover: {
+      highlightDataSeries: false,
+    },
     y: {
       formatter(value: number) {
         return Math.round(value).toString()
+      },
+    },
+  },
+  states: {
+    hover: {
+      filter: {
+        type: 'none',
+      },
+    },
+    active: {
+      filter: {
+        type: 'none',
       },
     },
   },
