@@ -80,7 +80,7 @@ const chartOptions = computed(() => ({
     size: 0,
     strokeWidth: 0,
     hover: {
-      size: 5,
+      size: 0,
       sizeOffset: 0,
     },
   },
@@ -107,6 +107,12 @@ const chartOptions = computed(() => ({
     axisTicks: {
       show: false,
     },
+    crosshairs: {
+      show: false,
+    },
+    tooltip: {
+      enabled: false,
+    },
   },
   yaxis: {
     labels: {
@@ -116,20 +122,7 @@ const chartOptions = computed(() => ({
     },
   },
   tooltip: {
-    shared: true,
-    intersect: false,
-    followCursor: false,
-    marker: {
-      show: false,
-    },
-    onDatasetHover: {
-      highlightDataSeries: false,
-    },
-    y: {
-      formatter(value: number) {
-        return Math.round(value).toString()
-      },
-    },
+    enabled: false,
   },
   states: {
     hover: {
