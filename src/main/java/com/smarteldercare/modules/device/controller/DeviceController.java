@@ -46,6 +46,7 @@ public class DeviceController {
 
     @PutMapping("/{id}")
     public ApiResponse<Void> update(@PathVariable Long id, @RequestBody Device device) {
+        if (deviceService.getById(id) == null) return ApiResponse.error(404, "设备不存在");
         device.setId(id);
         deviceService.updateById(device);
         return ApiResponse.success();
@@ -53,6 +54,7 @@ public class DeviceController {
 
     @DeleteMapping("/{id}")
     public ApiResponse<Void> delete(@PathVariable Long id) {
+        if (deviceService.getById(id) == null) return ApiResponse.error(404, "设备不存在");
         deviceService.removeById(id);
         return ApiResponse.success();
     }

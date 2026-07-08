@@ -1,7 +1,9 @@
 package com.smarteldercare.modules.device.entity;
 
+import com.baomidou.mybatisplus.annotation.TableName;
 import com.smarteldercare.common.BaseEntity;
 
+@TableName("device")
 public class Device extends BaseEntity {
     private String deviceCode;
     private String deviceName;

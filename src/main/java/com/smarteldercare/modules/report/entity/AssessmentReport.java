@@ -1,8 +1,10 @@
 package com.smarteldercare.modules.report.entity;
 
+import com.baomidou.mybatisplus.annotation.TableName;
 import com.smarteldercare.common.BaseEntity;
 import java.time.LocalDateTime;
 
+@TableName("assessment_report")
 public class AssessmentReport extends BaseEntity {
     private Long elderlyId;
     private String reportTitle;

@@ -1,7 +1,9 @@
 package com.smarteldercare.modules.population.entity;
 
+import com.baomidou.mybatisplus.annotation.TableName;
 import com.smarteldercare.common.BaseEntity;
 
+@TableName("key_population")
 public class KeyPopulation extends BaseEntity {
     private Long elderlyId;
     private String populationType;

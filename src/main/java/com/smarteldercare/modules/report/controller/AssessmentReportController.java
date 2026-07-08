@@ -46,6 +46,7 @@ public class AssessmentReportController {
 
     @PutMapping("/{id}")
     public ApiResponse<Void> update(@PathVariable Long id, @RequestBody AssessmentReport report) {
+        if (assessmentReportService.getById(id) == null) return ApiResponse.error(404, "报告不存在");
         report.setId(id);
         assessmentReportService.updateById(report);
         return ApiResponse.success();
@@ -53,6 +54,7 @@ public class AssessmentReportController {
 
     @DeleteMapping("/{id}")
     public ApiResponse<Void> delete(@PathVariable Long id) {
+        if (assessmentReportService.getById(id) == null) return ApiResponse.error(404, "报告不存在");
         assessmentReportService.removeById(id);
         return ApiResponse.success();
     }

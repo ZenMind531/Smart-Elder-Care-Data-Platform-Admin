@@ -1,8 +1,11 @@
 package com.smarteldercare.common;
 
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
 import java.time.LocalDateTime;
 
 public class BaseEntity {
+    @TableId(type = IdType.AUTO)
     private Long id;
     private LocalDateTime createTime;
     private LocalDateTime updateTime;

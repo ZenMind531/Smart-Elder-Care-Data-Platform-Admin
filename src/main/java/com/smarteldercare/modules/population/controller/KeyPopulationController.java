@@ -46,6 +46,7 @@ public class KeyPopulationController {
 
     @PutMapping("/{id}")
     public ApiResponse<Void> update(@PathVariable Long id, @RequestBody KeyPopulation population) {
+        if (keyPopulationService.getById(id) == null) return ApiResponse.error(404, "重点人群记录不存在");
         population.setId(id);
         keyPopulationService.updateById(population);
         return ApiResponse.success();
@@ -53,6 +54,7 @@ public class KeyPopulationController {
 
     @DeleteMapping("/{id}")
     public ApiResponse<Void> delete(@PathVariable Long id) {
+        if (keyPopulationService.getById(id) == null) return ApiResponse.error(404, "重点人群记录不存在");
         keyPopulationService.removeById(id);
         return ApiResponse.success();
     }
