@@ -342,7 +342,6 @@ layer(base);
 }
 
 .apexcharts-marker {
-  pointer-events: none !important;
   transition: none !important;
 }
 

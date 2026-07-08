@@ -77,10 +77,11 @@ const chartOptions = computed(() => ({
     width: [3, 3],
   },
   markers: {
-    size: 0,
-    strokeWidth: 0,
+    size: 5,
+    strokeWidth: 2,
+    strokeColors: '#ffffff',
     hover: {
-      size: 0,
+      size: 5,
       sizeOffset: 0,
     },
   },
@@ -122,7 +123,18 @@ const chartOptions = computed(() => ({
     },
   },
   tooltip: {
-    enabled: false,
+    enabled: true,
+    shared: false,
+    intersect: true,
+    followCursor: false,
+    marker: {
+      show: true,
+    },
+    y: {
+      formatter(value: number) {
+        return Math.round(value).toString()
+      },
+    },
   },
   states: {
     hover: {
