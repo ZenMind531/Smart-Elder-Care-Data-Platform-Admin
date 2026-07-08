@@ -58,6 +58,33 @@ const series = computed(() => [
   },
 ])
 
+interface TooltipContext {
+  series: number[][]
+  dataPointIndex: number
+}
+
+const formatChange = (current: number, previous?: number, unit = '') => {
+  if (typeof previous !== 'number') {
+    return '首日记录'
+  }
+
+  const delta = current - previous
+
+  if (delta === 0) {
+    return '较前日持平'
+  }
+
+  return `较前日 ${delta > 0 ? '+' : ''}${delta}${unit}`
+}
+
+const getHealthTrendStatus = (heartRate: number, bloodPressure: number) => {
+  if (heartRate >= 78 || bloodPressure >= 130) {
+    return '建议关注整体波动'
+  }
+
+  return '整体趋势稳定'
+}
+
 const chartOptions = computed(() => ({
   chart: {
     fontFamily: 'Outfit, sans-serif',
@@ -128,7 +155,35 @@ const chartOptions = computed(() => ({
     intersect: true,
     followCursor: false,
     marker: {
-      show: true,
+      show: false,
+    },
+    custom({ series, dataPointIndex }: TooltipContext) {
+      const day = dashboard.healthTrend.categories[dataPointIndex] ?? ''
+      const heartRate = series[0]?.[dataPointIndex] ?? dashboard.healthTrend.heartRate[dataPointIndex] ?? 0
+      const bloodPressure =
+        series[1]?.[dataPointIndex] ?? dashboard.healthTrend.bloodPressure[dataPointIndex] ?? 0
+      const previousHeartRate = dashboard.healthTrend.heartRate[dataPointIndex - 1]
+      const previousBloodPressure = dashboard.healthTrend.bloodPressure[dataPointIndex - 1]
+      const status = getHealthTrendStatus(heartRate, bloodPressure)
+
+      return `
+        <div class="health-trend-tooltip">
+          <div class="health-trend-tooltip__header">
+            <span>${day}健康明细</span>
+            <strong>${status}</strong>
+          </div>
+          <div class="health-trend-tooltip__row">
+            <span><i class="health-trend-tooltip__dot health-trend-tooltip__dot--heart"></i>平均心率</span>
+            <strong>${heartRate} bpm</strong>
+          </div>
+          <p>${formatChange(heartRate, previousHeartRate, ' bpm')}</p>
+          <div class="health-trend-tooltip__row">
+            <span><i class="health-trend-tooltip__dot health-trend-tooltip__dot--pressure"></i>平均收缩压</span>
+            <strong>${bloodPressure} mmHg</strong>
+          </div>
+          <p>${formatChange(bloodPressure, previousBloodPressure, ' mmHg')}</p>
+        </div>
+      `
     },
     y: {
       formatter(value: number) {
