@@ -20,9 +20,11 @@ Thumbs.db
 *.log
 logs/
 
-# Environment files
+# Environment files - keep real credentials out
 .env
-.env.*
+.env.local
+.env.dev
+.env.prod
 
 # Local Codex/agent workspace files
 .codex/
