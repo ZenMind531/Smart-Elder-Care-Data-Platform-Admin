@@ -34,6 +34,7 @@ public class JwtInterceptor implements HandlerInterceptor {
 
         } catch (Exception e) {
             // token 无效或过期
+            e.printStackTrace();  // ← 加这一行
             response.setStatus(401);
             response.setContentType("application/json;charset=UTF-8");
             response.getWriter().write("{\"code\":401,\"message\":\"to ken无效或已过期\"}");
