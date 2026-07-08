@@ -60,6 +60,7 @@ const series = computed(() => [
 
 interface TooltipContext {
   series: number[][]
+  seriesIndex: number
   dataPointIndex: number
 }
 
@@ -104,11 +105,11 @@ const chartOptions = computed(() => ({
     width: [3, 3],
   },
   markers: {
-    size: 5,
+    size: 6,
     strokeWidth: 2,
     strokeColors: '#ffffff',
     hover: {
-      size: 5,
+      size: 6,
       sizeOffset: 0,
     },
   },
@@ -157,7 +158,7 @@ const chartOptions = computed(() => ({
     marker: {
       show: false,
     },
-    custom({ series, dataPointIndex }: TooltipContext) {
+    custom({ series, seriesIndex, dataPointIndex }: TooltipContext) {
       const day = dashboard.healthTrend.categories[dataPointIndex] ?? ''
       const heartRate = series[0]?.[dataPointIndex] ?? dashboard.healthTrend.heartRate[dataPointIndex] ?? 0
       const bloodPressure =
@@ -165,9 +166,10 @@ const chartOptions = computed(() => ({
       const previousHeartRate = dashboard.healthTrend.heartRate[dataPointIndex - 1]
       const previousBloodPressure = dashboard.healthTrend.bloodPressure[dataPointIndex - 1]
       const status = getHealthTrendStatus(heartRate, bloodPressure)
+      const placementClass = seriesIndex === 1 ? 'health-trend-tooltip--below' : 'health-trend-tooltip--above'
 
       return `
-        <div class="health-trend-tooltip">
+        <div class="health-trend-tooltip ${placementClass}">
           <div class="health-trend-tooltip__header">
             <span>${day}健康明细</span>
             <strong>${status}</strong>
