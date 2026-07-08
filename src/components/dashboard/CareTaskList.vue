@@ -19,7 +19,7 @@
       </RouterLink>
     </div>
 
-    <div class="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+    <div class="mt-5 grid gap-3 md:grid-cols-2">
       <article
         v-for="task in dashboard.careTasks"
         :key="task.id"

@@ -30,9 +30,88 @@
       </div>
     </div>
 
-    <div class="mt-5 max-w-full overflow-x-auto custom-scrollbar">
+    <div class="mt-4 flex flex-wrap items-center gap-4 text-theme-xs text-gray-500 dark:text-gray-400">
+      <span class="inline-flex items-center gap-2">
+        <span class="size-2.5 rounded-full bg-teal-600"></span>
+        平均心率
+      </span>
+      <span class="inline-flex items-center gap-2">
+        <span class="size-2.5 rounded-full bg-warning-500"></span>
+        平均收缩压
+      </span>
+    </div>
+
+    <div class="mt-3 max-w-full overflow-x-auto custom-scrollbar">
       <div class="min-w-[720px] xl:min-w-full">
-        <VueApexCharts type="line" height="310" :options="chartOptions" :series="series" />
+        <svg
+          class="h-[310px] w-full overflow-visible"
+          :viewBox="`0 0 ${chartWidth} ${chartHeight}`"
+          role="img"
+          aria-label="近 7 日平均心率与平均收缩压趋势图"
+        >
+          <g>
+            <line
+              v-for="tick in yTicks"
+              :key="tick"
+              :x1="plotLeft"
+              :x2="plotRight"
+              :y1="scaleY(tick)"
+              :y2="scaleY(tick)"
+              class="stroke-gray-100 dark:stroke-gray-800"
+              stroke-dasharray="4 5"
+            />
+            <text
+              v-for="tick in yTicks"
+              :key="`label-${tick}`"
+              :x="plotLeft - 14"
+              :y="scaleY(tick) + 4"
+              text-anchor="end"
+              class="fill-gray-500 text-[11px] tabular-nums dark:fill-gray-400"
+            >
+              {{ tick }}
+            </text>
+          </g>
+
+          <path :d="pressurePath" fill="none" stroke="#f79009" stroke-linecap="round" stroke-width="3" />
+          <path :d="heartPath" fill="none" stroke="#0d9488" stroke-linecap="round" stroke-width="3" />
+
+          <g v-for="point in pressurePoints" :key="`pressure-${point.label}`">
+            <circle :cx="point.x" :cy="point.y" r="4.5" fill="#f79009" stroke="#ffffff" stroke-width="2" />
+            <text
+              :x="point.x"
+              :y="point.y + 21"
+              text-anchor="middle"
+              class="fill-warning-600 text-[11px] font-semibold tabular-nums dark:fill-warning-400"
+            >
+              {{ point.value }}
+            </text>
+          </g>
+
+          <g v-for="point in heartPoints" :key="`heart-${point.label}`">
+            <circle :cx="point.x" :cy="point.y" r="4.5" fill="#0d9488" stroke="#ffffff" stroke-width="2" />
+            <text
+              :x="point.x"
+              :y="point.y - 12"
+              text-anchor="middle"
+              class="fill-teal-700 text-[11px] font-semibold tabular-nums dark:fill-teal-300"
+            >
+              {{ point.value }}
+            </text>
+          </g>
+
+          <g>
+            <text
+              v-for="point in heartPoints"
+              :key="`day-${point.label}`"
+              :x="point.x"
+              :y="chartHeight - 12"
+              text-anchor="middle"
+              class="fill-gray-500 text-[12px] dark:fill-gray-400"
+            >
+              {{ point.label }}
+            </text>
+          </g>
+        </svg>
       </div>
     </div>
   </section>
@@ -40,170 +119,69 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import VueApexCharts from 'vue3-apexcharts'
 import { useDashboardStore } from '@/stores/dashboard'
+
+interface ChartPoint {
+  label: string
+  value: number
+  x: number
+  y: number
+}
 
 const dashboard = useDashboardStore()
 const options = ['本周', '本月']
 const selected = ref('本周')
 
-const series = computed(() => [
-  {
-    name: '平均心率',
-    data: dashboard.healthTrend.heartRate,
-  },
-  {
-    name: '平均收缩压',
-    data: dashboard.healthTrend.bloodPressure,
-  },
-])
+const chartWidth = 720
+const chartHeight = 310
+const plotLeft = 48
+const plotRight = 696
+const plotTop = 44
+const plotBottom = 264
+const minValue = 70
+const maxValue = 140
+const yTicks = [70, 80, 90, 100, 110, 120, 130, 140]
 
-interface TooltipContext {
-  series: number[][]
-  seriesIndex: number
-  dataPointIndex: number
+const scaleX = (index: number) => {
+  const steps = Math.max(dashboard.healthTrend.categories.length - 1, 1)
+
+  return plotLeft + (index / steps) * (plotRight - plotLeft)
 }
 
-const formatChange = (current: number, previous?: number, unit = '') => {
-  if (typeof previous !== 'number') {
-    return '首日记录'
+const scaleY = (value: number) =>
+  plotBottom - ((value - minValue) / (maxValue - minValue)) * (plotBottom - plotTop)
+
+const createPoints = (values: number[]) =>
+  values.map((value, index) => ({
+    label: dashboard.healthTrend.categories[index] ?? '',
+    value,
+    x: scaleX(index),
+    y: scaleY(value),
+  }))
+
+const smoothPath = (points: ChartPoint[]) => {
+  if (points.length === 0) {
+    return ''
   }
 
-  const delta = current - previous
-
-  if (delta === 0) {
-    return '较前日持平'
+  if (points.length === 1) {
+    return `M ${points[0].x} ${points[0].y}`
   }
 
-  return `较前日 ${delta > 0 ? '+' : ''}${delta}${unit}`
+  return points.reduce((path, point, index) => {
+    if (index === 0) {
+      return `M ${point.x} ${point.y}`
+    }
+
+    const previous = points[index - 1]
+    const controlX = previous.x + (point.x - previous.x) / 2
+
+    return `${path} C ${controlX} ${previous.y}, ${controlX} ${point.y}, ${point.x} ${point.y}`
+  }, '')
 }
 
-const getHealthTrendStatus = (heartRate: number, bloodPressure: number) => {
-  if (heartRate >= 78 || bloodPressure >= 130) {
-    return '建议关注整体波动'
-  }
-
-  return '整体趋势稳定'
-}
-
-const chartOptions = computed(() => ({
-  chart: {
-    fontFamily: 'Outfit, sans-serif',
-    toolbar: {
-      show: false,
-    },
-    zoom: {
-      enabled: false,
-    },
-    animations: {
-      enabled: false,
-    },
-  },
-  colors: ['#0d9488', '#f79009'],
-  stroke: {
-    curve: 'smooth',
-    width: [3, 3],
-  },
-  markers: {
-    size: 6,
-    strokeWidth: 2,
-    strokeColors: '#ffffff',
-    hover: {
-      size: 6,
-      sizeOffset: 0,
-    },
-  },
-  dataLabels: {
-    enabled: false,
-  },
-  grid: {
-    borderColor: '#E4E7EC',
-    strokeDashArray: 4,
-  },
-  legend: {
-    position: 'top',
-    horizontalAlign: 'left',
-    fontFamily: 'Outfit',
-    markers: {
-      radius: 99,
-    },
-  },
-  xaxis: {
-    categories: dashboard.healthTrend.categories,
-    axisBorder: {
-      show: false,
-    },
-    axisTicks: {
-      show: false,
-    },
-    crosshairs: {
-      show: false,
-    },
-    tooltip: {
-      enabled: false,
-    },
-  },
-  yaxis: {
-    labels: {
-      formatter(value: number) {
-        return Math.round(value).toString()
-      },
-    },
-  },
-  tooltip: {
-    enabled: true,
-    shared: false,
-    intersect: true,
-    followCursor: false,
-    marker: {
-      show: false,
-    },
-    custom({ series, seriesIndex, dataPointIndex }: TooltipContext) {
-      const day = dashboard.healthTrend.categories[dataPointIndex] ?? ''
-      const heartRate = series[0]?.[dataPointIndex] ?? dashboard.healthTrend.heartRate[dataPointIndex] ?? 0
-      const bloodPressure =
-        series[1]?.[dataPointIndex] ?? dashboard.healthTrend.bloodPressure[dataPointIndex] ?? 0
-      const previousHeartRate = dashboard.healthTrend.heartRate[dataPointIndex - 1]
-      const previousBloodPressure = dashboard.healthTrend.bloodPressure[dataPointIndex - 1]
-      const status = getHealthTrendStatus(heartRate, bloodPressure)
-      const placementClass = seriesIndex === 1 ? 'health-trend-tooltip--below' : 'health-trend-tooltip--above'
-
-      return `
-        <div class="health-trend-tooltip ${placementClass}">
-          <div class="health-trend-tooltip__header">
-            <span>${day}健康明细</span>
-            <strong>${status}</strong>
-          </div>
-          <div class="health-trend-tooltip__row">
-            <span><i class="health-trend-tooltip__dot health-trend-tooltip__dot--heart"></i>平均心率</span>
-            <strong>${heartRate} bpm</strong>
-          </div>
-          <p>${formatChange(heartRate, previousHeartRate, ' bpm')}</p>
-          <div class="health-trend-tooltip__row">
-            <span><i class="health-trend-tooltip__dot health-trend-tooltip__dot--pressure"></i>平均收缩压</span>
-            <strong>${bloodPressure} mmHg</strong>
-          </div>
-          <p>${formatChange(bloodPressure, previousBloodPressure, ' mmHg')}</p>
-        </div>
-      `
-    },
-    y: {
-      formatter(value: number) {
-        return Math.round(value).toString()
-      },
-    },
-  },
-  states: {
-    hover: {
-      filter: {
-        type: 'none',
-      },
-    },
-    active: {
-      filter: {
-        type: 'none',
-      },
-    },
-  },
-}))
+const heartPoints = computed(() => createPoints(dashboard.healthTrend.heartRate))
+const pressurePoints = computed(() => createPoints(dashboard.healthTrend.bloodPressure))
+const heartPath = computed(() => smoothPath(heartPoints.value))
+const pressurePath = computed(() => smoothPath(pressurePoints.value))
 </script>

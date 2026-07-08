@@ -27,26 +27,19 @@
         <OverviewMetrics />
       </div>
 
-      <div class="col-span-12 space-y-6 xl:col-span-7">
-        <CareProgressCard />
-        <HealthTrendChart />
-      </div>
+      <div class="col-span-12 grid grid-cols-12 items-start gap-4 md:gap-6">
+        <div class="col-span-12 space-y-6 xl:col-span-7">
+          <CareProgressCard />
+          <HealthTrendChart />
+          <ElderStatusTable />
+          <CareTaskList />
+        </div>
 
-      <div class="col-span-12 xl:col-span-5">
-        <RealtimeAlerts />
-      </div>
-
-      <div class="col-span-12 xl:col-span-7">
-        <ElderStatusTable />
-      </div>
-
-      <div class="col-span-12 space-y-6 xl:col-span-5">
-        <AlertTrendChart />
-        <DeviceStatusCard />
-      </div>
-
-      <div class="col-span-12">
-        <CareTaskList />
+        <div class="col-span-12 space-y-6 xl:col-span-5">
+          <RealtimeAlerts />
+          <AlertTrendChart />
+          <DeviceStatusCard />
+        </div>
       </div>
     </div>
   </AdminLayout>
