@@ -38,3 +38,6 @@ logs/
 # Local training log drafts
 student_log_work.docx
 *学生实训日志*.docx
+
+# Docker 构建产物
+docker-init/

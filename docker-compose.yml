@@ -1,0 +1,51 @@
+# 智慧养老平台 - Docker 部署
+#
+# 在空白服务器上一键启动：
+#   1. 安装 Docker
+#   2. docker compose up -d
+#
+# 首次部署时会自动：
+#   - 创建 MySQL 数据库
+#   - 导入所有建表 SQL
+#   - 启动后端服务
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: smart-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root123}
+      MYSQL_DATABASE: smart_eldercare
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./docker-init:/docker-entrypoint-initdb.d
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: .
+    container_name: smart-backend
+    environment:
+      DB_USERNAME: ${DB_USERNAME:-root}
+      DB_PASSWORD: ${DB_PASSWORD:-root123}
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/smart_eldercare?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai
+    ports:
+      - "8080:8080"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - backend
+
+volumes:
+  mysql-data:
+
+networks:
+  backend:
