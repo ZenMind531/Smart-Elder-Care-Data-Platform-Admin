@@ -32,7 +32,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements
             throw new
                     IllegalArgumentException("密码错误");
         }
-
+        if ("pending".equals(user.getStatus())) {
+            throw new
+                    IllegalArgumentException("账号正在审核中，请等待管理员审核");
+        }
         // ③ 查状态
         if ("disabled".equals(user.getStatus())) {
             throw new
@@ -72,7 +75,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements
         user.setPassword(request.getPassword());  // 实际要加密，先明文
         user.setRealName(request.getRealName());
         user.setPhoneNumber(request.getPhoneNumber());
-        user.setStatus("enabled");
+        user.setStatus("pending");
         this.baseMapper.insert(user);
     }
 
