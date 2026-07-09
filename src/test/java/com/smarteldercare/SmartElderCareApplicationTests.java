@@ -9,5 +9,4 @@ class SmartElderCareApplicationTests {
     @Test
     void contextLoads() {
     }
-
 }
