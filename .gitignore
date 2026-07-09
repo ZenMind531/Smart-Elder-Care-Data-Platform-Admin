@@ -41,3 +41,4 @@ student_log_work.docx
 
 # Docker 构建产物
 docker-init/
+.env.bat
