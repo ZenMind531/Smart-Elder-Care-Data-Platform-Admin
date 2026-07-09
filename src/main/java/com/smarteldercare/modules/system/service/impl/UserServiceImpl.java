@@ -4,15 +4,20 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.smarteldercare.common.utils.JwtUtil;
 import com.smarteldercare.modules.system.dto.RegisterRequest;
+import com.smarteldercare.modules.system.entity.Role;
 import com.smarteldercare.modules.system.entity.User;
+import com.smarteldercare.modules.system.mapper.RoleMapper;
 import com.smarteldercare.modules.system.mapper.UserMapper;
 import com.smarteldercare.modules.system.service.UserService;
 import com.smarteldercare.modules.system.vo.LoginResult;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements
         UserService {
+    @Autowired
+    private RoleMapper roleMapper;
     @Override
     public LoginResult login(String username, String
             password) {
@@ -55,7 +60,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements
         info.setId(user.getId());
         info.setUsername(user.getUsername());
         info.setRealName(user.getRealName());
-        info.setRoleName("管理员"); //暂时写死，后面查角色表再改
+
+
+        Role role = roleMapper.selectById(user.getRoleId());
+        info.setRoleName(role != null ? role.getRoleName() : "未知角色");
 
         result.setUserInfo(info);
         return result;
