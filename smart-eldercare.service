@@ -1,0 +1,15 @@
+[Unit]
+Description=智慧养老平台后端服务
+After=network.target mysql.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/Smart-Elder-Care-Data-Platform-Admin
+EnvironmentFile=/root/Smart-Elder-Care-Data-Platform-Admin/.env
+ExecStart=/usr/bin/java -jar /root/Smart-Elder-Care-Data-Platform-Admin/target/smart-elder-care-0.0.1-SNAPSHOT.jar
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
