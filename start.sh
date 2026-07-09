@@ -55,20 +55,9 @@ source .env
 
 echo "✅ 数据库用户: $DB_USERNAME"
 
-# 测试数据库连接
-echo "🔄 正在测试数据库连接..."
-mysql -u "$DB_USERNAME" -p"$DB_PASSWORD" -e "SELECT 1;" > /dev/null 2>&1
-if [ $? -ne 0 ]; then
-    echo "❌ 数据库连接失败！请检查用户名和密码"
-    echo "   运行: rm .env && ./start.sh 重新配置"
-    exit 1
-fi
-echo "✅ 数据库连接成功"
-echo ""
-
-# 启动 Spring Boot
+# 启动 Spring Boot（直接传入变量，不管 source 是否生效）
 echo "🚀 正在启动后端服务..."
 echo "   启动后访问: http://localhost:8080"
 echo ""
 
-mvn spring-boot:run
+DB_USERNAME="$DB_USERNAME" DB_PASSWORD="$DB_PASSWORD" mvn spring-boot:run
