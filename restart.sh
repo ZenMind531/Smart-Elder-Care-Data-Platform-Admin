@@ -10,7 +10,6 @@ if [ ! -f ".env" ]; then
     echo "❌ .env 不存在，请先运行 ./start.sh 配置数据库信息"
     exit 1
 fi
-source .env
 
 echo "🔄 正在编译..."
 mvn clean package -DskipTests -q
