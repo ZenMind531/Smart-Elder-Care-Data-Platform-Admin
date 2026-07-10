@@ -41,10 +41,8 @@ if [ ! -f ".env" ]; then
         exit 1
     fi
 
-    cat > .env << EOF
-export DB_USERNAME=$DB_USERNAME
-export DB_PASSWORD=$DB_PASSWORD
-EOF
+    printf "export DB_USERNAME=%q\n" "$DB_USERNAME" > .env
+    printf "export DB_PASSWORD=%q\n" "$DB_PASSWORD" >> .env
 
     echo "✅ 配置已保存到 .env"
     echo ""

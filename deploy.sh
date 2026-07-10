@@ -20,6 +20,10 @@ fi
 # 检查 docker compose
 if ! docker compose version &> /dev/null; then
     echo "🔄 正在安装 Docker Compose..."
+    if [ "$(id -u)" -ne 0 ]; then
+        echo "❌ 需要 root 权限安装 Docker Compose，请用 sudo 执行"
+        exit 1
+    fi
     apt update && apt install -y docker-compose-plugin
 fi
 
@@ -30,11 +34,13 @@ if [ ! -f ".env" ]; then
     echo ""
     MYSQL_PASS=${input_pass:-root123}
 
-    cat > .env << EOF
-MYSQL_ROOT_PASSWORD=$MYSQL_PASS
+    # 用单引号包裹（避免 $ ` 被 shell 展开）
+    cat > .env << 'EOF'
+MYSQL_ROOT_PASSWORD=__MYSQL_PASS__
 DB_USERNAME=root
-DB_PASSWORD=$MYSQL_PASS
+DB_PASSWORD=__MYSQL_PASS__
 EOF
+    sed -i "s|__MYSQL_PASS__|$MYSQL_PASS|g" .env
     echo "✅ 配置已保存"
 fi
 
@@ -42,8 +48,13 @@ fi
 echo "🔄 正在准备 SQL 文件..."
 mkdir -p docker-init
 > docker-init/init.sql
-for f in src/main/resources/sql/*.sql; do
-    cat "$f" | sed '/CREATE DATABASE/d; /USE /d' >> docker-init/init.sql
+sql_files=(src/main/resources/sql/*.sql)
+if [ ! -e "${sql_files[0]}" ]; then
+    echo "❌ src/main/resources/sql/ 下没有 .sql 文件"
+    exit 1
+fi
+for f in "${sql_files[@]}"; do
+    sed '/CREATE DATABASE/d; /USE /d' "$f" >> docker-init/init.sql
     echo "" >> docker-init/init.sql
 done
 

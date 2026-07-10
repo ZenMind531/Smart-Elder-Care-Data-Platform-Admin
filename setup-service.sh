@@ -2,14 +2,29 @@
 # 一键安装 systemd 服务（开机自启）
 # 在服务器上执行一次即可
 
+set -e
+
 cd "$(dirname "$0")"
 
-echo "🔄 正在编译打包..."
+# 检查 Maven，没有就装
+if ! command -v mvn &> /dev/null; then
+    echo "🔄 正在安装 Maven..."
+    apt update && apt install -y maven
+fi
+
+# 加载环境变量
+if [ ! -f ".env" ]; then
+    echo "❌ .env 不存在，请先运行 ./start.sh 配置数据库信息"
+    exit 1
+fi
 source .env
+
+echo "🔄 正在编译打包..."
 mvn clean package -DskipTests -q
 
 echo "🔄 安装 service..."
-cp smart-eldercare.service /etc/systemd/system/
+PROJECT_DIR="$(pwd)"
+sed "s|__PROJECT_DIR__|$PROJECT_DIR|g" smart-eldercare.service > /etc/systemd/system/smart-eldercare.service
 systemctl daemon-reload
 systemctl enable smart-eldercare
 systemctl start smart-eldercare
