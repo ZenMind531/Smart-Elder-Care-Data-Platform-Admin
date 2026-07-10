@@ -2,17 +2,29 @@ package com.smarteldercare.modules.device.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.smarteldercare.common.result.PageResult;
+import com.smarteldercare.modules.device.dto.DeviceDTO;
+import com.smarteldercare.modules.device.dto.DeviceStatusDTO;
 import com.smarteldercare.modules.device.entity.Device;
-
+import com.smarteldercare.modules.device.vo.DeviceVO;
 import java.util.List;
 
 public interface DeviceService extends IService<Device> {
 
-    PageResult<Device> pageDevices(Long page, Long size, String deviceType, String status, Long elderlyId);
+    PageResult<DeviceVO> listDevices(Long page, Long size, String deviceType, String status);
 
-    List<Device> listByElderlyId(Long elderlyId);
+    DeviceVO getDevice(Long id);
 
-    void bindDevice(Long deviceId, Long elderlyId);
+    DeviceVO createDevice(DeviceDTO dto);
 
-    void unbindDevice(Long deviceId);
+    DeviceVO updateDevice(Long id, DeviceDTO dto);
+
+    void deleteDevice(Long id);
+
+    List<DeviceVO> listDevicesByElderlyId(Long elderlyId);
+
+    DeviceVO bindDevice(Long id, Long elderlyId);
+
+    DeviceVO unbindDevice(Long id);
+
+    DeviceVO updateDeviceStatus(Long id, DeviceStatusDTO dto);
 }

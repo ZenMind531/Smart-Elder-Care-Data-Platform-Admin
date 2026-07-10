@@ -34,6 +34,10 @@ public class ApiResponse<T> {
         return new ApiResponse<>(code, message, null, LocalDateTime.now());
     }
 
+    public static <T> ApiResponse<T> error(Integer code, String message) {
+        return fail(code, message);
+    }
+
     public static <T> ApiResponse<T> of(ResultCode resultCode, T data) {
         return new ApiResponse<>(resultCode.getCode(), resultCode.getMessage(), data, LocalDateTime.now());
     }

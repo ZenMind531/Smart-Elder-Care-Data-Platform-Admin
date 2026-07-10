@@ -17,6 +17,8 @@ public class DeviceVO {
 
     private Long elderlyId;
 
+    private String elderlyName;
+
     private String status;
 
     private String remark;
