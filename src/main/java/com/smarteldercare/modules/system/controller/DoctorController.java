@@ -63,7 +63,7 @@ public class DoctorController {
         if (doctor == null) {
             return
                     ApiResponse.error(ResultCode.NOT_FOUND.getCode(),
-                            "没有这个医生");
+                            "没有他这个医生");
         }
         return ApiResponse.success(doctor);
     }
@@ -89,7 +89,7 @@ public class DoctorController {
         return ApiResponse.success();
     }
 //ccccccc
-
+//11111
     // ⑤ 删除医生
     @DeleteMapping("/{id}")
     public ApiResponse<?> delete(@PathVariable Long id) {
