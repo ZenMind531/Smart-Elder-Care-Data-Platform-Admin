@@ -4,8 +4,10 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.smarteldercare.common.utils.JwtUtil;
 import com.smarteldercare.modules.system.dto.RegisterRequest;
+import com.smarteldercare.modules.system.entity.Doctor;
 import com.smarteldercare.modules.system.entity.Role;
 import com.smarteldercare.modules.system.entity.User;
+import com.smarteldercare.modules.system.mapper.DoctorMapper;
 import com.smarteldercare.modules.system.mapper.RoleMapper;
 import com.smarteldercare.modules.system.mapper.UserMapper;
 import com.smarteldercare.modules.system.service.UserService;
@@ -55,8 +57,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements
         LoginResult result = new LoginResult();
         result.setToken(token);
 
-        LoginResult.UserInfo info = new
-                LoginResult.UserInfo();
+        LoginResult.UserInfo info = new LoginResult.UserInfo();
         info.setId(user.getId());
         info.setUsername(user.getUsername());
         info.setRealName(user.getRealName());
@@ -68,6 +69,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements
         result.setUserInfo(info);
         return result;
     }
+    @Autowired
+    private DoctorMapper doctorMapper;
     @Override
     public void register(RegisterRequest request) {
         // 查用户名是否已存在
@@ -83,8 +86,20 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements
         user.setPassword(request.getPassword());  // 实际要加密，先明文
         user.setRealName(request.getRealName());
         user.setPhoneNumber(request.getPhoneNumber());
+        user.setRoleId(request.getRoleId());
         user.setStatus("pending");
+
+        Doctor doctor = new Doctor();
+        doctor.setDoctorName(request.getRealName());
+        doctor.setGender(request.getGender());
+        doctor.setDepartment(request.getDepartment());
+        doctor.setTitle(request.getTitle());
+        doctor.setStatus("pending");
+
+
+
         this.baseMapper.insert(user);
+         doctorMapper.insert(doctor);
     }
 
     @Override
