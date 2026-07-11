@@ -3,6 +3,7 @@ package com.smarteldercare.modules.health.controller;
 import com.smarteldercare.common.result.ApiResponse;
 import com.smarteldercare.common.result.PageResult;
 import com.smarteldercare.modules.health.dto.HealthRecordDTO;
+import com.smarteldercare.modules.health.dto.HealthRecordStatusDTO;
 import com.smarteldercare.modules.health.service.HealthRecordService;
 import com.smarteldercare.modules.health.vo.HealthRecordTrendVO;
 import com.smarteldercare.modules.health.vo.HealthRecordVO;
@@ -11,6 +12,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -55,6 +57,13 @@ public class HealthRecordController {
     @DeleteMapping("/{id}")
     public ApiResponse<Void> delete(@PathVariable Long id) {
         healthRecordService.deleteHealthRecord(id);
+        return ApiResponse.success();
+    }
+
+    @PatchMapping("/{id}/status")
+    public ApiResponse<Void> updateStatus(@PathVariable Long id,
+                                          @Valid @RequestBody HealthRecordStatusDTO dto) {
+        healthRecordService.updateHealthRecordStatus(id, dto);
         return ApiResponse.success();
     }
 }

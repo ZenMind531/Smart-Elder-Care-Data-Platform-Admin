@@ -27,6 +27,8 @@ public class HealthRecordVO {
 
     private String remark;
 
+    private String status;
+
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createTime;
 

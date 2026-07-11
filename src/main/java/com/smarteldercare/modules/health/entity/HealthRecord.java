@@ -29,5 +29,6 @@ public class HealthRecord extends BaseEntity {
 
     private String remark;
 
+    private String status;
 
 }

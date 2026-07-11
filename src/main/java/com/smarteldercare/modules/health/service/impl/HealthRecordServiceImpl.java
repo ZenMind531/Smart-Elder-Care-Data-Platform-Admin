@@ -8,6 +8,7 @@ import com.smarteldercare.common.result.PageResult;
 import com.smarteldercare.common.result.ResultCode;
 import com.smarteldercare.modules.elderly.mapper.ElderlyProfileMapper;
 import com.smarteldercare.modules.health.dto.HealthRecordDTO;
+import com.smarteldercare.modules.health.dto.HealthRecordStatusDTO;
 import com.smarteldercare.modules.health.entity.HealthRecord;
 import com.smarteldercare.modules.health.entity.HealthWarning;
 import com.smarteldercare.modules.health.mapper.HealthRecordMapper;
@@ -94,6 +95,14 @@ public class HealthRecordServiceImpl
     public void deleteHealthRecord(Long id) {
         getExistingById(id);
         removeById(id);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void updateHealthRecordStatus(Long id, HealthRecordStatusDTO dto) {
+        HealthRecord record = getExistingById(id);
+        record.setStatus(dto.getStatus());
+        updateById(record);
     }
 
     private HealthRecord getExistingById(Long id) {
