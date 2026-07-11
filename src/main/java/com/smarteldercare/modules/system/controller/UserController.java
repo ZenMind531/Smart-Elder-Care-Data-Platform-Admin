@@ -81,8 +81,11 @@ public class UserController {
 
     // ④ 修改用户
     @PutMapping("/{id}")
-    public ApiResponse<?> update(@PathVariable Long id,
-                                 @RequestBody User user) {
+    public ApiResponse<?> update(@PathVariable Long id, @RequestBody User
+            user) {
+        if (userService.getById(id) == null) {
+            return ApiResponse.error(404, "用户不存在");
+        }
         user.setId(id);
         userService.updateById(user);
         return ApiResponse.success();
@@ -91,9 +94,13 @@ public class UserController {
     // ⑤ 删除用户
     @DeleteMapping("/{id}")
     public ApiResponse<?> delete(@PathVariable Long id) {
+        if (userService.getById(id) == null) {
+            return ApiResponse.error(404, "用户不存在");
+        }
         userService.removeById(id);
         return ApiResponse.success();
     }
+
 
     // ⑥ 启用/禁用用户
     @PatchMapping("/{id}/status")

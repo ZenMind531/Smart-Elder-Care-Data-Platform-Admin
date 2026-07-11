@@ -77,17 +77,25 @@ public class DoctorController {
     }
 
     // ④ 修改医生
+
     @PutMapping("/{id}")
-    public ApiResponse<?> update(@PathVariable Long id,
-                                 @RequestBody Doctor doctor) {
+    public ApiResponse<?> update(@PathVariable Long id, @RequestBody Doctor
+            doctor) {
+        if (doctorService.getById(id) == null) {
+            return ApiResponse.error(404, "医生不存在");
+        }
         doctor.setId(id);
         doctorService.updateById(doctor);
         return ApiResponse.success();
     }
 
+
     // ⑤ 删除医生
     @DeleteMapping("/{id}")
     public ApiResponse<?> delete(@PathVariable Long id) {
+        if (doctorService.getById(id) == null) {
+            return ApiResponse.error(404, "医生不存在");
+        }
         doctorService.removeById(id);
         return ApiResponse.success();
     }

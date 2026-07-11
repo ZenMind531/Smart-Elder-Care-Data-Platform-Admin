@@ -10,7 +10,7 @@ import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
-public class MyBatisPlusConfig {
+public class MyBatisPlusConfig implements WebMvcConfigurer {
 
     @Bean
     public MybatisPlusInterceptor mybatisPlusInterceptor() {
@@ -21,22 +21,18 @@ public class MyBatisPlusConfig {
         return interceptor;
     }
 
-
     @Autowired
     private JwtInterceptor jwtInterceptor;
-    @Bean
-    public WebMvcConfigurer jwtConfigurer() {
-        return new WebMvcConfigurer() {
-            @Override
-            public void addInterceptors(InterceptorRegistry registry) {
-                registry.addInterceptor(jwtInterceptor)
-                        .addPathPatterns("/api/**")           // 拦截所有/api/ 开头的
-                        .excludePathPatterns(
-                                "/api/auth/login",            // 登录不用token
-                                "/api/auth/logout"   ,         // 退出不用token
-                                "/api/auth/register"
-                        );
-            }
-        };
+
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(jwtInterceptor)
+                .addPathPatterns("/api/**")
+                .excludePathPatterns(
+                        "/api/auth/login",
+                        "/api/auth/logout",
+                        "/api/auth/register"
+                );
     }
+
 }
