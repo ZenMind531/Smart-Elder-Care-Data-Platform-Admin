@@ -19,7 +19,7 @@
         !isExpanded && !isHovered ? 'lg:justify-center' : 'justify-start',
       ]"
     >
-      <router-link to="/" class="flex items-center gap-3">
+      <router-link :to="currentRole.landingPath" class="flex items-center gap-3">
         <span
           class="flex size-10 items-center justify-center rounded-xl bg-brand-600 text-lg font-bold text-white shadow-theme-xs"
         >
@@ -35,7 +35,7 @@
     <div class="flex flex-1 flex-col overflow-y-auto duration-300 ease-linear no-scrollbar">
       <nav class="mb-6">
         <div class="flex flex-col gap-6">
-          <div v-for="(menuGroup, groupIndex) in menuGroups" :key="menuGroup.title">
+          <div v-for="menuGroup in menuGroups" :key="menuGroup.title">
             <h2
               :class="[
                 'mb-4 flex text-xs uppercase leading-5 text-gray-400',
@@ -87,6 +87,7 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import {
   BarChartIcon,
@@ -97,37 +98,57 @@ import {
   LayoutDashboardIcon,
   ListIcon,
   SettingsIcon,
+  UserCircleIcon,
   UserGroupIcon,
 } from '@/icons'
 import SidebarWidget from './SidebarWidget.vue'
 import { useSidebar } from '@/composables/useSidebar'
+import { getStoredUser } from '@/api/http'
+import { getRoleOption, type StaffRole } from '@/config/roles'
 
 const route = useRoute()
 const { isExpanded, isMobileOpen, isHovered } = useSidebar()
+const currentRole = getRoleOption(getStoredUser()?.roleName)
 
-const menuGroups = [
+interface MenuItem {
+  icon: unknown
+  name: string
+  path: string
+  roles: StaffRole[]
+}
+
+interface MenuGroup {
+  title: string
+  items: MenuItem[]
+}
+
+const allMenuGroups: MenuGroup[] = [
   {
     title: '监护工作台',
     items: [
       {
         icon: LayoutDashboardIcon,
         name: '首页总览',
-        path: '/',
+        path: '__dashboard__',
+        roles: ['系统管理员', '护理管理员', '医生'],
       },
       {
         icon: UserGroupIcon,
         name: '老人档案',
         path: '/elderly',
+        roles: ['系统管理员', '护理管理员', '医生'],
       },
       {
         icon: BarChartIcon,
         name: '健康监测',
         path: '/health',
+        roles: ['医生'],
       },
       {
         icon: BellIcon,
         name: '告警中心',
         path: '/alerts',
+        roles: ['系统管理员', '护理管理员', '医生'],
       },
     ],
   },
@@ -138,25 +159,49 @@ const menuGroups = [
         icon: BoxCubeIcon,
         name: '设备管理',
         path: '/devices',
+        roles: ['系统管理员'],
+      },
+      {
+        icon: UserCircleIcon,
+        name: '账号管理',
+        path: '/accounts',
+        roles: ['系统管理员'],
       },
       {
         icon: ListIcon,
         name: '护理记录',
         path: '/care-records',
+        roles: ['护理管理员'],
       },
       {
         icon: CalenderIcon,
         name: '服务预约',
         path: '/services',
+        roles: ['护理管理员'],
       },
       {
         icon: SettingsIcon,
         name: '系统设置',
         path: '/settings',
+        roles: ['系统管理员'],
       },
     ],
   },
 ]
+
+const menuGroups = computed(() =>
+  allMenuGroups
+    .map((group) => ({
+      ...group,
+      items: group.items
+        .filter((item) => item.roles.includes(currentRole.name))
+        .map((item) => ({
+          ...item,
+          path: item.path === '__dashboard__' ? currentRole.landingPath : item.path,
+        })),
+    }))
+    .filter((group) => group.items.length > 0),
+)
 
 const isActive = (path: string) => {
   if (path === '/') {

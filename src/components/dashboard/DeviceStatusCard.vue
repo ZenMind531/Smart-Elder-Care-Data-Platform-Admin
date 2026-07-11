@@ -7,30 +7,36 @@
         设备状态分布
       </h2>
       <p class="mt-1 text-theme-sm text-gray-500 text-pretty dark:text-gray-400">
-        共 352 台设备，6 台需要复联
+        设备接入和告警情况
       </p>
     </div>
 
     <div class="mt-6 space-y-5">
-      <div v-for="device in dashboard.deviceStatuses" :key="device.id">
+      <div v-if="loading" class="text-theme-sm text-gray-500 dark:text-gray-400">
+        正在同步设备数据...
+      </div>
+      <div v-else-if="devices.length === 0" class="rounded-xl border border-dashed border-gray-300 p-6 text-center text-theme-sm text-gray-500 dark:border-gray-700 dark:text-gray-400">
+        暂无设备数据
+      </div>
+      <div v-for="device in devices" v-else :key="device.id">
         <div class="mb-2 flex items-center justify-between gap-4">
           <div>
             <p class="font-medium text-gray-800 text-theme-sm dark:text-white/90">
               {{ device.name }}
             </p>
             <p class="mt-0.5 text-theme-xs text-gray-500 dark:text-gray-400">
-              在线 {{ device.online }} / {{ device.total }} 台
+              {{ device.status }} · {{ device.room }}
             </p>
           </div>
           <span class="text-theme-sm font-semibold text-gray-800 tabular-nums dark:text-white/90">
-            {{ getPercent(device.online, device.total) }}%
+            {{ device.battery }}%
           </span>
         </div>
         <div class="h-2 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800">
           <div
             class="h-full rounded-full"
-            :class="barClassMap[device.tone]"
-            :style="{ width: `${getPercent(device.online, device.total)}%` }"
+            :class="barClass(device.battery)"
+            :style="{ width: `${device.battery}%` }"
           ></div>
         </div>
       </div>
@@ -39,18 +45,22 @@
 </template>
 
 <script setup lang="ts">
-import { useDashboardStore } from '@/stores/dashboard'
-import type { Tone } from '@/stores/dashboard'
+import { computed, onMounted } from 'vue'
+import { useOperationsStore } from '@/stores/operations'
 
-const dashboard = useDashboardStore()
+const operations = useOperationsStore()
 
-const barClassMap: Record<Tone, string> = {
-  brand: 'bg-brand-600',
-  success: 'bg-success-600',
-  warning: 'bg-warning-500',
-  error: 'bg-error-600',
-  gray: 'bg-gray-500',
+onMounted(() => {
+  if (operations.devices.length === 0) void operations.fetchDevices()
+})
+
+const loading = computed(() => operations.loading && operations.devices.length === 0)
+
+const devices = computed(() => operations.devices.slice(0, 4))
+
+const barClass = (battery: number) => {
+  if (battery <= 20) return 'bg-error-600'
+  if (battery <= 45) return 'bg-warning-500'
+  return 'bg-success-600'
 }
-
-const getPercent = (online: number, total: number) => Math.round((online / total) * 100)
 </script>

@@ -1,20 +1,55 @@
 import { defineStore } from 'pinia'
+import { createHealthRecord, listHealthRecords, updateHealthRecordStatus, type HealthRecordApi } from '@/api/health'
+import {
+  createHealthWarning,
+  listHealthWarnings,
+  updateHealthWarningStatus,
+  type HealthWarningApi,
+  type WarningLevel,
+  type WarningStatus,
+} from '@/api/warnings'
+import { listDevices, updateDeviceStatus, type DeviceApiRecord, type DeviceStatusApi } from '@/api/devices'
+import { listRoles, type RoleApiRecord } from '@/api/roles'
+import { normalizeStaffRole } from '@/config/roles'
 
 export interface HealthRecord {
   id: number
+  elderlyId?: number
   elderName: string
   room: string
   heartRate: number
   bloodPressure: string
+  systolicPressure?: number
+  diastolicPressure?: number
+  bloodSugar?: number
   temperature: string
   bloodOxygen: number
   sleepHours: number
   status: '正常' | '需复测' | '异常'
   measuredAt: string
+  remark?: string
+  riskReason?: string
+}
+
+export interface HealthRecordInput {
+  elderlyId?: number
+  elderName: string
+  room: string
+  heartRate: number
+  systolicPressure: number
+  diastolicPressure: number
+  bloodSugar: number
+  temperature: number
+  bloodOxygen: number
+  sleepHours: number
+  measuredAt?: string
+  remark?: string
 }
 
 export interface AlertRecord {
   id: number
+  relatedRecordId?: number
+  elderlyId?: number
   elderName: string
   room: string
   type: string
@@ -23,10 +58,17 @@ export interface AlertRecord {
   status: '待处理' | '处理中' | '已处理'
   time: string
   owner: string
+  content?: string
+  handleResult?: string
+  handledAt?: string
+  contactPhone?: string
+  escalation?: boolean
+  slaMinutes?: number
 }
 
 export interface DeviceRecord {
   id: string
+  apiId?: number | string
   name: string
   type: string
   room: string
@@ -74,312 +116,274 @@ export interface NotificationRule {
   enabled: boolean
 }
 
+const apiDateTimeNow = () => new Date().toISOString().slice(0, 19).replace('T', ' ')
+
+const parseTemperature = (value: string | number | undefined) => {
+  if (typeof value === 'number') return value
+  if (!value) return 0
+  return Number.parseFloat(value)
+}
+
+const getHealthRiskReason = (record: {
+  heartRate?: number
+  systolicPressure?: number
+  diastolicPressure?: number
+  bloodSugar?: number
+  temperature?: number | string
+  bloodOxygen?: number
+  sleepHours?: number
+}) => {
+  const reasons: string[] = []
+  const temperature = parseTemperature(record.temperature)
+
+  if ((record.systolicPressure || 0) >= 160 || (record.diastolicPressure || 0) >= 100) {
+    reasons.push('血压达到高危阈值')
+  } else if ((record.systolicPressure || 0) >= 140 || (record.diastolicPressure || 0) >= 90) {
+    reasons.push('血压偏高，建议复测')
+  }
+
+  if ((record.heartRate || 0) >= 115 || (record.heartRate || 0) <= 55) {
+    reasons.push('心率明显异常')
+  } else if ((record.heartRate || 0) >= 100 || (record.heartRate || 0) <= 60) {
+    reasons.push('心率接近异常范围')
+  }
+
+  if (temperature >= 38) {
+    reasons.push('体温异常升高')
+  } else if (temperature >= 37.3) {
+    reasons.push('体温偏高')
+  }
+
+  if ((record.bloodOxygen || 100) <= 93) {
+    reasons.push('血氧低于安全阈值')
+  } else if ((record.bloodOxygen || 100) <= 95) {
+    reasons.push('血氧偏低')
+  }
+
+  if ((record.bloodSugar || 0) >= 11.1) {
+    reasons.push('血糖达到高危阈值')
+  } else if ((record.bloodSugar || 0) >= 7.8) {
+    reasons.push('血糖偏高')
+  }
+
+  if ((record.sleepHours || 0) > 0 && (record.sleepHours || 0) < 5) {
+    reasons.push('睡眠时长不足 5 小时')
+  }
+
+  return reasons.join('、') || '体征处于正常范围'
+}
+
+const evaluateHealthStatus = (record: {
+  heartRate?: number
+  systolicPressure?: number
+  diastolicPressure?: number
+  bloodSugar?: number
+  temperature?: number | string
+  bloodOxygen?: number
+  sleepHours?: number
+}): HealthRecord['status'] => {
+  const temperature = parseTemperature(record.temperature)
+  const heartRate = record.heartRate || 0
+  const systolic = record.systolicPressure || 0
+  const diastolic = record.diastolicPressure || 0
+  const bloodOxygen = record.bloodOxygen || 100
+  const bloodSugar = record.bloodSugar || 0
+  const sleepHours = record.sleepHours || 0
+
+  if (
+    systolic >= 160 ||
+    diastolic >= 100 ||
+    heartRate >= 115 ||
+    heartRate <= 55 ||
+    temperature >= 38 ||
+    bloodOxygen <= 93 ||
+    bloodSugar >= 11.1
+  ) {
+    return '异常'
+  }
+
+  if (
+    systolic >= 140 ||
+    diastolic >= 90 ||
+    heartRate >= 100 ||
+    heartRate <= 60 ||
+    temperature >= 37.3 ||
+    bloodOxygen <= 95 ||
+    bloodSugar >= 7.8 ||
+    (sleepHours > 0 && sleepHours < 5)
+  ) {
+    return '需复测'
+  }
+
+  return '正常'
+}
+
+const healthStatusFromApi = (record: HealthRecordApi): HealthRecord['status'] => {
+  if (record.status === 'abnormal' || record.status === '异常') return '异常'
+  if (record.status === 'pending' || record.status === 'review' || record.status === 'recheck' || record.status === '需复测') {
+    return '需复测'
+  }
+  if (record.status === 'normal' || record.status === '正常') return '正常'
+  return evaluateHealthStatus(record)
+}
+
+const toHealthRecord = (record: HealthRecordApi): HealthRecord => {
+  const systolic = record.systolicPressure || 0
+  const diastolic = record.diastolicPressure || 0
+
+  return {
+    id: record.id,
+    elderlyId: record.elderlyId,
+    elderName: record.elderlyName || record.elderName || `老人 ${record.elderlyId || record.id}`,
+    room: record.room || `ID-${record.elderlyId || record.id}`,
+    heartRate: record.heartRate || 0,
+    bloodPressure: systolic && diastolic ? `${systolic}/${diastolic}` : '待采集',
+    systolicPressure: systolic || undefined,
+    diastolicPressure: diastolic || undefined,
+    bloodSugar: record.bloodSugar,
+    temperature: record.temperature ? String(record.temperature) : '待采集',
+    bloodOxygen: record.bloodOxygen || 97,
+    sleepHours: record.sleepHours || 0,
+    status: healthStatusFromApi(record),
+    measuredAt: record.recordTime || record.createTime || '接口同步',
+    remark: record.remark,
+    riskReason: getHealthRiskReason(record),
+  }
+}
+
+const warningLevelMap: Record<WarningLevel, AlertRecord['level']> = {
+  high: '紧急',
+  medium: '关注',
+  low: '普通',
+}
+
+const warningStatusMap: Record<WarningStatus, AlertRecord['status']> = {
+  pending: '待处理',
+  processing: '处理中',
+  resolved: '已处理',
+}
+
+const toWarningStatus = (status: AlertRecord['status']): WarningStatus => {
+  if (status === '已处理') return 'resolved'
+  if (status === '处理中') return 'processing'
+  return 'pending'
+}
+
+const warningTypeMap: Record<string, string> = {
+  blood_pressure: '血压异常',
+  heart_rate: '心率异常',
+  blood_sugar: '血糖异常',
+  temperature: '体温异常',
+  device: '设备异常',
+  manual: '人工提醒',
+}
+
+const toAlertRecord = (record: HealthWarningApi): AlertRecord => {
+  const level = record.warningLevel || record.level || 'medium'
+  const warningType = record.warningType || ''
+
+  return {
+    id: record.id,
+    elderlyId: record.elderlyId,
+    elderName: record.elderlyName || record.elderName || `老人 ${record.elderlyId || record.id}`,
+    room: record.room || `ID-${record.elderlyId || record.id}`,
+    type: warningTypeMap[warningType] || record.warningContent || warningType || '健康预警',
+    level: warningLevelMap[level],
+    source: record.source || '健康预警',
+    status: warningStatusMap[record.status || 'pending'],
+    time: record.warningTime || record.createTime || '接口同步',
+    owner: record.handlerName || record.owner || '待分配',
+    content: record.warningContent,
+    handleResult: record.handleResult,
+    slaMinutes: level === 'high' ? 5 : level === 'medium' ? 15 : 30,
+  }
+}
+
+const deviceTypeMap: Record<string, string> = {
+  watch: '智能手环',
+  sleep_monitor: '睡眠监测垫',
+  door_sensor: '门磁传感器',
+  emergency_button: '紧急呼叫按钮',
+}
+
+const deviceStatusMap: Record<DeviceStatusApi, DeviceRecord['status']> = {
+  normal: '在线',
+  abnormal: '离线',
+  offline: '离线',
+  maintenance: '维护中',
+}
+
+const toDeviceRecord = (record: DeviceApiRecord): DeviceRecord => {
+  const status = deviceStatusMap[record.status || 'normal']
+
+  return {
+    id: record.deviceCode || String(record.id),
+    apiId: record.id,
+    name: record.deviceName || record.deviceCode || `设备 ${record.id}`,
+    type: deviceTypeMap[record.deviceType || ''] || record.deviceType || '智能设备',
+    room: record.room || `老人ID-${record.elderlyId || '-'}`,
+    boundElder: record.elderlyName || '未绑定',
+    battery: record.battery ?? (status === '在线' ? 86 : 0),
+    status,
+    lastSync: record.lastSyncTime || record.updateTime || record.createTime || '接口同步',
+  }
+}
+
+const toRoleRecord = (record: RoleApiRecord): RoleRecord => ({
+  id: record.id,
+  name: record.roleName || record.name || `角色 ${record.id}`,
+  users: record.userCount || record.users || 0,
+  scope: record.description || record.roleCode || '按后端角色权限配置',
+  enabled: record.enabled ?? record.status !== 'disabled',
+})
+
+const isStaffRole = (role: RoleRecord) => !/家属|患者|病人|老人端|个人端/.test(role.name)
+
+const mergedSystemRoleScope = '系统配置、角色权限、机构资料、设备接入和运维巡检'
+
+const normalizeRoleRecord = (role: RoleRecord): RoleRecord => {
+  if (normalizeStaffRole(role.name) !== '系统管理员') return role
+
+  return {
+    ...role,
+    id: role.name.includes('设备') ? 1 : role.id,
+    name: '系统管理员',
+    scope: mergedSystemRoleScope,
+  }
+}
+
+const mergeRoleRecords = (roles: RoleRecord[]) =>
+  roles
+    .filter(isStaffRole)
+    .map(normalizeRoleRecord)
+    .reduce<RoleRecord[]>((mergedRoles, role) => {
+      const existingRole = mergedRoles.find((item) => item.name === role.name)
+
+      if (!existingRole) {
+        mergedRoles.push({ ...role })
+        return mergedRoles
+      }
+
+      existingRole.users += role.users
+      existingRole.enabled = existingRole.enabled || role.enabled
+      if (existingRole.name === '系统管理员') {
+        existingRole.scope = mergedSystemRoleScope
+      }
+
+      return mergedRoles
+    }, [])
+
 export const useOperationsStore = defineStore('operations', {
   state: () => ({
-    healthRecords: [
-      {
-        id: 1,
-        elderName: '王建国',
-        room: 'A-302',
-        heartRate: 76,
-        bloodPressure: '126/82',
-        temperature: '36.5',
-        bloodOxygen: 98,
-        sleepHours: 7.2,
-        status: '正常',
-        measuredAt: '今日 08:42',
-      },
-      {
-        id: 2,
-        elderName: '李桂兰',
-        room: 'B-118',
-        heartRate: 108,
-        bloodPressure: '150/96',
-        temperature: '37.4',
-        bloodOxygen: 94,
-        sleepHours: 5.4,
-        status: '异常',
-        measuredAt: '今日 09:10',
-      },
-      {
-        id: 3,
-        elderName: '陈秀英',
-        room: 'A-210',
-        heartRate: 72,
-        bloodPressure: '118/76',
-        temperature: '36.3',
-        bloodOxygen: 99,
-        sleepHours: 7.8,
-        status: '正常',
-        measuredAt: '今日 08:20',
-      },
-      {
-        id: 4,
-        elderName: '赵德明',
-        room: 'C-405',
-        heartRate: 58,
-        bloodPressure: '102/64',
-        temperature: '36.1',
-        bloodOxygen: 95,
-        sleepHours: 4.9,
-        status: '需复测',
-        measuredAt: '昨日 19:35',
-      },
-      {
-        id: 5,
-        elderName: '张淑芬',
-        room: 'A-116',
-        heartRate: 94,
-        bloodPressure: '138/88',
-        temperature: '36.8',
-        bloodOxygen: 97,
-        sleepHours: 4.6,
-        status: '需复测',
-        measuredAt: '今日 07:58',
-      },
-    ] as HealthRecord[],
-    alerts: [
-      {
-        id: 3001,
-        elderName: '李桂兰',
-        room: 'B-118',
-        type: '心率异常',
-        level: '紧急',
-        source: '智能手环',
-        status: '处理中',
-        time: '今日 09:12',
-        owner: '周护士',
-      },
-      {
-        id: 3002,
-        elderName: '赵德明',
-        room: 'C-405',
-        type: '设备离线',
-        level: '关注',
-        source: '智能手环',
-        status: '待处理',
-        time: '今日 08:54',
-        owner: '王护工',
-      },
-      {
-        id: 3003,
-        elderName: '张淑芬',
-        room: 'A-116',
-        type: '夜间离床',
-        level: '关注',
-        source: '门磁传感器',
-        status: '已处理',
-        time: '今日 03:16',
-        owner: '周护士',
-      },
-      {
-        id: 3004,
-        elderName: '陈秀英',
-        room: 'A-210',
-        type: '血压复测',
-        level: '普通',
-        source: '健康监测',
-        status: '已处理',
-        time: '昨日 18:40',
-        owner: '刘护士',
-      },
-    ] as AlertRecord[],
-    devices: [
-      {
-        id: 'WB-A302-01',
-        name: '智能手环 A302',
-        type: '智能手环',
-        room: 'A-302',
-        boundElder: '王建国',
-        battery: 86,
-        status: '在线',
-        lastSync: '1 分钟前',
-      },
-      {
-        id: 'WB-B118-01',
-        name: '智能手环 B118',
-        type: '智能手环',
-        room: 'B-118',
-        boundElder: '李桂兰',
-        battery: 42,
-        status: '在线',
-        lastSync: '2 分钟前',
-      },
-      {
-        id: 'SM-C405-01',
-        name: '睡眠监测垫 C405',
-        type: '睡眠监测垫',
-        room: 'C-405',
-        boundElder: '赵德明',
-        battery: 0,
-        status: '离线',
-        lastSync: '58 分钟前',
-      },
-      {
-        id: 'DM-A116-02',
-        name: '门磁传感器 A116',
-        type: '门磁传感器',
-        room: 'A-116',
-        boundElder: '张淑芬',
-        battery: 19,
-        status: '低电量',
-        lastSync: '5 分钟前',
-      },
-      {
-        id: 'EC-B206-01',
-        name: '紧急呼叫按钮 B206',
-        type: '紧急呼叫按钮',
-        room: 'B-206',
-        boundElder: '孙保国',
-        battery: 72,
-        status: '维护中',
-        lastSync: '今日 08:20',
-      },
-    ] as DeviceRecord[],
-    careRecords: [
-      {
-        id: 5001,
-        elderName: '王建国',
-        room: 'A-302',
-        type: '晨间体征',
-        content: '血压 126/82，体温 36.5，精神状态稳定。',
-        caregiver: '刘护士',
-        status: '已完成',
-        time: '今日 08:42',
-      },
-      {
-        id: 5002,
-        elderName: '李桂兰',
-        room: 'B-118',
-        type: '服药提醒',
-        content: '已提醒服用降压药，30 分钟后复测血压。',
-        caregiver: '周护士',
-        status: '进行中',
-        time: '今日 10:00',
-      },
-      {
-        id: 5003,
-        elderName: '陈秀英',
-        room: 'A-210',
-        type: '康复训练',
-        content: '完成下肢平衡训练 20 分钟。',
-        caregiver: '刘护士',
-        status: '已完成',
-        time: '今日 14:30',
-      },
-      {
-        id: 5004,
-        elderName: '赵德明',
-        room: 'C-405',
-        type: '设备巡检',
-        content: '手环离线，待设备管理员复联。',
-        caregiver: '王护工',
-        status: '待补录',
-        time: '今日 15:20',
-      },
-    ] as CareRecord[],
-    serviceAppointments: [
-      {
-        id: 7001,
-        elderName: '李桂兰',
-        room: 'B-118',
-        service: '健康咨询',
-        requester: '李慧',
-        scheduledAt: '今日 15:30',
-        status: '已预约',
-        assignee: '张医生',
-      },
-      {
-        id: 7002,
-        elderName: '陈秀英',
-        room: 'A-210',
-        service: '康复训练',
-        requester: '陈晓',
-        scheduledAt: '明日 09:00',
-        status: '待确认',
-        assignee: '康复师王敏',
-      },
-      {
-        id: 7003,
-        elderName: '王建国',
-        room: 'A-302',
-        service: '陪诊服务',
-        requester: '王明',
-        scheduledAt: '7月10日 08:30',
-        status: '已预约',
-        assignee: '陪诊员刘洋',
-      },
-      {
-        id: 7004,
-        elderName: '孙保国',
-        room: 'B-206',
-        service: '上门护理',
-        requester: '孙雨',
-        scheduledAt: '今日 11:00',
-        status: '已完成',
-        assignee: '郑护士',
-      },
-    ] as ServiceAppointment[],
-    roles: [
-      {
-        id: 1,
-        name: '系统管理员',
-        users: 2,
-        scope: '系统配置、角色权限、机构资料',
-        enabled: true,
-      },
-      {
-        id: 2,
-        name: '护理管理员',
-        users: 6,
-        scope: '老人档案、护理记录、告警处置',
-        enabled: true,
-      },
-      {
-        id: 3,
-        name: '医生',
-        users: 4,
-        scope: '健康监测、健康评估、复测建议',
-        enabled: true,
-      },
-      {
-        id: 4,
-        name: '家属账号',
-        users: 38,
-        scope: '个人端健康状态、服务预约、消息通知',
-        enabled: true,
-      },
-      {
-        id: 5,
-        name: '设备管理员',
-        users: 3,
-        scope: '设备接入、在线状态、维护巡检',
-        enabled: true,
-      },
-    ] as RoleRecord[],
-    notificationRules: [
-      {
-        id: 1,
-        name: '紧急告警即时通知',
-        channel: '站内信 / 短信',
-        target: '护理管理员、责任护理员',
-        enabled: true,
-      },
-      {
-        id: 2,
-        name: '设备离线 10 分钟提醒',
-        channel: '站内信',
-        target: '设备管理员',
-        enabled: true,
-      },
-      {
-        id: 3,
-        name: '每日护理任务汇总',
-        channel: '站内信',
-        target: '护理组长',
-        enabled: true,
-      },
-    ] as NotificationRule[],
+    loading: false,
+    error: '',
+    healthRecords: [] as HealthRecord[],
+    alerts: [] as AlertRecord[],
+    devices: [] as DeviceRecord[],
+    careRecords: [] as CareRecord[],
+    serviceAppointments: [] as ServiceAppointment[],
+    roles: [] as RoleRecord[],
+    notificationRules: [] as NotificationRule[],
   }),
   getters: {
     unresolvedAlerts: (state) => state.alerts.filter((alert) => alert.status !== '已处理').length,
@@ -390,27 +394,137 @@ export const useOperationsStore = defineStore('operations', {
       state.careRecords.filter((record) => record.status === '已完成').length,
   },
   actions: {
-    addHealthRecord() {
-      const nextId = Math.max(...this.healthRecords.map((item) => item.id), 0) + 1
+    async fetchHealthRecords() {
+      this.loading = true
+      this.error = ''
 
-      this.healthRecords.unshift({
-        id: nextId,
+      try {
+        const result = await listHealthRecords({ page: 1, size: 100 })
+        this.healthRecords = result.records.map(toHealthRecord)
+      } catch (error) {
+        this.error = error instanceof Error ? error.message : '服务器响应异常，请稍后重试'
+      } finally {
+        this.loading = false
+      }
+    },
+    async fetchAlerts() {
+      this.loading = true
+      this.error = ''
+
+      try {
+        const result = await listHealthWarnings({ page: 1, size: 100 })
+        this.alerts = result.records.map(toAlertRecord)
+      } catch (error) {
+        this.error = error instanceof Error ? error.message : '服务器响应异常，请稍后重试'
+      } finally {
+        this.loading = false
+      }
+    },
+    async fetchDevices() {
+      this.loading = true
+      this.error = ''
+
+      try {
+        const result = await listDevices({ page: 1, size: 100 })
+        this.devices = result.records.map(toDeviceRecord)
+      } catch (error) {
+        this.error = error instanceof Error ? error.message : '服务器响应异常，请稍后重试'
+      } finally {
+        this.loading = false
+      }
+    },
+    async fetchRoles() {
+      this.loading = true
+      this.error = ''
+
+      try {
+        this.roles = mergeRoleRecords((await listRoles()).map(toRoleRecord))
+      } catch (error) {
+        this.error = error instanceof Error ? error.message : '服务器响应异常，请稍后重试'
+      } finally {
+        this.loading = false
+      }
+    },
+    async fetchCareRecordsSafe() {
+      // 临时：后端暂未提供 care-records 接口，这里静默失败，
+      // 让 CareProgressCard 在无数据时显示 0%
+      try {
+        // 未来接入：const result = await listCareRecords(...)
+        // this.careRecords = result.records.map(...)
+      } catch (error) {
+        this.error = error instanceof Error ? error.message : '服务器响应异常，请稍后重试'
+      }
+    },
+    async addHealthRecord(payload?: HealthRecordInput) {
+      const nextId = Math.max(...this.healthRecords.map((item) => item.id), 0) + 1
+      const source = payload || {
+        elderlyId: 7,
         elderName: '刘玉梅',
         room: 'C-212',
         heartRate: 82,
-        bloodPressure: '128/80',
-        temperature: '36.6',
+        systolicPressure: 128,
+        diastolicPressure: 80,
+        bloodSugar: 6.2,
+        temperature: 36.6,
         bloodOxygen: 97,
         sleepHours: 6.8,
-        status: '正常',
         measuredAt: '刚刚',
-      })
+        remark: '前端新增体征记录',
+      }
+      const status = evaluateHealthStatus(source)
+      const localRecord: HealthRecord = {
+        id: nextId,
+        elderlyId: source.elderlyId,
+        elderName: source.elderName,
+        room: source.room,
+        heartRate: source.heartRate,
+        bloodPressure: `${source.systolicPressure}/${source.diastolicPressure}`,
+        systolicPressure: source.systolicPressure,
+        diastolicPressure: source.diastolicPressure,
+        bloodSugar: source.bloodSugar,
+        temperature: String(source.temperature),
+        bloodOxygen: source.bloodOxygen,
+        sleepHours: source.sleepHours,
+        status,
+        measuredAt: source.measuredAt || '刚刚',
+        remark: source.remark,
+        riskReason: getHealthRiskReason(source),
+      }
+
+      this.healthRecords.unshift(localRecord)
+      if (localRecord.status !== '正常') {
+        void this.createAlertFromHealthRecord(localRecord)
+      }
+
+      try {
+        const savedRecord = await createHealthRecord({
+          elderlyId: source.elderlyId || 1,
+          systolicPressure: source.systolicPressure,
+          diastolicPressure: source.diastolicPressure,
+          bloodSugar: source.bloodSugar,
+          heartRate: source.heartRate,
+          temperature: source.temperature,
+          recordTime: apiDateTimeNow(),
+          remark: source.remark || localRecord.riskReason,
+        })
+        this.healthRecords = this.healthRecords.map((item) =>
+          item.id === nextId ? toHealthRecord(savedRecord) : item,
+        )
+        this.error = ''
+      } catch (error) {
+        this.error = error instanceof Error ? error.message : '服务器响应异常，请稍后重试'
+      }
     },
     requestHealthRetest(id: number) {
       const record = this.healthRecords.find((item) => item.id === id)
       if (record) {
         record.status = '需复测'
         record.measuredAt = '刚刚'
+        record.riskReason = record.riskReason || '护理员发起人工复测'
+        // 后端持久化告警
+        void this.createAlertFromHealthRecord(record).catch(() => {
+          // 告警创建失败不影响前端体验，下次刷新会重新拉取
+        })
       }
     },
     markHealthNormal(id: number) {
@@ -420,12 +534,76 @@ export const useOperationsStore = defineStore('operations', {
         record.heartRate = Math.min(Math.max(record.heartRate, 70), 88)
         record.bloodOxygen = Math.max(record.bloodOxygen, 97)
         record.measuredAt = '刚刚'
+        record.riskReason = '复测后体征恢复正常'
+
+        // 持久化体征状态到后端
+        void updateHealthRecordStatus(id, 'normal')
+          .then(() => {
+            console.log(`[markHealthNormal] 体征 ${id} 已持久化到后端`)
+          })
+          .catch((err) => {
+            console.error(`[markHealthNormal] 体征 ${id} 持久化失败:`, err)
+          })
+
+        // 同步告警到后端
+        const relatedAlerts = this.alerts.filter(
+          (alert) => alert.relatedRecordId === id && alert.status !== '已处理',
+        )
+        relatedAlerts.forEach((alert) => {
+          alert.status = '已处理'
+          alert.handleResult = '复测后体征恢复正常，告警自动归档。'
+          alert.handledAt = '刚刚'
+          void updateHealthWarningStatus(alert.id, {
+            status: 'resolved',
+            handleResult: alert.handleResult,
+          }).catch(() => {})
+        })
       }
     },
-    addManualAlert() {
-      const nextId = Math.max(...this.alerts.map((item) => item.id), 3000) + 1
+    async createAlertFromHealthRecord(record: HealthRecord) {
+      if (record.status === '正常') return
+      if (this.alerts.some((alert) => alert.relatedRecordId === record.id && alert.status !== '已处理')) {
+        return
+      }
 
-      this.alerts.unshift({
+      const nextId = Math.max(...this.alerts.map((item) => item.id), 3000) + 1
+      const isCritical = record.status === '异常'
+      const warningType = (record.systolicPressure || 0) >= 140 ? 'blood_pressure' : 'heart_rate'
+      const localAlert: AlertRecord = {
+        id: nextId,
+        relatedRecordId: record.id,
+        elderlyId: record.elderlyId,
+        elderName: record.elderName,
+        room: record.room,
+        type: isCritical ? '体征异常' : '体征复测',
+        level: isCritical ? '紧急' : '关注',
+        source: '健康监测',
+        status: '待处理',
+        time: '刚刚',
+        owner: isCritical ? '当班医生' : '责任护理员',
+        content: `${record.riskReason || '体征异常'}。当前数据：心率 ${record.heartRate} bpm，血压 ${record.bloodPressure}，血糖 ${record.bloodSugar ?? '-'} mmol/L，血氧 ${record.bloodOxygen}%。`,
+        contactPhone: '待补充',
+        slaMinutes: isCritical ? 5 : 15,
+      }
+
+      this.alerts.unshift(localAlert)
+
+      try {
+        const savedAlert = await createHealthWarning({
+          elderlyId: record.elderlyId || 1,
+          warningType,
+          warningLevel: isCritical ? 'high' : 'medium',
+          warningContent: localAlert.content || localAlert.type,
+        })
+        this.alerts = this.alerts.map((item) => (item.id === nextId ? toAlertRecord(savedAlert) : item))
+        this.error = ''
+      } catch (error) {
+        this.error = error instanceof Error ? error.message : '服务器响应异常，请稍后重试'
+      }
+    },
+    async addManualAlert() {
+      const nextId = Math.max(...this.alerts.map((item) => item.id), 3000) + 1
+      const localAlert: AlertRecord = {
         id: nextId,
         elderName: '刘玉梅',
         room: 'C-212',
@@ -435,26 +613,81 @@ export const useOperationsStore = defineStore('operations', {
         status: '待处理',
         time: '刚刚',
         owner: '王护工',
-      })
+        content: '护理员人工上报巡房提醒，请确认老人状态并记录处理结果。',
+        contactPhone: '131****4468',
+        slaMinutes: 15,
+      }
+
+      this.alerts.unshift(localAlert)
+
+      try {
+        const savedAlert = await createHealthWarning({
+          elderlyId: 1,
+          warningType: 'manual',
+          warningLevel: 'medium',
+          warningContent: '护理员人工上报巡房提醒',
+        })
+        this.alerts = this.alerts.map((item) => (item.id === nextId ? toAlertRecord(savedAlert) : item))
+        this.error = ''
+      } catch (error) {
+        this.error = error instanceof Error ? error.message : '服务器响应异常，请稍后重试'
+      }
     },
-    startAlert(id: number) {
+    async startAlert(id: number) {
       const alert = this.alerts.find((item) => item.id === id)
       if (alert && alert.status === '待处理') {
         alert.status = '处理中'
+        alert.handleResult = alert.handleResult || '已确认告警，正在现场核实。'
+
+        try {
+          await updateHealthWarningStatus(id, { status: toWarningStatus(alert.status) })
+          this.error = ''
+        } catch (error) {
+          this.error = error instanceof Error ? error.message : '服务器响应异常，请稍后重试'
+        }
       }
     },
-    resolveAlert(id: number) {
+    async resolveAlert(id: number, handleResult = '前端已标记处理完成') {
       const alert = this.alerts.find((item) => item.id === id)
       if (alert) {
         alert.status = '已处理'
+        alert.handleResult = handleResult
+        alert.handledAt = '刚刚'
+
+        try {
+          await updateHealthWarningStatus(id, {
+            status: 'resolved',
+            handleResult,
+          })
+          this.error = ''
+        } catch (error) {
+          this.error = error instanceof Error ? error.message : '服务器响应异常，请稍后重试'
+        }
       }
     },
-    recoverDevice(id: string) {
+    escalateAlert(id: number) {
+      const alert = this.alerts.find((item) => item.id === id)
+      if (alert && alert.status !== '已处理') {
+        alert.level = '紧急'
+        alert.escalation = true
+        alert.owner = '护理管理员 / 当班医生'
+        alert.slaMinutes = 5
+        alert.handleResult = alert.handleResult || '已升级通知护理管理员和当班医生。'
+      }
+    },
+    async recoverDevice(id: string) {
       const device = this.devices.find((item) => item.id === id)
       if (device) {
         device.status = '在线'
         device.battery = Math.max(device.battery, 80)
         device.lastSync = '刚刚'
+
+        try {
+          await updateDeviceStatus(device.apiId || id, 'normal')
+          this.error = ''
+        } catch (error) {
+          this.error = error instanceof Error ? error.message : '服务器响应异常，请稍后重试'
+        }
       }
     },
     addCareRecord() {

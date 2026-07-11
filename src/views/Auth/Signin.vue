@@ -1,14 +1,8 @@
 <template>
   <FullScreenLayout>
-    <main class="min-h-dvh bg-gray-50 p-6 dark:bg-gray-950">
-      <div class="mx-auto grid min-h-[calc(100dvh-48px)] max-w-6xl overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-theme-lg dark:border-gray-800 dark:bg-gray-900 lg:grid-cols-[0.95fr_1.05fr]">
-        <section class="flex flex-col justify-center px-6 py-10 sm:px-10 lg:px-12">
-          <router-link
-            to="/"
-            class="mb-10 inline-flex w-fit items-center text-theme-sm font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-          >
-            返回监护总览
-          </router-link>
+    <main class="flex min-h-dvh items-center justify-center bg-gray-50 p-6 dark:bg-gray-950">
+      <div class="w-full max-w-md overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-theme-lg dark:border-gray-800 dark:bg-gray-900">
+        <section class="px-6 py-10 sm:px-10">
 
           <div>
             <div class="mb-8">
@@ -63,22 +57,6 @@
                 </div>
               </div>
 
-              <div>
-                <label for="role" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
-                  登录角色
-                </label>
-                <select
-                  id="role"
-                  v-model="role"
-                  class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800"
-                >
-                  <option value="护理管理员">护理管理员</option>
-                  <option value="医生">医生</option>
-                  <option value="设备管理员">设备管理员</option>
-                  <option value="家属账号">家属账号</option>
-                </select>
-              </div>
-
               <div class="flex items-center justify-between gap-4">
                 <label class="flex items-center gap-3 text-theme-sm text-gray-600 dark:text-gray-400">
                   <input
@@ -93,32 +71,28 @@
                 </router-link>
               </div>
 
+              <p
+                v-if="loginMessage"
+                class="rounded-lg border border-error-200 bg-error-50 px-3 py-2 text-theme-sm text-error-700 dark:border-error-500/30 dark:bg-error-500/10 dark:text-error-300"
+              >
+                {{ loginMessage }}
+              </p>
+
               <button
                 type="submit"
-                class="flex w-full items-center justify-center rounded-lg bg-brand-600 px-4 py-3 text-sm font-medium text-white shadow-theme-xs hover:bg-brand-700"
+                :disabled="submitting"
+                class="flex w-full items-center justify-center rounded-lg bg-brand-600 px-4 py-3 text-sm font-medium text-white shadow-theme-xs hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-70"
               >
-                登录系统
+                {{ submitting ? '登录中...' : '登录系统' }}
               </button>
-            </form>
-          </div>
-        </section>
 
-        <section class="hidden bg-brand-950 p-10 text-white lg:flex lg:flex-col lg:justify-between">
-          <div>
-            <p class="text-theme-sm text-brand-100">Smart Elder Care</p>
-            <h2 class="mt-4 max-w-md text-title-sm font-bold text-balance">
-              用一个工作台看清老人状态、设备在线和护理进度
-            </h2>
-          </div>
-          <div class="grid gap-4">
-            <div class="rounded-2xl border border-white/10 bg-white/5 p-5">
-              <p class="text-theme-sm text-brand-100">今日重点</p>
-              <p class="mt-2 text-2xl font-semibold tabular-nums">12 条告警 · 27 项待办</p>
-            </div>
-            <div class="rounded-2xl border border-white/10 bg-white/5 p-5">
-              <p class="text-theme-sm text-brand-100">设备状态</p>
-              <p class="mt-2 text-2xl font-semibold tabular-nums">342 台在线 · 98.3%</p>
-            </div>
+              <p class="text-center text-theme-sm text-gray-600 dark:text-gray-400">
+                还没有账号？
+                <router-link to="/signup" class="font-medium text-brand-700 hover:text-brand-800 dark:text-brand-300">
+                  去注册
+                </router-link>
+              </p>
+            </form>
           </div>
         </section>
       </div>
@@ -128,24 +102,54 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import FullScreenLayout from '@/components/layout/FullScreenLayout.vue'
+import { login } from '@/api/auth'
+import { ApiError, setAuthSession } from '@/api/http'
+import { getRoleLandingPath, normalizeStaffRole } from '@/config/roles'
 
 const router = useRouter()
+const route = useRoute()
 const account = ref('')
 const password = ref('')
 const showPassword = ref(false)
 const rememberMe = ref(true)
-const role = ref('护理管理员')
+const submitting = ref(false)
+const loginMessage = ref('')
 
-const roleLandingMap: Record<string, string> = {
-  护理管理员: '/',
-  医生: '/health',
-  设备管理员: '/devices',
-  家属账号: '/services',
+if (route.query.expired === '1') {
+  loginMessage.value = '登录已过期，请重新登录'
 }
 
-const handleSubmit = () => {
-  router.push(roleLandingMap[role.value] ?? '/')
+const handleSubmit = async () => {
+  loginMessage.value = ''
+
+  const username = account.value.trim()
+
+  if (!username || !password.value) {
+    loginMessage.value = '请输入账号和密码'
+    return
+  }
+
+  submitting.value = true
+
+  try {
+    const result = await login({
+      username,
+      password: password.value,
+    })
+    const normalizedRole = normalizeStaffRole(result.userInfo.roleName!)
+    setAuthSession(result.token, {
+      ...result.userInfo,
+      roleName: normalizedRole,
+    })
+    router.push(getRoleLandingPath(normalizedRole))
+  } catch (error) {
+    loginMessage.value =
+      error instanceof ApiError ? error.message : '登录服务暂不可用，请稍后重试'
+    return
+  } finally {
+    submitting.value = false
+  }
 }
 </script>

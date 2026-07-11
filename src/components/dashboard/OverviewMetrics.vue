@@ -1,7 +1,7 @@
 <template>
   <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4 md:gap-6">
     <article
-      v-for="metric in dashboard.metrics"
+      v-for="metric in items"
       :key="metric.key"
       class="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-white/[0.03] md:p-6"
     >
@@ -46,12 +46,25 @@
 
 <script setup lang="ts">
 import { Activity, Bell, ClipboardList, Users } from 'lucide-vue-next'
-import { useDashboardStore } from '@/stores/dashboard'
-import type { DashboardMetric, Tone } from '@/stores/dashboard'
 
-const dashboard = useDashboardStore()
+export type OverviewMetricKey = 'elders' | 'alerts' | 'devices' | 'tasks'
+export type OverviewTone = 'brand' | 'success' | 'warning' | 'error' | 'gray'
 
-const metricIconMap: Record<DashboardMetric['key'], unknown> = {
+export interface OverviewMetric {
+  key: OverviewMetricKey
+  label: string
+  value: string
+  unit: string
+  detail: string
+  trend: string
+  tone: OverviewTone
+}
+
+defineProps<{
+  items: OverviewMetric[]
+}>()
+
+const metricIconMap: Record<OverviewMetricKey, unknown> = {
   elders: Users,
   alerts: Bell,
   devices: Activity,
@@ -59,7 +72,7 @@ const metricIconMap: Record<DashboardMetric['key'], unknown> = {
 }
 
 const toneClassMap: Record<
-  Tone,
+  OverviewTone,
   {
     iconWrap: string
     icon: string

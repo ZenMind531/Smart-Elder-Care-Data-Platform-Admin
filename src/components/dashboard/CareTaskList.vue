@@ -21,7 +21,7 @@
 
     <div class="mt-5 grid gap-3 md:grid-cols-2">
       <article
-        v-for="task in dashboard.careTasks"
+        v-for="task in tasks"
         :key="task.id"
         class="rounded-xl border border-gray-100 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-900"
       >
@@ -48,15 +48,30 @@
 </template>
 
 <script setup lang="ts">
+import { computed, onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
-import { useDashboardStore } from '@/stores/dashboard'
-import type { CareTask } from '@/stores/dashboard'
+import { useOperationsStore } from '@/stores/operations'
 
-const dashboard = useDashboardStore()
+const operations = useOperationsStore()
 
-const statusClassMap: Record<CareTask['status'], string> = {
+onMounted(() => {
+  if (operations.careRecords.length === 0) void operations.fetchCareRecordsSafe()
+})
+
+const tasks = computed(() =>
+  operations.careRecords.slice(0, 4).map((r) => ({
+    id: r.id,
+    time: r.time,
+    title: r.content,
+    area: '—',
+    owner: r.caregiver,
+    status: r.status === '已完成' ? '已完成' as const : r.status === '进行中' ? '进行中' as const : '待处理' as const,
+  })),
+)
+
+const statusClassMap = {
   待处理: 'bg-warning-50 text-warning-700 dark:bg-warning-500/15 dark:text-warning-400',
   进行中: 'bg-brand-50 text-brand-700 dark:bg-brand-500/15 dark:text-brand-300',
   已完成: 'bg-success-50 text-success-700 dark:bg-success-500/15 dark:text-success-400',
-}
+} as const
 </script>

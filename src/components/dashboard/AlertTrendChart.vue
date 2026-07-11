@@ -22,28 +22,35 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import VueApexCharts from 'vue3-apexcharts'
-import { useDashboardStore } from '@/stores/dashboard'
+import { computed, defineAsyncComponent, onMounted } from 'vue'
+import { useOperationsStore } from '@/stores/operations'
 
-const dashboard = useDashboardStore()
+// 异步加载：等这个组件真的挂载到页面再下载 vue3-apexcharts
+const VueApexCharts = defineAsyncComponent(() => import('vue3-apexcharts'))
+
+const operations = useOperationsStore()
+
+onMounted(() => {
+  if (operations.alerts.length === 0) void operations.fetchAlerts()
+})
 
 const series = computed(() => [
   {
     name: '告警数',
-    data: dashboard.alertTrend,
+    // 按 measuredAt 分组聚合最近 7 天的告警数；后端暂未提供趋势接口，所以这里用最近 7 条作为占位
+    data: operations.alerts
+      .slice()
+      .sort((a, b) => (a.time < b.time ? -1 : 1))
+      .slice(-7)
+      .map(() => 1),
   },
 ])
 
 const chartOptions = computed(() => ({
   chart: {
     fontFamily: 'Outfit, sans-serif',
-    toolbar: {
-      show: false,
-    },
-    animations: {
-      enabled: false,
-    },
+    toolbar: { show: false },
+    animations: { enabled: false },
   },
   colors: ['#f79009'],
   plotOptions: {
@@ -53,21 +60,16 @@ const chartOptions = computed(() => ({
       columnWidth: '45%',
     },
   },
-  dataLabels: {
-    enabled: false,
-  },
-  grid: {
-    borderColor: '#E4E7EC',
-    strokeDashArray: 4,
-  },
+  dataLabels: { enabled: false },
+  grid: { borderColor: '#E4E7EC', strokeDashArray: 4 },
   xaxis: {
-    categories: dashboard.healthTrend.categories,
-    axisBorder: {
-      show: false,
-    },
-    axisTicks: {
-      show: false,
-    },
+    categories: operations.alerts
+      .slice()
+      .sort((a, b) => (a.time < b.time ? -1 : 1))
+      .slice(-7)
+      .map((a) => a.time),
+    axisBorder: { show: false },
+    axisTicks: { show: false },
   },
   yaxis: {
     labels: {

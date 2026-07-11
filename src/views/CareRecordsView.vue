@@ -14,6 +14,7 @@
       </div>
 
       <button
+        v-if="canCreateCareRecord"
         type="button"
         class="inline-flex w-fit items-center justify-center rounded-lg bg-brand-600 px-4 py-2.5 text-theme-sm font-medium text-white shadow-theme-xs hover:bg-brand-700"
         @click="addCareRecord"
@@ -106,10 +107,14 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
+import { getStoredUser } from '@/api/http'
+import { canUseAction } from '@/config/roles'
 import { useOperationsStore } from '@/stores/operations'
 import type { CareRecord } from '@/stores/operations'
 
 const operations = useOperationsStore()
+const currentUser = getStoredUser()
+const canCreateCareRecord = canUseAction(currentUser?.roleName, 'care:create')
 const status = ref<CareRecord['status'] | '全部状态'>('全部状态')
 const feedback = ref('')
 
@@ -131,6 +136,11 @@ const statusClassMap: Record<CareRecord['status'], string> = {
 }
 
 const addCareRecord = () => {
+  if (!canCreateCareRecord) {
+    feedback.value = '当前角色没有新增护理记录权限'
+    return
+  }
+
   operations.addCareRecord()
   status.value = '全部状态'
   feedback.value = '已新增一条临时巡房护理记录'

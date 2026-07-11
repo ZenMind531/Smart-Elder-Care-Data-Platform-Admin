@@ -14,6 +14,7 @@
       </div>
 
       <button
+        v-if="canCreateElderly"
         type="button"
         class="inline-flex w-fit items-center justify-center rounded-lg bg-brand-600 px-4 py-2.5 text-theme-sm font-medium text-white shadow-theme-xs hover:bg-brand-700"
         @click="showAddForm = !showAddForm"
@@ -58,7 +59,7 @@
 
         <label class="block">
           <span class="mb-1.5 block text-theme-sm font-medium text-gray-700 dark:text-gray-300">
-            房间号
+            居住地址 / 房间
           </span>
           <input
             v-model="newRecord.room"
@@ -144,6 +145,54 @@
           />
         </label>
 
+        <label class="block">
+          <span class="mb-1.5 block text-theme-sm font-medium text-gray-700 dark:text-gray-300">
+            身份证号
+          </span>
+          <input
+            v-model="newRecord.idCard"
+            type="text"
+            placeholder="用于后端档案建档"
+            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-theme-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-white/[0.03] dark:text-white/90"
+          />
+        </label>
+
+        <label class="block">
+          <span class="mb-1.5 block text-theme-sm font-medium text-gray-700 dark:text-gray-300">
+            本人电话
+          </span>
+          <input
+            v-model="newRecord.phoneNumber"
+            type="text"
+            placeholder="老人本人或常用联系电话"
+            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-theme-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-white/[0.03] dark:text-white/90"
+          />
+        </label>
+
+        <label class="block md:col-span-2">
+          <span class="mb-1.5 block text-theme-sm font-medium text-gray-700 dark:text-gray-300">
+            既往病史
+          </span>
+          <input
+            v-model="newRecord.medicalHistory"
+            type="text"
+            placeholder="例如 高血压、糖尿病"
+            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-theme-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-white/[0.03] dark:text-white/90"
+          />
+        </label>
+
+        <label class="block md:col-span-2">
+          <span class="mb-1.5 block text-theme-sm font-medium text-gray-700 dark:text-gray-300">
+            过敏史
+          </span>
+          <input
+            v-model="newRecord.allergyHistory"
+            type="text"
+            placeholder="没有可填 无"
+            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-theme-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-white/[0.03] dark:text-white/90"
+          />
+        </label>
+
         <div class="md:col-span-2 xl:col-span-4 flex flex-col gap-3 sm:flex-row sm:items-center">
           <button
             type="submit"
@@ -161,6 +210,26 @@
         </div>
       </form>
     </section>
+
+    <p
+      v-if="elderlyStore.loading"
+      class="mb-4 w-fit rounded-lg border border-brand-200 bg-brand-50 px-3 py-2 text-theme-sm text-brand-700 dark:border-brand-500/30 dark:bg-brand-500/10 dark:text-brand-300"
+    >
+      正在同步老人档案...
+    </p>
+    <p
+      v-if="elderlyStore.error"
+      class="mb-4 w-fit rounded-lg border border-error-200 bg-error-50 px-4 py-2.5 text-theme-sm text-error-700 dark:border-error-500/30 dark:bg-error-500/10 dark:text-error-300"
+    >
+      服务器响应异常：{{ elderlyStore.error }}
+      <button
+        type="button"
+        class="ml-3 underline hover:no-underline"
+        @click="elderlyStore.fetchRecords()"
+      >
+        重试
+      </button>
+    </p>
 
     <section class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4 md:gap-6">
       <article
@@ -331,14 +400,31 @@
           </table>
 
           <div
-            v-if="filteredRecords.length === 0"
+            v-if="elderlyStore.loading"
+            class="flex flex-col items-center justify-center rounded-xl border border-dashed border-gray-300 p-8 text-center dark:border-gray-700"
+          >
+            <p class="font-medium text-theme-sm text-gray-800 dark:text-white/90">正在加载档案...</p>
+          </div>
+          <div
+            v-else-if="elderlyStore.records.length === 0"
+            class="flex flex-col items-center justify-center rounded-xl border border-dashed border-gray-300 p-8 text-center dark:border-gray-700"
+          >
+            <h3 class="font-semibold text-gray-800 text-theme-sm dark:text-white/90">
+              暂无老人档案
+            </h3>
+            <p class="mt-2 text-theme-sm text-gray-500 text-pretty dark:text-gray-400">
+              档案数据将从后端同步，请确认后端服务已启动后刷新页面。
+            </p>
+          </div>
+          <div
+            v-else-if="filteredRecords.length === 0"
             class="flex flex-col items-center justify-center rounded-xl border border-dashed border-gray-300 p-8 text-center dark:border-gray-700"
           >
             <h3 class="font-semibold text-gray-800 text-theme-sm dark:text-white/90">
               没有找到匹配档案
             </h3>
             <p class="mt-2 text-theme-sm text-gray-500 text-pretty dark:text-gray-400">
-              可以清空搜索条件，或新增一条老人档案。
+              {{ canCreateElderly ? '可以清空搜索条件，或新增一条老人档案。' : '可以清空搜索条件后重新查看。' }}
             </p>
             <button
               type="button"
@@ -415,12 +501,18 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { getStoredUser } from '@/api/http'
+import { canUseAction } from '@/config/roles'
+import { computed, onMounted, ref } from 'vue'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
 import { useElderlyStore } from '@/stores/elderly'
 import type { CareLevel, ElderStatus } from '@/stores/elderly'
 
 const elderlyStore = useElderlyStore()
+
+onMounted(() => {
+  void elderlyStore.fetchRecords()
+})
 
 const search = ref('')
 const statusFilter = ref<ElderStatus | '全部状态'>('全部状态')
@@ -430,6 +522,11 @@ const feedback = ref('')
 
 const statuses: ElderStatus[] = ['正常', '需关注', '异常', '离线']
 const careLevels: CareLevel[] = ['一级照护', '二级照护', '三级照护', '特级照护']
+
+const currentUser = getStoredUser()
+const canCreateElderly = canUseAction(currentUser?.roleName, 'elderly:create')
+const canUpdateElderly = canUseAction(currentUser?.roleName, 'elderly:update')
+const canDeleteElderly = canUseAction(currentUser?.roleName, 'elderly:delete')
 
 const createEmptyRecord = () => ({
   name: '',
@@ -442,6 +539,10 @@ const createEmptyRecord = () => ({
   contactName: '',
   contactPhone: '',
   caregiver: '',
+  idCard: '',
+  phoneNumber: '',
+  medicalHistory: '',
+  allergyHistory: '',
 })
 
 const newRecord = ref(createEmptyRecord())
@@ -519,8 +620,16 @@ const resetNewRecord = () => {
   newRecord.value = createEmptyRecord()
 }
 
-const submitNewRecord = () => {
-  elderlyStore.addRecord({ ...newRecord.value })
+const submitNewRecord = async () => {
+  const diseases = newRecord.value.medicalHistory
+    .split(/[、,，;；\s]+/)
+    .map((item) => item.trim())
+    .filter(Boolean)
+
+  await elderlyStore.addRecord({
+    ...newRecord.value,
+    diseases: diseases.length ? diseases : ['待完善'],
+  })
   search.value = ''
   statusFilter.value = '全部状态'
   levelFilter.value = '全部等级'

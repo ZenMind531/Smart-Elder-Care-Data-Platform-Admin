@@ -9,11 +9,12 @@
           服务预约
         </h1>
         <p class="mt-2 max-w-3xl text-theme-sm text-gray-500 text-pretty dark:text-gray-400">
-          处理家属和老人提交的健康咨询、康复训练、陪诊服务和上门护理预约，跟踪排班与服务进度。
+          由工作人员统一登记健康咨询、康复训练、陪诊服务和上门护理工单，跟踪排班与服务进度。
         </p>
       </div>
 
       <button
+        v-if="canCreateService"
         type="button"
         class="inline-flex w-fit items-center justify-center rounded-lg bg-brand-600 px-4 py-2.5 text-theme-sm font-medium text-white shadow-theme-xs hover:bg-brand-700"
         @click="addAppointment"
@@ -84,7 +85,7 @@
                 </td>
                 <td class="py-4 whitespace-nowrap">
                   <button
-                    v-if="service.status === '待确认'"
+                    v-if="service.status === '待确认' && canUpdateService"
                     type="button"
                     class="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-theme-xs font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-white/[0.03]"
                     @click="confirmService(service)"
@@ -92,7 +93,7 @@
                     确认预约
                   </button>
                   <button
-                    v-else-if="service.status === '已预约'"
+                    v-else-if="service.status === '已预约' && canUpdateService"
                     type="button"
                     class="rounded-lg border border-brand-200 bg-brand-50 px-3 py-1.5 text-theme-xs font-medium text-brand-700 shadow-theme-xs hover:bg-brand-100 dark:border-brand-500/30 dark:bg-brand-500/10 dark:text-brand-300"
                     @click="startService(service)"
@@ -100,14 +101,16 @@
                     开始服务
                   </button>
                   <button
-                    v-else-if="service.status === '服务中'"
+                    v-else-if="service.status === '服务中' && canUpdateService"
                     type="button"
                     class="rounded-lg border border-success-200 bg-success-50 px-3 py-1.5 text-theme-xs font-medium text-success-700 shadow-theme-xs hover:bg-success-100 dark:border-success-500/30 dark:bg-success-500/10 dark:text-success-300"
                     @click="completeService(service)"
                   >
                     完成服务
                   </button>
-                  <span v-else class="text-theme-xs text-gray-500 dark:text-gray-400">已归档</span>
+                  <span v-else class="text-theme-xs text-gray-500 dark:text-gray-400">
+                    {{ service.status === '已完成' ? '已归档' : '仅查看' }}
+                  </span>
                 </td>
               </tr>
             </tbody>
@@ -130,9 +133,9 @@
         </section>
 
         <section class="rounded-2xl border border-brand-100 bg-brand-25 p-5 dark:border-brand-900 dark:bg-brand-500/[0.08]">
-          <h2 class="text-lg font-semibold text-gray-900 text-balance dark:text-white">家属端联动</h2>
+          <h2 class="text-lg font-semibold text-gray-900 text-balance dark:text-white">工作人员协同</h2>
           <p class="mt-3 text-theme-sm text-gray-600 text-pretty dark:text-gray-300">
-            后期个人用户端可以复用这些预约数据，让家属查看进度、取消预约或补充服务备注。
+            当前预约由后台工作人员维护，后续扩展外部端时可复用这些服务工单数据。
           </p>
         </section>
       </aside>
@@ -143,10 +146,15 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
+import { getStoredUser } from '@/api/http'
+import { canUseAction } from '@/config/roles'
 import { useOperationsStore } from '@/stores/operations'
 import type { ServiceAppointment } from '@/stores/operations'
 
 const operations = useOperationsStore()
+const currentUser = getStoredUser()
+const canCreateService = canUseAction(currentUser?.roleName, 'services:create')
+const canUpdateService = canUseAction(currentUser?.roleName, 'services:update')
 const status = ref<ServiceAppointment['status'] | '全部状态'>('全部状态')
 const feedback = ref('')
 
@@ -171,22 +179,42 @@ const statusClassMap: Record<ServiceAppointment['status'], string> = {
 }
 
 const addAppointment = () => {
+  if (!canCreateService) {
+    feedback.value = '当前角色没有新建预约权限'
+    return
+  }
+
   operations.addServiceAppointment()
   status.value = '全部状态'
   feedback.value = '已新建一条待确认的康复训练预约'
 }
 
 const confirmService = (service: ServiceAppointment) => {
+  if (!canUpdateService) {
+    feedback.value = '当前角色没有确认预约权限'
+    return
+  }
+
   operations.confirmService(service.id)
   feedback.value = `${service.room} ${service.elderName} 的预约已确认`
 }
 
 const startService = (service: ServiceAppointment) => {
+  if (!canUpdateService) {
+    feedback.value = '当前角色没有开始服务权限'
+    return
+  }
+
   operations.startService(service.id)
   feedback.value = `${service.room} ${service.elderName} 的服务已开始`
 }
 
 const completeService = (service: ServiceAppointment) => {
+  if (!canUpdateService) {
+    feedback.value = '当前角色没有完成服务权限'
+    return
+  }
+
   operations.completeService(service.id)
   feedback.value = `${service.room} ${service.elderName} 的服务已完成`
 }

@@ -1,6 +1,6 @@
 <template>
   <section
-    class="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-white/[0.03] sm:p-6"
+    class="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-200 dark:bg-white/[0.03] sm:p-6"
   >
     <div class="flex items-start justify-between gap-4">
       <div>
@@ -14,7 +14,7 @@
       <span
         class="rounded-full bg-brand-50 px-2.5 py-1 text-theme-xs font-medium text-brand-700 tabular-nums dark:bg-brand-500/15 dark:text-brand-300"
       >
-        {{ dashboard.careCompletionRate }}%
+        {{ completionRate }}%
       </span>
     </div>
 
@@ -40,47 +40,47 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import VueApexCharts from 'vue3-apexcharts'
-import { useDashboardStore } from '@/stores/dashboard'
+import { computed, defineAsyncComponent, onMounted } from 'vue'
+import { useOperationsStore } from '@/stores/operations'
 
-const dashboard = useDashboardStore()
+// 异步加载：和 AlertTrendChart 一样，组件挂载时才拉 vue3-apexcharts
+const VueApexCharts = defineAsyncComponent(() => import('vue3-apexcharts'))
 
-const series = computed(() => [dashboard.careCompletionRate])
+const operations = useOperationsStore()
 
-const summary = [
-  { label: '已完成', value: '62 项' },
-  { label: '进行中', value: '8 项' },
-  { label: '待处理', value: '19 项' },
-]
+onMounted(() => {
+  if (operations.careRecords.length === 0) void operations.fetchCareRecordsSafe()
+})
+
+const completionRate = computed(() => {
+  if (operations.careRecords.length === 0) return 0
+  const done = operations.careRecords.filter((r) => r.status === '已完成').length
+  return Math.round((done / operations.careRecords.length) * 100)
+})
+
+const series = computed(() => [completionRate.value])
+
+const summary = computed(() => [
+  { label: '已完成', value: `${operations.careRecords.filter((r) => r.status === '已完成').length} 项` },
+  { label: '进行中', value: `${operations.careRecords.filter((r) => r.status === '进行中').length} 项` },
+  { label: '待处理', value: `${operations.careRecords.filter((r) => r.status === '待补录').length} 项` },
+])
 
 const chartOptions = {
   chart: {
     fontFamily: 'Outfit, sans-serif',
-    sparkline: {
-      enabled: true,
-    },
-    animations: {
-      enabled: false,
-    },
+    sparkline: { enabled: true },
+    animations: { enabled: false },
   },
   colors: ['#0d9488'],
   plotOptions: {
     radialBar: {
       startAngle: -120,
       endAngle: 120,
-      hollow: {
-        size: '72%',
-      },
-      track: {
-        background: '#E4E7EC',
-        strokeWidth: '100%',
-        margin: 5,
-      },
+      hollow: { size: '72%' },
+      track: { background: '#E4E7EC', strokeWidth: '100%', margin: 5 },
       dataLabels: {
-        name: {
-          show: false,
-        },
+        name: { show: false },
         value: {
           fontSize: '34px',
           fontWeight: '700',
@@ -93,8 +93,6 @@ const chartOptions = {
       },
     },
   },
-  stroke: {
-    lineCap: 'round',
-  },
+  stroke: { lineCap: 'round' },
 }
 </script>

@@ -11,23 +11,6 @@
           院区平均心率与收缩压趋势，用于快速发现整体波动
         </p>
       </div>
-
-      <div class="flex items-center gap-2 rounded-lg bg-gray-100 p-0.5 dark:bg-gray-900">
-        <button
-          v-for="option in options"
-          :key="option"
-          type="button"
-          class="rounded-md px-3 py-2 text-theme-sm font-medium"
-          :class="
-            selected === option
-              ? 'bg-white text-gray-900 shadow-theme-xs dark:bg-gray-800 dark:text-white'
-              : 'text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'
-          "
-          @click="selected = option"
-        >
-          {{ option }}
-        </button>
-      </div>
     </div>
 
     <div class="mt-4 flex flex-wrap items-center gap-4 text-theme-xs text-gray-500 dark:text-gray-400">
@@ -118,8 +101,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { useDashboardStore } from '@/stores/dashboard'
+import { computed, onMounted } from 'vue'
+import { useOperationsStore } from '@/stores/operations'
 
 interface ChartPoint {
   label: string
@@ -128,9 +111,11 @@ interface ChartPoint {
   y: number
 }
 
-const dashboard = useDashboardStore()
-const options = ['本周', '本月']
-const selected = ref('本周')
+const operations = useOperationsStore()
+
+onMounted(() => {
+  if (operations.healthRecords.length === 0) void operations.fetchHealthRecords()
+})
 
 const chartWidth = 720
 const chartHeight = 310
@@ -142,9 +127,20 @@ const minValue = 70
 const maxValue = 140
 const yTicks = [70, 80, 90, 100, 110, 120, 130, 140]
 
-const scaleX = (index: number) => {
-  const steps = Math.max(dashboard.healthTrend.categories.length - 1, 1)
+// 简单把体征按 measuredAt 字符串排序后取最近 7 条作为"周趋势"
+const trendData = computed(() => {
+  const sorted = [...operations.healthRecords]
+    .sort((a, b) => (a.measuredAt < b.measuredAt ? -1 : 1))
+    .slice(-7)
+  return {
+    categories: sorted.map((r) => r.measuredAt.replace(/^.*?(\d{1,2}:\d{2}).*$/, '$1') || r.measuredAt),
+    heartRate: sorted.map((r) => r.heartRate || 0),
+    bloodPressure: sorted.map((r) => r.systolicPressure || 0),
+  }
+})
 
+const scaleX = (index: number) => {
+  const steps = Math.max(trendData.value.categories.length - 1, 1)
   return plotLeft + (index / steps) * (plotRight - plotLeft)
 }
 
@@ -153,7 +149,7 @@ const scaleY = (value: number) =>
 
 const createPoints = (values: number[]) =>
   values.map((value, index) => ({
-    label: dashboard.healthTrend.categories[index] ?? '',
+    label: trendData.value.categories[index] ?? '',
     value,
     x: scaleX(index),
     y: scaleY(value),
@@ -180,8 +176,8 @@ const smoothPath = (points: ChartPoint[]) => {
   }, '')
 }
 
-const heartPoints = computed(() => createPoints(dashboard.healthTrend.heartRate))
-const pressurePoints = computed(() => createPoints(dashboard.healthTrend.bloodPressure))
+const heartPoints = computed(() => createPoints(trendData.value.heartRate))
+const pressurePoints = computed(() => createPoints(trendData.value.bloodPressure))
 const heartPath = computed(() => smoothPath(heartPoints.value))
 const pressurePath = computed(() => smoothPath(pressurePoints.value))
 </script>

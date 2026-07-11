@@ -1,4 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { getStoredUser,getAuthToken } from '@/api/http'
+import { canAccessPath, getRoleLandingPath, publicPaths } from '@/config/roles'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -11,8 +13,35 @@ const router = createRouter({
       name: 'Dashboard',
       component: () => import('../views/DashboardView.vue'),
       meta: {
+        title: '工作台',
+        subtitle: '集中查看岗位相关的关键信息',
+      },
+    },
+    {
+      path: '/dashboard/admin',
+      name: 'AdminDashboard',
+      component: () => import('../views/dashboards/AdminDashboard.vue'),
+      meta: {
+        title: '运营总览',
+        subtitle: '集中查看平台告警、设备在线、账号审核和关键运营指标',
+      },
+    },
+    {
+      path: '/dashboard/nurse',
+      name: 'NurseDashboard',
+      component: () => import('../views/dashboards/NurseDashboard.vue'),
+      meta: {
         title: '监护总览',
         subtitle: '集中查看老人状态、实时告警、设备在线和今日护理任务',
+      },
+    },
+    {
+      path: '/dashboard/doctor',
+      name: 'DoctorDashboard',
+      component: () => import('../views/dashboards/DoctorDashboard.vue'),
+      meta: {
+        title: '医疗总览',
+        subtitle: '集中查看异常体征、复测队列和健康预警',
       },
     },
     {
@@ -79,6 +108,15 @@ const router = createRouter({
       },
     },
     {
+      path: '/accounts',
+      name: 'Accounts',
+      component: () => import('../views/AccountsView.vue'),
+      meta: {
+        title: '账号管理',
+        subtitle: '审核、启用、禁用和删除工作人员账号',
+      },
+    },
+    {
       path: '/profile',
       name: 'Profile',
       component: () => import('../views/PlaceholderView.vue'),
@@ -93,6 +131,16 @@ const router = createRouter({
       component: () => import('../views/Auth/Signin.vue'),
       meta: {
         title: '登录',
+        public: true,
+      },
+    },
+    {
+      path: '/signup',
+      name: 'Signup',
+      component: () => import('../views/Auth/Signup.vue'),
+      meta: {
+        title: '注册',
+        public: true,
       },
     },
     {
@@ -101,6 +149,7 @@ const router = createRouter({
       component: () => import('../views/Errors/FourZeroFour.vue'),
       meta: {
         title: '页面不存在',
+        public: true,
       },
     },
   ],
@@ -108,7 +157,44 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
   document.title = `${to.meta.title || '智慧养老管理系统'} | 智慧养老管理系统`
+
+  if (to.meta.public || publicPaths.includes(to.path)) {
+    next()
+    return
+  }
+
+  const token = getAuthToken()
+  const currentUser = getStoredUser()
+
+  if (!token) {
+    next({
+      path: '/signin',
+      query: {
+        redirect: to.fullPath,
+      },
+    })
+    return
+  }
+
+  if (currentUser && !canAccessPath(currentUser.roleName, to.path)) {
+    next(getRoleLandingPath(currentUser.roleName))
+    return
+  }
+
   next()
 })
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('auth:expired', () => {
+    if (router.currentRoute.value.path !== '/signin') {
+      router.push({
+        path: '/signin',
+        query: {
+          expired: '1',
+        },
+      })
+    }
+  })
+}
 
 export default router

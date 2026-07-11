@@ -8,13 +8,13 @@
           老人健康状态
         </h2>
         <p class="mt-1 text-theme-sm text-gray-500 text-pretty dark:text-gray-400">
-          展示重点关注对象的实时体征和责任护理人员
+          展示重点关注对象的实时体征
         </p>
       </div>
 
       <RouterLink
         to="/elderly"
-        class="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200"
+        class="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200"
       >
         查看档案
       </RouterLink>
@@ -37,62 +37,48 @@
               <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">血压</p>
             </th>
             <th class="py-3 pr-4 text-left">
-              <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">体温</p>
-            </th>
-            <th class="py-3 pr-4 text-left">
-              <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">护理员</p>
-            </th>
-            <th class="py-3 text-left">
               <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">状态</p>
             </th>
           </tr>
         </thead>
         <tbody>
           <tr
-            v-for="elder in dashboard.elders"
-            :key="elder.id"
+            v-for="record in recentRecords"
+            :key="record.id"
             class="border-t border-gray-100 hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-white/[0.03]"
           >
             <td class="py-3 pr-4 whitespace-nowrap">
-              <div>
-                <p class="font-medium text-gray-800 text-theme-sm dark:text-white/90">
-                  {{ elder.name }}
-                </p>
-                <span class="text-gray-500 text-theme-xs dark:text-gray-400">
-                  {{ elder.age }} 岁
-                </span>
-              </div>
-            </td>
-            <td class="py-3 pr-4 whitespace-nowrap">
-              <p class="text-gray-600 text-theme-sm tabular-nums dark:text-gray-300">
-                {{ elder.room }}
+              <p class="font-medium text-gray-800 text-theme-sm dark:text-white/90">
+                {{ record.elderName }}
               </p>
             </td>
             <td class="py-3 pr-4 whitespace-nowrap">
               <p class="text-gray-600 text-theme-sm tabular-nums dark:text-gray-300">
-                {{ elder.heartRate }} bpm
+                {{ record.room }}
               </p>
             </td>
             <td class="py-3 pr-4 whitespace-nowrap">
               <p class="text-gray-600 text-theme-sm tabular-nums dark:text-gray-300">
-                {{ elder.bloodPressure }}
+                {{ record.heartRate }} bpm
               </p>
             </td>
             <td class="py-3 pr-4 whitespace-nowrap">
               <p class="text-gray-600 text-theme-sm tabular-nums dark:text-gray-300">
-                {{ elder.temperature }}°C
+                {{ record.bloodPressure }}
               </p>
             </td>
             <td class="py-3 pr-4 whitespace-nowrap">
-              <p class="text-gray-600 text-theme-sm dark:text-gray-300">{{ elder.caregiver }}</p>
-            </td>
-            <td class="py-3 whitespace-nowrap">
               <span
                 class="rounded-full px-2 py-0.5 text-theme-xs font-medium"
-                :class="statusClassMap[elder.status]"
+                :class="statusClassMap[record.status]"
               >
-                {{ elder.status }}
+                {{ record.status }}
               </span>
+            </td>
+          </tr>
+          <tr v-if="recentRecords.length === 0">
+            <td colspan="5" class="py-8 text-center text-theme-sm text-gray-500 dark:text-gray-400">
+              暂无健康数据
             </td>
           </tr>
         </tbody>
@@ -102,16 +88,27 @@
 </template>
 
 <script setup lang="ts">
+import { computed, onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
-import { useDashboardStore } from '@/stores/dashboard'
-import type { ElderStatus } from '@/stores/dashboard'
+import { useOperationsStore } from '@/stores/operations'
+import type { HealthRecord } from '@/stores/operations'
 
-const dashboard = useDashboardStore()
+const operations = useOperationsStore()
 
-const statusClassMap: Record<ElderStatus['status'], string> = {
+onMounted(() => {
+  if (operations.healthRecords.length === 0) void operations.fetchHealthRecords()
+})
+
+const recentRecords = computed<HealthRecord[]>(() =>
+  operations.healthRecords
+    .slice()
+    .sort((a, b) => (a.measuredAt < b.measuredAt ? 1 : -1))
+    .slice(0, 5),
+)
+
+const statusClassMap: Record<HealthRecord['status'], string> = {
   正常: 'bg-success-50 text-success-700 dark:bg-success-500/15 dark:text-success-400',
-  需关注: 'bg-warning-50 text-warning-700 dark:bg-warning-500/15 dark:text-warning-400',
+  需复测: 'bg-warning-50 text-warning-700 dark:bg-warning-500/15 dark:text-warning-400',
   异常: 'bg-error-50 text-error-700 dark:bg-error-500/15 dark:text-error-400',
-  离线: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300',
 }
 </script>
