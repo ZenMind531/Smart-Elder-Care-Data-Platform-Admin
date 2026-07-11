@@ -24,7 +24,7 @@ public class AuthController {
         LoginResult result = userService.login(
                 request.getUsername(),
                 request.getPassword()
-        );
+        );//注释
         return ApiResponse.success(result);
     }
 
