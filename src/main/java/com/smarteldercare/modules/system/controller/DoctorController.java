@@ -63,7 +63,7 @@ public class DoctorController {
         if (doctor == null) {
             return
                     ApiResponse.error(ResultCode.NOT_FOUND.getCode(),
-                            "没有这个医生");
+                            "查无此人");
         }
         return ApiResponse.success(doctor);
     }
