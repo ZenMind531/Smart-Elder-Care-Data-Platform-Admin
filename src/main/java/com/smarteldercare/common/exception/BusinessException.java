@@ -17,4 +17,8 @@ public class BusinessException extends RuntimeException {
         super(resultCode.getMessage());
         this.code = resultCode.getCode();
     }
+
+    public BusinessException(ResultCode resultCode, String 手机号已注册, Integer code) {
+        this.code = code;
+    }
 }
