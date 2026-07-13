@@ -3,7 +3,7 @@ package com.smarteldercare.modules.family.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.smarteldercare.common.exception.BusinessException;
-import com.smarteldercare.common.utils.JwtUtil;
+import com.smarteldercare.common.security.JwtUtil;
 import com.smarteldercare.modules.elderly.dto.ElderlyProfileDTO;
 import com.smarteldercare.modules.elderly.entity.ElderlyProfile;
 import com.smarteldercare.modules.elderly.mapper.ElderlyProfileMapper;
@@ -30,6 +30,7 @@ public class FamilyMemberServiceImpl
 
     private final ElderlyProfileMapper elderlyProfileMapper;
     private final ServiceReservationMapper serviceReservationMapper;
+    private final JwtUtil jwtUtil;
 
     // ========== 1. 注册 ==========
     @Override
@@ -62,7 +63,7 @@ public class FamilyMemberServiceImpl
         if ("disabled".equals(member.getStatus())) {
             throw new BusinessException("账号已禁用");
         }
-        String token = JwtUtil.generate(member.getId(), member.getPhone());
+        String token = jwtUtil.generate(member.getId(), member.getPhone(), "family");
         LoginVO vo = new LoginVO();
         vo.setToken(token);
         vo.setId(member.getId());

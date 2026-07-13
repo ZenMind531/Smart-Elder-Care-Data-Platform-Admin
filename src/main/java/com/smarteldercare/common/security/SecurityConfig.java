@@ -42,7 +42,7 @@ public class SecurityConfig {
                             "/api/*/login",
                             "/api/*/register",
                             "/api/auth/logout"
-                    ).permitAll()
+                    ).permitAll().anyRequest().authenticated()
             )
             .exceptionHandling(ex -> ex
                 .authenticationEntryPoint((req, res, e) ->
