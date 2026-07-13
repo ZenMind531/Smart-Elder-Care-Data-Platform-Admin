@@ -6,6 +6,7 @@ import com.smarteldercare.common.result.ApiResponse;
 import com.smarteldercare.common.result.PageResult;
 import com.smarteldercare.modules.report.entity.AssessmentReport;
 import com.smarteldercare.modules.report.service.AssessmentReportService;
+import com.smarteldercare.modules.elderly.mapper.ElderlyProfileMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,6 +16,16 @@ public class AssessmentReportController {
 
     @Autowired
     private AssessmentReportService assessmentReportService;
+
+    @Autowired
+    private ElderlyProfileMapper elderlyProfileMapper;
+
+    private void fillElderlyName(AssessmentReport r) {
+        if (r != null && r.getElderlyId() != null) {
+            com.smarteldercare.modules.elderly.entity.ElderlyProfile e = elderlyProfileMapper.selectById(r.getElderlyId());
+            if (e != null) r.setElderlyName(e.getElderlyName());
+        }
+    }
 
     @GetMapping
     public ApiResponse<PageResult<AssessmentReport>> list(
@@ -28,6 +39,7 @@ public class AssessmentReportController {
         if (riskLevel != null) q.eq(AssessmentReport::getRiskLevel, riskLevel);
         q.orderByDesc(AssessmentReport::getCreateTime);
         assessmentReportService.page(p, q);
+        p.getRecords().forEach(this::fillElderlyName);
         return ApiResponse.success(new PageResult<>(p.getRecords(), p.getTotal(), p.getCurrent(), p.getSize()));
     }
 
@@ -35,6 +47,7 @@ public class AssessmentReportController {
     public ApiResponse<AssessmentReport> detail(@PathVariable Long id) {
         AssessmentReport r = assessmentReportService.getById(id);
         if (r == null) return ApiResponse.error(404, "报告不存在");
+        fillElderlyName(r);
         return ApiResponse.success(r);
     }
 

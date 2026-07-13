@@ -6,6 +6,7 @@ import com.smarteldercare.common.result.ApiResponse;
 import com.smarteldercare.common.result.PageResult;
 import com.smarteldercare.modules.population.entity.KeyPopulation;
 import com.smarteldercare.modules.population.service.KeyPopulationService;
+import com.smarteldercare.modules.elderly.mapper.ElderlyProfileMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,6 +16,16 @@ public class KeyPopulationController {
 
     @Autowired
     private KeyPopulationService keyPopulationService;
+
+    @Autowired
+    private ElderlyProfileMapper elderlyProfileMapper;
+
+    private void fillElderlyName(KeyPopulation k) {
+        if (k != null && k.getElderlyId() != null) {
+            com.smarteldercare.modules.elderly.entity.ElderlyProfile e = elderlyProfileMapper.selectById(k.getElderlyId());
+            if (e != null) k.setElderlyName(e.getElderlyName());
+        }
+    }
 
     @GetMapping
     public ApiResponse<PageResult<KeyPopulation>> list(
@@ -28,6 +39,7 @@ public class KeyPopulationController {
         if (followStatus != null) q.eq(KeyPopulation::getFollowStatus, followStatus);
         q.orderByDesc(KeyPopulation::getCreateTime);
         keyPopulationService.page(p, q);
+        p.getRecords().forEach(this::fillElderlyName);
         return ApiResponse.success(new PageResult<>(p.getRecords(), p.getTotal(), p.getCurrent(), p.getSize()));
     }
 
@@ -35,6 +47,7 @@ public class KeyPopulationController {
     public ApiResponse<KeyPopulation> detail(@PathVariable Long id) {
         KeyPopulation k = keyPopulationService.getById(id);
         if (k == null) return ApiResponse.error(404, "重点人群记录不存在");
+        fillElderlyName(k);
         return ApiResponse.success(k);
     }
 

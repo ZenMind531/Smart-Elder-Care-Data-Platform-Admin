@@ -12,6 +12,7 @@ public class AppointmentVO {
 
     private Long elderlyId;
 
+    private String elderlyName;
     private String serviceType;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")

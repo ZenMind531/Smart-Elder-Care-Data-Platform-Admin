@@ -12,6 +12,7 @@ public class CareRecordVO {
 
     private Long elderlyId;
 
+    private String elderlyName;
     private String caregiver;
 
     private String careType;

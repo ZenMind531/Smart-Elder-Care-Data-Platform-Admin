@@ -91,6 +91,10 @@ public class CareRecordServiceImpl
     private CareRecordVO toVO(CareRecord record) {
         CareRecordVO vo = new CareRecordVO();
         BeanUtils.copyProperties(record, vo);
+        if (record.getElderlyId() != null) {
+            com.smarteldercare.modules.elderly.entity.ElderlyProfile e = elderlyProfileMapper.selectById(record.getElderlyId());
+            if (e != null) vo.setElderlyName(e.getElderlyName());
+        }
         return vo;
     }
 }

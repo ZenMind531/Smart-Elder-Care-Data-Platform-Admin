@@ -105,6 +105,10 @@ public class AppointmentServiceImpl
     private AppointmentVO toVO(Appointment appointment) {
         AppointmentVO vo = new AppointmentVO();
         BeanUtils.copyProperties(appointment, vo);
+        if (appointment.getElderlyId() != null) {
+            com.smarteldercare.modules.elderly.entity.ElderlyProfile e = elderlyProfileMapper.selectById(appointment.getElderlyId());
+            if (e != null) vo.setElderlyName(e.getElderlyName());
+        }
         return vo;
     }
 }

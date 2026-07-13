@@ -1,5 +1,6 @@
 package com.smarteldercare.modules.report.entity;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.smarteldercare.common.BaseEntity;
 import java.time.LocalDateTime;
@@ -7,6 +8,9 @@ import java.time.LocalDateTime;
 @TableName("assessment_report")
 public class AssessmentReport extends BaseEntity {
     private Long elderlyId;
+
+    @TableField(exist = false)
+    private String elderlyName;
     private String reportTitle;
     private String riskLevel;
     private String summary;
@@ -17,6 +21,8 @@ public class AssessmentReport extends BaseEntity {
     public void setElderlyId(Long elderlyId) { this.elderlyId = elderlyId; }
     public String getReportTitle() { return reportTitle; }
     public void setReportTitle(String reportTitle) { this.reportTitle = reportTitle; }
+    public String getElderlyName() { return elderlyName; }
+    public void setElderlyName(String elderlyName) { this.elderlyName = elderlyName; }
     public String getRiskLevel() { return riskLevel; }
     public void setRiskLevel(String riskLevel) { this.riskLevel = riskLevel; }
     public String getSummary() { return summary; }
