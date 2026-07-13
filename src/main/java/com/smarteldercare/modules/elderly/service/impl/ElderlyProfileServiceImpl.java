@@ -133,7 +133,9 @@ public class ElderlyProfileServiceImpl
             response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
             response.setCharacterEncoding("UTF-8");
             response.setHeader("Content-Disposition", "attachment; filename*=UTF-8''" + fileName);
+            response.setHeader("Access-Control-Expose-Headers", "Content-Disposition");
             workbook.write(response.getOutputStream());
+            response.flushBuffer();
         } catch (IOException e) {
             throw new BusinessException("导出病人列表失败");
         }

@@ -50,7 +50,10 @@ public class ElderlyProfileController {
         return ApiResponse.success(elderlyProfileService.getHealthSummary(id));
     }
 
-    @GetMapping("/export")
+    @GetMapping(
+        value = "/export",
+        produces = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
     public void exportExcel(
         @RequestParam(required = false) String keyword,
         @RequestParam(required = false) String gender,
