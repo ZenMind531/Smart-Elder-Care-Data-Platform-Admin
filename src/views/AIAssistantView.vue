@@ -28,7 +28,6 @@
               <div class="prose prose-sm max-w-none text-sm text-gray-700 dark:text-gray-300" v-html="renderMarkdown(msg.content)" />
             </div>
             <div v-else class="rounded-2xl rounded-tr-md bg-brand-600 px-4 py-3 text-sm text-white shadow-sm">{{ msg.content }}</div>
-            <p v-if="msg.role === 'assistant' && msg.meta" class="mt-1 px-1 text-xs text-gray-400 dark:text-gray-500">{{ msg.meta }}</p>
           </div>
         </div>
 
@@ -54,7 +53,7 @@
             <svg class="size-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
           </button>
         </form>
-        <p class="mt-2 text-xs text-gray-400 dark:text-gray-500">基于 DeepSeek · 数据来源：平台实时数据 · AI 建议仅供参考</p>
+        <p class="mt-2 text-xs text-gray-400 dark:text-gray-500">AI 决策基于平台实时数据 · 建议仅供参考</p>
       </div>
     </div>
   </AdminLayout>
@@ -63,17 +62,12 @@
 <script setup lang="ts">
 import { nextTick, ref } from 'vue'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
-import { sendAIChat, type AIChatMessage } from '@/api/ai'
+import { sendAIChat } from '@/api/ai'
 import { ApiError } from '@/api/http'
-import { listHealthWarnings } from '@/api/warnings'
-import { listElderly } from '@/api/elderly'
-import { listDevices } from '@/api/devices'
-import { listHealthRecords } from '@/api/health'
 
 interface ChatMessage {
   role: 'user' | 'assistant'
   content: string
-  meta?: string
 }
 
 const messages = ref<ChatMessage[]>([])
@@ -104,38 +98,6 @@ const scrollBottom = () => nextTick(() => {
   if (msgContainer.value) msgContainer.value.scrollTop = msgContainer.value.scrollHeight
 })
 
-const gatherContext = async (): Promise<string> => {
-  const parts: string[] = []
-  try {
-    const elderly = await listElderly({ page: 1, size: 200 })
-    const total = elderly.total ?? elderly.records.length
-    parts.push(`老人总数: ${total}`)
-  } catch { parts.push('老人数据: 获取失败') }
-
-  try {
-    const warnings = await listHealthWarnings({ page: 1, size: 100 })
-    const pending = warnings.records.filter(w => w.status === 'pending').length
-    const processing = warnings.records.filter(w => w.status === 'processing').length
-    const high = warnings.records.filter(w => (w.warningLevel || w.level) === 'high').length
-    parts.push(`健康预警: 共${warnings.total ?? warnings.records.length}条，待处理${pending}，处理中${processing}，紧急${high}`)
-  } catch { parts.push('预警数据: 获取失败') }
-
-  try {
-    const devices = await listDevices({ page: 1, size: 100 })
-    const online = devices.records.filter(d => d.status === 'normal').length
-    parts.push(`设备: 共${devices.total ?? devices.records.length}台，在线${online}`)
-  } catch { parts.push('设备数据: 获取失败') }
-
-  try {
-    const health = await listHealthRecords({ page: 1, size: 100 })
-    const abnormal = health.records.filter(r => r.status === 'abnormal').length
-    const pending = health.records.filter(r => r.status === 'pending').length
-    parts.push(`健康记录: 共${health.total ?? health.records.length}条，异常${abnormal}，待复测${pending}`)
-  } catch { parts.push('健康记录: 获取失败') }
-
-  return parts.join('\n')
-}
-
 const send = async () => {
   const q = input.value.trim()
   if (!q || thinking.value) return
@@ -146,29 +108,12 @@ const send = async () => {
   thinking.value = true
   scrollBottom()
 
-  let context = ''
-  try { context = await gatherContext() } catch { /* continue without context */ }
-
-  const apiMessages: AIChatMessage[] = [
-    {
-      role: 'system',
-      content: `你是智慧养老管理平台的 AI 决策助手。你可以访问以下平台数据并基于数据回答问题、提供分析和决策建议。
-
-数据上下文：
-${context}
-
-请根据以上数据分析回答用户问题。如果数据不足以回答，诚实说明。回答时引用具体数字，给出可操作建议。用中文。格式清晰，重点突出。`,
-    },
-    ...messages.value.map(m => ({ role: m.role as 'user' | 'assistant', content: m.content })),
-  ]
-
   try {
-    const resp = await sendAIChat({ messages: apiMessages, context })
-    const reply = resp.reply || '抱歉，AI 暂时无法回复，请稍后重试。'
-    messages.value.push({ role: 'assistant', content: reply, meta: `基于 ${context.split('\n').length} 条数据指标分析` })
+    const resp = await sendAIChat({ message: q })
+    messages.value.push({ role: 'assistant', content: resp.reply || 'AI 暂无回复' })
   } catch (e) {
     const errMsg = e instanceof ApiError ? e.message : 'AI 服务暂不可用'
-    messages.value.push({ role: 'assistant', content: `❌ ${errMsg}。请确认已配置 VITE_DEEPSEEK_API_KEY。`, meta: '请求失败' })
+    chatError.value = errMsg
   } finally {
     thinking.value = false
     scrollBottom()
