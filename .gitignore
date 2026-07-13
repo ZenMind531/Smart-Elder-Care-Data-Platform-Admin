@@ -1,0 +1,46 @@
+# Build outputs
+target/
+dist/
+build/
+out/
+
+# Dependencies
+node_modules/
+
+# IDE files
+.idea/
+.vscode/
+*.iml
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Runtime logs
+*.log
+logs/
+
+# Environment files - keep real credentials out
+.env
+.env.local
+.env.dev
+.env.prod
+
+# Local Codex/agent workspace files
+.codex/
+.agents/
+.reasonix/
+reasonix.toml
+
+# Temporary files
+*.tmp
+*.temp
+~$*
+
+# Local training log drafts
+student_log_work.docx
+*学生实训日志*.docx
+
+# Docker 构建产物
+docker-init/
+.env.bat
