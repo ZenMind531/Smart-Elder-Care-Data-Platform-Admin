@@ -101,10 +101,10 @@ public class DeviceServiceImpl extends ServiceImpl<DeviceMapper, Device> impleme
     @Override
     public DeviceVO unbindDevice(Long id) {
         getExistingById(id);
-        lambdaUpdate()
-            .eq(Device::getId, id)
-            .set(Device::getElderlyId, null)
-            .update();
+        int updated = baseMapper.unbindElderly(id);
+        if (updated == 0) {
+            throw new BusinessException(ResultCode.NOT_FOUND);
+        }
         return toVO(getExistingById(id));
     }
 
@@ -133,7 +133,7 @@ public class DeviceServiceImpl extends ServiceImpl<DeviceMapper, Device> impleme
     private ElderlyProfile getExistingElderly(Long elderlyId) {
         ElderlyProfile elderlyProfile = elderlyProfileMapper.selectById(elderlyId);
         if (elderlyProfile == null) {
-            throw new BusinessException(ResultCode.NOT_FOUND);
+            throw new BusinessException(ResultCode.NOT_FOUND.getCode(), "绑定老人不存在");
         }
         return elderlyProfile;
     }
