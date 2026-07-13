@@ -33,7 +33,7 @@ export interface StoredUserInfo {
 export const AUTH_TOKEN_KEY = 'smart-elder-care-token'
 export const AUTH_USER_KEY = 'smart-elder-care-user'
 
-const defaultBaseUrl = 'https://smart-eldercare.online/api'
+const defaultBaseUrl = '/api'
 
 export const apiBaseUrl = (
   import.meta.env.VITE_API_BASE_URL?.trim() || defaultBaseUrl
