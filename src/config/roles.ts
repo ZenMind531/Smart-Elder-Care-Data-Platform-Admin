@@ -72,9 +72,9 @@ export const staffRoleOptions: StaffRoleOption[] = [
 ]
 
 export const roleAccessMap: Record<StaffRole, string[]> = {
-  系统管理员: ['/dashboard/admin', '/alerts', '/devices', '/settings', '/accounts', '/profile', '/elderly', '/reports', '/populations'],
-  护理管理员: ['/dashboard/nurse', '/elderly', '/alerts', '/care-records', '/services', '/profile'],
-  医生: ['/dashboard/doctor', '/health', '/alerts', '/elderly', '/profile'],
+  系统管理员: ['/dashboard/admin', '/alerts', '/devices', '/settings', '/accounts', '/profile', '/elderly', '/reports', '/populations', '/ai-assistant'],
+  护理管理员: ['/dashboard/nurse', '/elderly', '/alerts', '/care-records', '/services', '/profile', '/ai-assistant'],
+  医生: ['/dashboard/doctor', '/health', '/alerts', '/elderly', '/profile', '/ai-assistant'],
 }
 
 export const rolePermissionMap: Record<StaffRole, PermissionAction[]> = {

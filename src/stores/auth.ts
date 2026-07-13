@@ -5,6 +5,7 @@ import {
   getStoredUser,
   setAuthSession,
   clearAuthSession,
+  startAccountCheck,
   type StoredUserInfo,
 } from '@/api/http'
 import { defaultStaffRole, normalizeStaffRole } from '@/config/roles'
@@ -31,6 +32,7 @@ export const useAuthStore = defineStore('auth', {
         ...result.userInfo,
         roleName,
       })
+      startAccountCheck()
 
       this.token = result.token
       this.userInfo = {

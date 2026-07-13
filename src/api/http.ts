@@ -87,6 +87,38 @@ export const setAuthSession = (token: string, userInfo?: StoredUserInfo) => {
 export const clearAuthSession = () => {
   localStorage.removeItem(AUTH_TOKEN_KEY)
   localStorage.removeItem(AUTH_USER_KEY)
+  stopAccountCheck()
+}
+
+// ====== 账号有效性轮询检查 ======
+let accountCheckTimer: ReturnType<typeof setInterval> | null = null
+
+const checkAccount = async () => {
+  const token = getAuthToken()
+  if (!token) { stopAccountCheck(); return }
+
+  try {
+    const resp = await fetch(`${apiBaseUrl}/auth/me`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    if (!resp.ok && resp.status === 401) {
+      emitAuthExpired()
+    }
+  } catch {
+    // 网络错误不管，下次再试
+  }
+}
+
+export const startAccountCheck = () => {
+  stopAccountCheck()
+  accountCheckTimer = setInterval(checkAccount, 5 * 60 * 1000) // 每5分钟
+}
+
+const stopAccountCheck = () => {
+  if (accountCheckTimer) {
+    clearInterval(accountCheckTimer)
+    accountCheckTimer = null
+  }
 }
 
 export const buildQuery = (params: Record<string, unknown> = {}) => {

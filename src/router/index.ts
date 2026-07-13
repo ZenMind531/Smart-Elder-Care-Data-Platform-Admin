@@ -132,6 +132,12 @@ const router = createRouter({
       meta: { title: '重点人群', subtitle: '管理慢性病、独居等重点关注对象' },
     },
     {
+      path: '/ai-assistant',
+      name: 'AIAssistant',
+      component: () => import('../views/AIAssistantView.vue'),
+      meta: { title: 'AI 决策助手', subtitle: '自然语言提问，AI 分析平台数据并给出决策建议' },
+    },
+    {
       path: '/profile',
       name: 'Profile',
       component: () => import('../views/PlaceholderView.vue'),

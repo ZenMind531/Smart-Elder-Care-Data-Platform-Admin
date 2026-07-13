@@ -199,6 +199,12 @@ const allMenuGroups: MenuGroup[] = [
         path: '/settings',
         roles: ['系统管理员'],
       },
+      {
+        icon: BarChartIcon,
+        name: 'AI 决策助手',
+        path: '/ai-assistant',
+        roles: ['系统管理员', '护理管理员', '医生'],
+      },
     ],
   },
 ]
