@@ -131,6 +131,42 @@ public class DeepSeekService {
         return callDeepSeek(prompt);
     }
 
+    public String chat(String message) {
+        List<ElderlyProfile> allElderly = elderlyProfileMapper.selectList(null);
+
+        StringBuilder context = new StringBuilder();
+        context.append("以下是养老院所有老人的健康数据概况。用户在对话框中提问，请根据这些数据回答。\n\n");
+        for (ElderlyProfile e : allElderly) {
+            context.append("老人ID:").append(e.getId())
+                .append("，姓名:").append(e.getElderlyName())
+                .append("，年龄:").append(e.getAge())
+                .append("，性别:").append(e.getGender())
+                .append("，风险等级:").append(e.getRiskLevel()).append("\n");
+
+            List<HealthRecord> records = healthRecordMapper.selectList(
+                new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<HealthRecord>()
+                    .eq(HealthRecord::getElderlyId, e.getId())
+                    .orderByDesc(HealthRecord::getRecordTime).last("LIMIT 5"));
+            for (HealthRecord r : records) {
+                context.append("  健康记录: ").append(r.getRecordTime())
+                    .append(" 血压:").append(r.getSystolicPressure()).append("/").append(r.getDiastolicPressure())
+                    .append(" 血糖:").append(r.getBloodSugar())
+                    .append(" 心率:").append(r.getHeartRate()).append("\n");
+            }
+
+            List<HealthWarning> warnings = healthWarningMapper.selectList(
+                new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<HealthWarning>()
+                    .eq(HealthWarning::getElderlyId, e.getId())
+                    .eq(HealthWarning::getStatus, "pending"));
+            for (HealthWarning w : warnings) {
+                context.append("  待处理预警: ").append(w.getWarningContent()).append("\n");
+            }
+        }
+        context.append("\n用户问题：").append(message).append("\n\n请基于以上数据回答用户的问题。");
+
+        return callDeepSeek(context.toString());
+    }
+
     private String callDeepSeek(String prompt) {
         try {
             HttpHeaders headers = new HttpHeaders();
