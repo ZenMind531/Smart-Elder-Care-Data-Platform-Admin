@@ -27,7 +27,10 @@ export interface StoredUserInfo {
   id?: number
   username?: string
   realName?: string
+  phoneNumber?: string
   roleName?: string
+  roleId?: number
+  status?: string
 }
 
 export const AUTH_TOKEN_KEY = 'smart-elder-care-token'
@@ -101,15 +104,11 @@ const checkAccount = async () => {
     const resp = await fetch(`${apiBaseUrl}/auth/me`, {
       headers: { Authorization: `Bearer ${token}` },
     })
-    // HTTP 401 或 body code 401 都视为过期
+    // 轮询只信 HTTP 401。当前后端 /auth/me 会在新登录 token 下返回 HTTP 200 + code 401，
+    // 如果这里也清登录态，会导致用户无故被踢回登录页。
     if (resp.status === 401) {
-      emitAuthExpired(); return
-    }
-    if (resp.ok) {
-      const body = await resp.json().catch(() => null)
-      if (body?.code === 401) {
-        emitAuthExpired()
-      }
+      emitAuthExpired()
+      return
     }
   } catch {
     // 网络错误不管，下次再试

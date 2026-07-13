@@ -9,10 +9,12 @@ export type PermissionAction =
   | 'health:view'
   | 'health:create'
   | 'health:resolve'
+  | 'health:delete'
   | 'alerts:view'
   | 'alerts:create'
   | 'alerts:handle'
   | 'alerts:escalate'
+  | 'alerts:delete'
   | 'devices:view'
   | 'devices:update'
   | 'care:view'
@@ -72,17 +74,40 @@ export const staffRoleOptions: StaffRoleOption[] = [
 ]
 
 export const roleAccessMap: Record<StaffRole, string[]> = {
-  系统管理员: ['/dashboard/admin', '/alerts', '/devices', '/settings', '/accounts', '/profile', '/elderly', '/reports', '/populations', '/ai-assistant'],
-  护理管理员: ['/dashboard/nurse', '/elderly', '/alerts', '/care-records', '/services', '/profile', '/ai-assistant'],
+  系统管理员: [
+    '/dashboard/admin',
+    '/health',
+    '/alerts',
+    '/devices',
+    '/settings',
+    '/accounts',
+    '/profile',
+    '/elderly',
+    '/reports',
+    '/populations',
+    '/ai-assistant',
+  ],
+  护理管理员: [
+    '/dashboard/nurse',
+    '/elderly',
+    '/alerts',
+    '/care-records',
+    '/services',
+    '/profile',
+    '/ai-assistant',
+  ],
   医生: ['/dashboard/doctor', '/health', '/alerts', '/elderly', '/profile', '/ai-assistant'],
 }
 
 export const rolePermissionMap: Record<StaffRole, PermissionAction[]> = {
   系统管理员: [
     'dashboard:view',
+    'health:view',
+    'health:delete',
     'alerts:view',
     'alerts:handle',
     'alerts:escalate',
+    'alerts:delete',
     'devices:view',
     'devices:update',
     'settings:view',
@@ -123,7 +148,14 @@ export const normalizeStaffRole = (roleName?: string | null): StaffRole => {
   if (!roleName) return defaultStaffRole
   const normalizedName = roleName.toLowerCase()
 
-  if (roleName.includes('系统') || roleName.includes('设备') || roleName === '管理员' || normalizedName === 'admin' || normalizedName === 'super_admin' || normalizedName === 'root') {
+  if (
+    roleName.includes('系统') ||
+    roleName.includes('设备') ||
+    roleName === '管理员' ||
+    normalizedName === 'admin' ||
+    normalizedName === 'super_admin' ||
+    normalizedName === 'root'
+  ) {
     return '系统管理员'
   }
   if (roleName.includes('护理') || roleName.includes('护工') || roleName.includes('护士')) {
@@ -157,10 +189,7 @@ export const canAccessPath = (roleName: string | null | undefined, path: string)
   })
 }
 
-export const canUseAction = (
-  roleName: string | null | undefined,
-  action: PermissionAction,
-) => {
+export const canUseAction = (roleName: string | null | undefined, action: PermissionAction) => {
   const role = normalizeStaffRole(roleName)
   return rolePermissionMap[role].includes(action)
 }

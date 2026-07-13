@@ -23,7 +23,7 @@
           <thead><tr class="border-t border-gray-100 dark:border-gray-800"><th class="py-3 pr-4 text-left text-theme-xs font-medium text-gray-500">老人</th><th class="py-3 pr-4 text-left text-theme-xs font-medium text-gray-500">类型</th><th class="py-3 pr-4 text-left text-theme-xs font-medium text-gray-500">原因</th><th class="py-3 pr-4 text-left text-theme-xs font-medium text-gray-500">跟进</th><th class="py-3 text-left text-theme-xs font-medium text-gray-500">操作</th></tr></thead>
           <tbody>
             <tr v-for="p in filtered" :key="p.id" class="border-t border-gray-100 hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-white/[0.03]">
-              <td class="py-3 pr-4 font-medium text-gray-800 text-theme-sm dark:text-white/90">{{ p.elderlyName || '—' }}</td>
+              <td class="py-3 pr-4 font-medium text-gray-800 text-theme-sm dark:text-white/90">{{ p.elderlyName }}</td>
               <td class="py-3 pr-4 text-theme-sm text-gray-700 dark:text-gray-300">{{ typeLabel(p.populationType) }}</td>
               <td class="py-3 pr-4 text-theme-sm text-gray-700 max-w-[260px]"><p class="truncate">{{ p.reason || '—' }}</p></td>
               <td class="py-3 pr-4"><span class="rounded-full px-2 py-0.5 text-theme-xs font-medium" :class="p.followStatus === 'completed' ? 'bg-success-50 text-success-700' : 'bg-warning-50 text-warning-700'">{{ p.followStatus === 'completed' ? '已完成' : '待跟进' }}</span></td>

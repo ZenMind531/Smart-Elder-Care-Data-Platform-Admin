@@ -27,6 +27,8 @@ export interface UserPayload {
   status?: UserStatus
 }
 
+export type UpdateUserPayload = Partial<UserPayload>
+
 export const listUsers = (query: UserListQuery = {}) =>
   request<PageResult<UserApiRecord>>(`/users${buildQuery({ page: 1, size: 50, ...query })}`)
 
@@ -38,8 +40,8 @@ export const createUser = (payload: UserPayload) =>
     body: payload,
   })
 
-export const updateUser = (id: number, payload: UserPayload) =>
-  request<UserApiRecord>(`/users/${id}`, {
+export const updateUser = (id: number, payload: UpdateUserPayload) =>
+  request<void>(`/users/${id}`, {
     method: 'PUT',
     body: payload,
   })

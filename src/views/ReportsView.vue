@@ -24,7 +24,7 @@
           <tbody>
             <tr v-for="r in filtered" :key="r.id" class="border-t border-gray-100 hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-white/[0.03]">
               <td class="py-3 pr-4 whitespace-nowrap font-medium text-gray-800 text-theme-sm dark:text-white/90">{{ r.reportTitle || '—' }}</td>
-              <td class="py-3 pr-4 text-theme-sm text-gray-700 dark:text-gray-300">{{ r.elderlyName || '—' }}</td>
+              <td class="py-3 pr-4 text-theme-sm text-gray-700 dark:text-gray-300">{{ r.elderlyName }}</td>
               <td class="py-3 pr-4"><span class="rounded-full px-2 py-0.5 text-theme-xs font-medium" :class="r.riskLevel === 'high' ? 'bg-error-50 text-error-700' : r.riskLevel === 'medium' ? 'bg-warning-50 text-warning-700' : 'bg-success-50 text-success-700'">{{ riskLabel(r.riskLevel) }}</span></td>
               <td class="py-3 pr-4 text-theme-sm text-gray-500 dark:text-gray-400">{{ r.reportTime || '—' }}</td>
               <td class="py-3"><div class="flex gap-2"><button type="button" class="rounded-lg border border-gray-200 bg-white px-2 py-1 text-theme-xs font-medium text-gray-700 hover:bg-gray-50" @click="openModal(r)">编辑</button><button type="button" class="rounded-lg border border-error-100 bg-error-50 px-2 py-1 text-theme-xs font-medium text-error-700 hover:bg-error-100" @click="handleDelete(r)">删除</button></div></td>

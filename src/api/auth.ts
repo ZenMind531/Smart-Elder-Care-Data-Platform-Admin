@@ -21,6 +21,12 @@ export interface RegisterPayload {
   title?: string
 }
 
+export interface UpdatePasswordPayload {
+  oldPassword: string
+  newPassword: string
+  confirmPassword: string
+}
+
 export const login = (payload: LoginPayload) =>
   request<LoginResult>('/auth/login', {
     method: 'POST',
@@ -35,7 +41,7 @@ export const logout = () =>
 
 export const getCurrentUser = () => request<StoredUserInfo>('/auth/me')
 
-export const updatePassword = (payload: { oldPassword: string; newPassword: string }) =>
+export const updatePassword = (payload: UpdatePasswordPayload) =>
   request<void>('/auth/password', {
     method: 'PUT',
     body: payload,

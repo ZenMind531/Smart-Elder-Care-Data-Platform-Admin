@@ -19,6 +19,15 @@ export interface HealthRecordApi {
   remark?: string
 }
 
+export interface HealthRecordTrendApi {
+  recordTime?: string
+  systolicPressure?: number
+  diastolicPressure?: number
+  bloodSugar?: number
+  heartRate?: number
+  temperature?: number
+}
+
 export interface HealthRecordPayload {
   elderlyId: number
   systolicPressure: number
@@ -39,8 +48,8 @@ export const listHealthRecords = (query: HealthRecordListQuery = {}) =>
     `/health-records${buildQuery({ page: 1, size: 50, ...query })}`,
   )
 
-export const getHealthRecordTrend = <T = unknown>(query: { elderlyId: number; days?: number }) =>
-  request<T>(`/health-records/trend${buildQuery({ days: 7, ...query })}`)
+export const getHealthRecordTrend = (query: { elderlyId: number; days?: number }) =>
+  request<HealthRecordTrendApi[]>(`/health-records/trend${buildQuery({ days: 7, ...query })}`)
 
 export const getHealthRecord = (id: number) => request<HealthRecordApi>(`/health-records/${id}`)
 
@@ -53,12 +62,4 @@ export const createHealthRecord = (payload: HealthRecordPayload) =>
 export const deleteHealthRecord = (id: number) =>
   request<void>(`/health-records/${id}`, {
     method: 'DELETE',
-  })
-
-export type HealthRecordStatus = 'normal' | 'abnormal' | 'pending'
-
-export const updateHealthRecordStatus = (id: number, status: HealthRecordStatus) =>
-  request<HealthRecordApi>(`/health-records/${id}/status`, {
-    method: 'PATCH',
-    body: { status },
   })

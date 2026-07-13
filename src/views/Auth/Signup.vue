@@ -1,3 +1,4 @@
+// eslint-disable-next-line vue/multi-word-component-names
 <template>
   <FullScreenLayout>
     <main class="flex min-h-dvh items-center justify-center bg-gray-50 p-6 dark:bg-gray-950">
@@ -67,44 +68,18 @@
                 />
               </div>
 
-              <div class="grid gap-4 sm:grid-cols-3">
-                <div>
-                  <label for="register-gender" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
-                    性别
-                  </label>
-                  <select
-                    id="register-gender"
-                    v-model="form.gender"
-                    class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-3 py-2.5 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
-                  >
-                    <option value="male">男</option>
-                    <option value="female">女</option>
-                  </select>
-                </div>
-                <div>
-                  <label for="register-department" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
-                    所在科室
-                  </label>
-                  <input
-                    id="register-department"
-                    v-model="form.department"
-                    type="text"
-                    placeholder="例如 全科"
-                    class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
-                  />
-                </div>
-                <div>
-                  <label for="register-title" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
-                    职称
-                  </label>
-                  <input
-                    id="register-title"
-                    v-model="form.title"
-                    type="text"
-                    placeholder="例如 主治医师"
-                    class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
-                  />
-                </div>
+              <div>
+                <label for="register-gender" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                  性别
+                </label>
+                <select
+                  id="register-gender"
+                  v-model="form.gender"
+                  class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-3 py-2.5 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
+                >
+                  <option value="male">男</option>
+                  <option value="female">女</option>
+                </select>
               </div>
 
               <div>
@@ -214,7 +189,7 @@ const confirmPassword = ref('')
 const message = ref('')
 const messageTone = ref<MessageTone>('error')
 
-const roleOptions = staffRoleOptions
+const roleOptions = staffRoleOptions.filter((r) => r.id !== 1)
 
 const form = reactive({
   username: '',
@@ -223,8 +198,6 @@ const form = reactive({
   phoneNumber: '',
   roleId: 2,
   gender: 'male' as 'male' | 'female',
-  department: '',
-  title: '',
 })
 
 const validateForm = () => {
@@ -256,8 +229,6 @@ const handleSubmit = async () => {
       phoneNumber: form.phoneNumber.trim(),
       roleId: form.roleId,
       gender: form.gender,
-      department: form.department.trim() || undefined,
-      title: form.title.trim() || undefined,
     }
     await register(payload)
 

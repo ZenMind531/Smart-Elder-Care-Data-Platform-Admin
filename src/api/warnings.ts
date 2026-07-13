@@ -20,11 +20,13 @@ export interface HealthWarningApi {
   owner?: string
   createTime?: string
   warningTime?: string
+  handleTime?: string
 }
 
 export interface HealthWarningListQuery extends PageQuery {
   elderlyId?: number
   level?: WarningLevel
+  warningLevel?: WarningLevel
   status?: WarningStatus
 }
 
@@ -33,12 +35,21 @@ export interface HealthWarningPayload {
   warningType: string
   warningLevel: WarningLevel
   warningContent: string
+  warningTime?: string
 }
 
-export const listHealthWarnings = (query: HealthWarningListQuery = {}) =>
-  request<PageResult<HealthWarningApi>>(
-    `/health-warnings${buildQuery({ page: 1, size: 50, ...query })}`,
+export const listHealthWarnings = (query: HealthWarningListQuery = {}) => {
+  const { level, warningLevel, ...rest } = query
+
+  return request<PageResult<HealthWarningApi>>(
+    `/health-warnings${buildQuery({
+      page: 1,
+      size: 50,
+      ...rest,
+      warningLevel: warningLevel || level,
+    })}`,
   )
+}
 
 export const getHealthWarning = (id: number) => request<HealthWarningApi>(`/health-warnings/${id}`)
 

@@ -1,14 +1,27 @@
 import { defineStore } from 'pinia'
-import { createHealthRecord, listHealthRecords, updateHealthRecordStatus, type HealthRecordApi } from '@/api/health'
+import {
+  createHealthRecord,
+  deleteHealthRecord,
+  getHealthRecord,
+  listHealthRecords,
+  type HealthRecordApi,
+} from '@/api/health'
 import {
   createHealthWarning,
+  deleteHealthWarning,
+  getHealthWarning,
   listHealthWarnings,
   updateHealthWarningStatus,
   type HealthWarningApi,
   type WarningLevel,
   type WarningStatus,
 } from '@/api/warnings'
-import { listDevices, updateDeviceStatus, type DeviceApiRecord, type DeviceStatusApi } from '@/api/devices'
+import {
+  listDevices,
+  updateDeviceStatus,
+  type DeviceApiRecord,
+  type DeviceStatusApi,
+} from '@/api/devices'
 import { listRoles, type RoleApiRecord } from '@/api/roles'
 import { normalizeStaffRole } from '@/config/roles'
 
@@ -64,6 +77,15 @@ export interface AlertRecord {
   contactPhone?: string
   escalation?: boolean
   slaMinutes?: number
+}
+
+export interface ManualAlertInput {
+  elderlyId?: number
+  elderName: string
+  room: string
+  warningType: 'blood_pressure' | 'blood_sugar' | 'heart_rate' | 'temperature'
+  warningLevel: WarningLevel
+  warningContent: string
 }
 
 export interface DeviceRecord {
@@ -220,7 +242,12 @@ const evaluateHealthStatus = (record: {
 
 const healthStatusFromApi = (record: HealthRecordApi): HealthRecord['status'] => {
   if (record.status === 'abnormal' || record.status === '异常') return '异常'
-  if (record.status === 'pending' || record.status === 'review' || record.status === 'recheck' || record.status === '需复测') {
+  if (
+    record.status === 'pending' ||
+    record.status === 'review' ||
+    record.status === 'recheck' ||
+    record.status === '需复测'
+  ) {
     return '需复测'
   }
   if (record.status === 'normal' || record.status === '正常') return '正常'
@@ -295,6 +322,7 @@ const toAlertRecord = (record: HealthWarningApi): AlertRecord => {
     owner: record.handlerName || record.owner || '待分配',
     content: record.warningContent,
     handleResult: record.handleResult,
+    handledAt: record.handleTime,
     slaMinutes: level === 'high' ? 5 : level === 'medium' ? 15 : 30,
   }
 }
@@ -407,6 +435,22 @@ export const useOperationsStore = defineStore('operations', {
         this.loading = false
       }
     },
+    async fetchHealthRecordDetail(id: number) {
+      try {
+        const record = toHealthRecord(await getHealthRecord(id))
+        const index = this.healthRecords.findIndex((item) => item.id === id)
+        if (index >= 0) {
+          this.healthRecords.splice(index, 1, record)
+        } else {
+          this.healthRecords.unshift(record)
+        }
+        this.error = ''
+        return record
+      } catch (error) {
+        this.error = error instanceof Error ? error.message : '服务器响应异常，请稍后重试'
+        return this.healthRecords.find((item) => item.id === id) || null
+      }
+    },
     async fetchAlerts() {
       this.loading = true
       this.error = ''
@@ -418,6 +462,22 @@ export const useOperationsStore = defineStore('operations', {
         this.error = error instanceof Error ? error.message : '服务器响应异常，请稍后重试'
       } finally {
         this.loading = false
+      }
+    },
+    async fetchAlertDetail(id: number) {
+      try {
+        const alert = toAlertRecord(await getHealthWarning(id))
+        const index = this.alerts.findIndex((item) => item.id === id)
+        if (index >= 0) {
+          this.alerts.splice(index, 1, alert)
+        } else {
+          this.alerts.unshift(alert)
+        }
+        this.error = ''
+        return alert
+      } catch (error) {
+        this.error = error instanceof Error ? error.message : '服务器响应异常，请稍后重试'
+        return this.alerts.find((item) => item.id === id) || null
       }
     },
     async fetchDevices() {
@@ -492,9 +552,6 @@ export const useOperationsStore = defineStore('operations', {
       }
 
       this.healthRecords.unshift(localRecord)
-      if (localRecord.status !== '正常') {
-        void this.createAlertFromHealthRecord(localRecord)
-      }
 
       try {
         const savedRecord = await createHealthRecord({
@@ -510,6 +567,9 @@ export const useOperationsStore = defineStore('operations', {
         this.healthRecords = this.healthRecords.map((item) =>
           item.id === nextId ? toHealthRecord(savedRecord) : item,
         )
+        if (localRecord.status !== '正常') {
+          void this.fetchAlerts()
+        }
         this.error = ''
       } catch (error) {
         this.error = error instanceof Error ? error.message : '服务器响应异常，请稍后重试'
@@ -536,18 +596,11 @@ export const useOperationsStore = defineStore('operations', {
         record.measuredAt = '刚刚'
         record.riskReason = '复测后体征恢复正常'
 
-        // 持久化体征状态到后端
-        void updateHealthRecordStatus(id, 'normal')
-          .then(() => {
-            console.log(`[markHealthNormal] 体征 ${id} 已持久化到后端`)
-          })
-          .catch((err) => {
-            console.error(`[markHealthNormal] 体征 ${id} 持久化失败:`, err)
-          })
-
-        // 同步告警到后端
         const relatedAlerts = this.alerts.filter(
-          (alert) => alert.relatedRecordId === id && alert.status !== '已处理',
+          (alert) =>
+            alert.status !== '已处理' &&
+            (alert.relatedRecordId === id ||
+              (record.elderlyId !== undefined && alert.elderlyId === record.elderlyId)),
         )
         relatedAlerts.forEach((alert) => {
           alert.status = '已处理'
@@ -560,9 +613,26 @@ export const useOperationsStore = defineStore('operations', {
         })
       }
     },
+    async removeHealthRecord(id: number) {
+      const snapshot = [...this.healthRecords]
+      this.healthRecords = this.healthRecords.filter((item) => item.id !== id)
+
+      try {
+        await deleteHealthRecord(id)
+        this.error = ''
+      } catch (error) {
+        this.healthRecords = snapshot
+        this.error = error instanceof Error ? error.message : '服务器响应异常，请稍后重试'
+        throw error
+      }
+    },
     async createAlertFromHealthRecord(record: HealthRecord) {
       if (record.status === '正常') return
-      if (this.alerts.some((alert) => alert.relatedRecordId === record.id && alert.status !== '已处理')) {
+      if (
+        this.alerts.some(
+          (alert) => alert.relatedRecordId === record.id && alert.status !== '已处理',
+        )
+      ) {
         return
       }
 
@@ -595,39 +665,54 @@ export const useOperationsStore = defineStore('operations', {
           warningLevel: isCritical ? 'high' : 'medium',
           warningContent: localAlert.content || localAlert.type,
         })
-        this.alerts = this.alerts.map((item) => (item.id === nextId ? toAlertRecord(savedAlert) : item))
+        this.alerts = this.alerts.map((item) =>
+          item.id === nextId ? toAlertRecord(savedAlert) : item,
+        )
         this.error = ''
       } catch (error) {
         this.error = error instanceof Error ? error.message : '服务器响应异常，请稍后重试'
       }
     },
-    async addManualAlert() {
+    async addManualAlert(payload?: ManualAlertInput) {
       const nextId = Math.max(...this.alerts.map((item) => item.id), 3000) + 1
-      const localAlert: AlertRecord = {
-        id: nextId,
+      const source = payload || {
+        elderlyId: 1,
         elderName: '刘玉梅',
         room: 'C-212',
-        type: '人工巡房提醒',
-        level: '关注',
-        source: '护理员上报',
+        warningType: 'heart_rate' as const,
+        warningLevel: 'medium' as const,
+        warningContent: '护理员人工上报巡房提醒，请确认老人状态并记录处理结果。',
+      }
+      const mappedLevel = warningLevelMap[source.warningLevel]
+      const localAlert: AlertRecord = {
+        id: nextId,
+        elderlyId: source.elderlyId,
+        elderName: source.elderName,
+        room: source.room,
+        type: warningTypeMap[source.warningType] || '健康预警',
+        level: mappedLevel,
+        source: '人工上报',
         status: '待处理',
         time: '刚刚',
-        owner: '王护工',
-        content: '护理员人工上报巡房提醒，请确认老人状态并记录处理结果。',
+        owner: mappedLevel === '紧急' ? '当班医生' : '责任护理员',
+        content: source.warningContent,
         contactPhone: '131****4468',
-        slaMinutes: 15,
+        slaMinutes: source.warningLevel === 'high' ? 5 : source.warningLevel === 'medium' ? 15 : 30,
       }
 
       this.alerts.unshift(localAlert)
 
       try {
         const savedAlert = await createHealthWarning({
-          elderlyId: 1,
-          warningType: 'manual',
-          warningLevel: 'medium',
-          warningContent: '护理员人工上报巡房提醒',
+          elderlyId: source.elderlyId || 1,
+          warningType: source.warningType,
+          warningLevel: source.warningLevel,
+          warningContent: source.warningContent,
+          warningTime: apiDateTimeNow(),
         })
-        this.alerts = this.alerts.map((item) => (item.id === nextId ? toAlertRecord(savedAlert) : item))
+        this.alerts = this.alerts.map((item) =>
+          item.id === nextId ? toAlertRecord(savedAlert) : item,
+        )
         this.error = ''
       } catch (error) {
         this.error = error instanceof Error ? error.message : '服务器响应异常，请稍后重试'
@@ -673,6 +758,19 @@ export const useOperationsStore = defineStore('operations', {
         alert.owner = '护理管理员 / 当班医生'
         alert.slaMinutes = 5
         alert.handleResult = alert.handleResult || '已升级通知护理管理员和当班医生。'
+      }
+    },
+    async removeAlert(id: number) {
+      const snapshot = [...this.alerts]
+      this.alerts = this.alerts.filter((item) => item.id !== id)
+
+      try {
+        await deleteHealthWarning(id)
+        this.error = ''
+      } catch (error) {
+        this.alerts = snapshot
+        this.error = error instanceof Error ? error.message : '服务器响应异常，请稍后重试'
+        throw error
       }
     },
     async recoverDevice(id: string) {

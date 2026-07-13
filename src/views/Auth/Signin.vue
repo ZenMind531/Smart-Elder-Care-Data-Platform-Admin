@@ -1,3 +1,4 @@
+//eslint-disable-next-line vue/multi-word-component-names
 <template>
   <FullScreenLayout>
     <main class="flex min-h-dvh items-center justify-center bg-gray-50 p-6 dark:bg-gray-950">
