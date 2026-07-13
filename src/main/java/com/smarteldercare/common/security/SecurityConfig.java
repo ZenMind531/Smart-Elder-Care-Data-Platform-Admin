@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.MediaType;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -29,8 +30,10 @@ public class SecurityConfig {
     }
 
     @Bean
+    @Order(1)
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
+            .securityMatcher("/**")
             .csrf(AbstractHttpConfigurer::disable)
             .cors(c -> c.configurationSource(corsConfigurationSource()))
             .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -63,7 +66,6 @@ public class SecurityConfig {
         cfg.setAllowedHeaders(List.of("*"));
         cfg.setAllowCredentials(true);
         cfg.setMaxAge(3600L);
-
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", cfg);
         return source;
@@ -73,8 +75,11 @@ public class SecurityConfig {
         res.setStatus(code);
         res.setContentType(MediaType.APPLICATION_JSON_VALUE);
         res.setCharacterEncoding("UTF-8");
-        res.getWriter().write(objectMapper.writeValueAsString(
-            Map.of("code", code, "message", msg, "data", null, "timestamp", System.currentTimeMillis())
-        ));
+        Map<String, Object> body = new java.util.LinkedHashMap<>();
+        body.put("code", code);
+        body.put("message", msg);
+        body.put("data", null);
+        body.put("timestamp", System.currentTimeMillis());
+        res.getWriter().write(objectMapper.writeValueAsString(body));
     }
 }
