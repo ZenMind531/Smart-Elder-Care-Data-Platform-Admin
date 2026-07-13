@@ -605,3 +605,158 @@ PATCH /api/devices/{id}/status
   "status": "abnormal"
 }
 ```
+
+---
+
+## 十一、护理记录模块
+
+### 11.1 护理记录列表
+
+```
+GET /api/care-records?page=1&size=10&elderlyId=1&careType=medication
+```
+
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| page | Long | 否 | 页码，默认 1 |
+| size | Long | 否 | 每页条数，默认 10 |
+| elderlyId | Long | 否 | 老人ID筛选 |
+| careType | String | 否 | 护理类型：medication/vital_signs/cleaning/feeding/exercise/other |
+
+### 11.2 护理记录详情
+
+```
+GET /api/care-records/{id}
+```
+
+### 11.3 新增护理记录
+
+```
+POST /api/care-records
+```
+
+```json
+{
+  "elderlyId": 1,
+  "caregiver": "张护士",
+  "careType": "medication",
+  "careContent": "口服降压药硝苯地平10mg",
+  "careTime": "2026-07-13 08:30:00",
+  "remark": "饭后服用"
+}
+```
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| elderlyId | Long | **是** | 老人ID |
+| careType | String | **是** | medication/vital_signs/cleaning/feeding/exercise/other |
+| careContent | String | **是** | 护理内容描述 |
+| careTime | DateTime | **是** | 护理执行时间 |
+| caregiver | String | 否 | 护理人员姓名 |
+| remark | String | 否 | 备注 |
+
+### 11.4 修改护理记录
+
+```
+PUT /api/care-records/{id}
+```
+
+请求体同新增。
+
+### 11.5 删除护理记录
+
+```
+DELETE /api/care-records/{id}
+```
+
+---
+
+## 十二、服务预约模块
+
+### 12.1 预约列表
+
+```
+GET /api/appointments?page=1&size=10&elderlyId=1&status=pending&serviceType=health_check
+```
+
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| page | Long | 否 | 页码，默认 1 |
+| size | Long | 否 | 每页条数，默认 10 |
+| elderlyId | Long | 否 | 老人ID筛选 |
+| status | String | 否 | 状态：pending/confirmed/completed/cancelled |
+| serviceType | String | 否 | 服务类型：health_check/home_care/rehabilitation/consultation/other |
+
+### 12.2 预约详情
+
+```
+GET /api/appointments/{id}
+```
+
+### 12.3 新增预约
+
+```
+POST /api/appointments
+```
+
+```json
+{
+  "elderlyId": 1,
+  "serviceType": "health_check",
+  "appointmentTime": "2026-07-20 09:00:00",
+  "doctorName": "张医生",
+  "description": "每月例行健康检查"
+}
+```
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| elderlyId | Long | **是** | 老人ID |
+| serviceType | String | **是** | health_check/home_care/rehabilitation/consultation/other |
+| appointmentTime | DateTime | **是** | 预约时间 |
+| doctorName | String | 否 | 服务人员姓名 |
+| description | String | 否 | 预约描述 |
+
+> 新增后状态默认为 `pending`（待确认）。
+
+### 12.4 修改预约
+
+```
+PUT /api/appointments/{id}
+```
+
+请求体同新增。
+
+### 12.5 修改预约状态
+
+```
+PATCH /api/appointments/{id}/status
+```
+
+```json
+{
+  "status": "confirmed"
+}
+```
+
+取消时需传取消原因：
+
+```json
+{
+  "status": "cancelled",
+  "cancelReason": "老人自行取消"
+}
+```
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| status | String | **是** | pending/confirmed/completed/cancelled |
+| cancelReason | String | 否 | 取消原因（取消时填写） |
+
+> 状态流转：`pending` → `confirmed` → `completed`（正常流程）；任意状态 → `cancelled`（取消）。
+
+### 12.6 删除预约
+
+```
+DELETE /api/appointments/{id}
+```
