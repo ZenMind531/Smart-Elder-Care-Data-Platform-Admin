@@ -72,6 +72,12 @@ const router = createRouter({
       },
     },
     {
+      path: '/alerts/:id',
+      name: 'AlertDetail',
+      component: () => import('../views/AlertDetailView.vue'),
+      meta: { title: '告警详情', subtitle: '查看并编辑告警信息' },
+    },
+    {
       path: '/devices',
       name: 'Devices',
       component: () => import('../views/DevicesView.vue'),
@@ -111,10 +117,19 @@ const router = createRouter({
       path: '/accounts',
       name: 'Accounts',
       component: () => import('../views/AccountsView.vue'),
-      meta: {
-        title: '账号管理',
-        subtitle: '审核、启用、禁用和删除工作人员账号',
-      },
+      meta: { title: '账号管理', subtitle: '审核、启用、禁用和删除工作人员账号' },
+    },
+    {
+      path: '/reports',
+      name: 'Reports',
+      component: () => import('../views/ReportsView.vue'),
+      meta: { title: '评估报告', subtitle: '查看看老人健康评估报告和风险建议' },
+    },
+    {
+      path: '/populations',
+      name: 'Populations',
+      component: () => import('../views/PopulationsView.vue'),
+      meta: { title: '重点人群', subtitle: '管理慢性病、独居等重点关注对象' },
     },
     {
       path: '/profile',

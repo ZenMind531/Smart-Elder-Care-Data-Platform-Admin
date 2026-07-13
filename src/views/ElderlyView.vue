@@ -388,12 +388,12 @@
                   <p class="text-theme-xs text-gray-500 dark:text-gray-400">{{ record.lastCheck }}</p>
                 </td>
                 <td class="py-4 whitespace-nowrap">
-                  <span
-                    class="rounded-full px-2 py-0.5 text-theme-xs font-medium"
-                    :class="statusClassMap[record.status]"
-                  >
-                    {{ record.status }}
-                  </span>
+                  <div class="flex items-center gap-2">
+                    <span class="rounded-full px-2 py-0.5 text-theme-xs font-medium" :class="statusClassMap[record.status]">
+                      {{ record.status }}
+                    </span>
+                    <button type="button" class="rounded-lg border border-gray-200 bg-white px-2 py-1 text-theme-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300" @click="openEdit(record)">编辑</button>
+                  </div>
                 </td>
               </tr>
             </tbody>
@@ -497,16 +497,38 @@
         </section>
       </aside>
     </div>
+
+    <!-- 编辑弹窗 -->
+    <div v-if="editOpen" class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 p-4" @click.self="editOpen = false">
+      <div class="w-full max-w-lg rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-lg max-h-[90vh] overflow-y-auto dark:border-gray-800 dark:bg-gray-900">
+        <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">编辑老人档案</h3>
+        <form class="mt-4 grid gap-4 sm:grid-cols-2" @submit.prevent="submitEdit">
+          <label class="block"><span class="mb-1.5 block text-theme-sm font-medium">姓名</span><input v-model="editForm.elderlyName" type="text" required class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm dark:border-gray-700 dark:bg-white/[0.03] dark:text-white/90" /></label>
+          <label class="block"><span class="mb-1.5 block text-theme-sm font-medium">性别</span><select v-model="editForm.gender" class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-3 py-2.5 text-sm dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"><option value="male">男</option><option value="female">女</option></select></label>
+          <label class="block"><span class="mb-1.5 block text-theme-sm font-medium">年龄</span><input v-model.number="editForm.age" type="number" min="1" class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm dark:border-gray-700 dark:bg-white/[0.03] dark:text-white/90" /></label>
+          <label class="block"><span class="mb-1.5 block text-theme-sm font-medium">手机号</span><input v-model="editForm.phoneNumber" type="text" class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm dark:border-gray-700 dark:bg-white/[0.03] dark:text-white/90" /></label>
+          <label class="block sm:col-span-2"><span class="mb-1.5 block text-theme-sm font-medium">地址</span><input v-model="editForm.address" type="text" class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm dark:border-gray-700 dark:bg-white/[0.03] dark:text-white/90" /></label>
+          <label class="block"><span class="mb-1.5 block text-theme-sm font-medium">紧急联系人</span><input v-model="editForm.emergencyContact" type="text" class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm dark:border-gray-700 dark:bg-white/[0.03] dark:text-white/90" /></label>
+          <label class="block"><span class="mb-1.5 block text-theme-sm font-medium">紧急联系电话</span><input v-model="editForm.emergencyPhone" type="text" class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm dark:border-gray-700 dark:bg-white/[0.03] dark:text-white/90" /></label>
+          <label class="block"><span class="mb-1.5 block text-theme-sm font-medium">既往病史</span><input v-model="editForm.medicalHistory" type="text" placeholder="逗号分隔" class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm dark:border-gray-700 dark:bg-white/[0.03] dark:text-white/90" /></label>
+          <label class="block"><span class="mb-1.5 block text-theme-sm font-medium">过敏史</span><input v-model="editForm.allergyHistory" type="text" class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm dark:border-gray-700 dark:bg-white/[0.03] dark:text-white/90" /></label>
+          <p v-if="editError" class="text-theme-xs text-red-600 sm:col-span-2">{{ editError }}</p>
+          <div class="flex justify-end gap-2 sm:col-span-2"><button type="button" class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700" @click="editOpen = false">取消</button><button type="submit" :disabled="editSubmitting" class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-60">{{ editSubmitting ? '保存中…' : '保存' }}</button></div>
+        </form>
+      </div>
+    </div>
   </AdminLayout>
 </template>
 
 <script setup lang="ts">
 import { getStoredUser } from '@/api/http'
 import { canUseAction } from '@/config/roles'
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
 import { useElderlyStore } from '@/stores/elderly'
 import type { CareLevel, ElderStatus } from '@/stores/elderly'
+import { updateElderly, type ElderlyPayload } from '@/api/elderly'
+import { ApiError } from '@/api/http'
 
 const elderlyStore = useElderlyStore()
 
@@ -635,5 +657,53 @@ const submitNewRecord = async () => {
   levelFilter.value = '全部等级'
   feedback.value = `已新增 ${newRecord.value.name} 的档案`
   resetNewRecord()
+}
+
+// 编辑
+const editOpen = ref(false)
+const editSubmitting = ref(false)
+const editError = ref('')
+const editingId = ref<number | null>(null)
+const editForm = reactive<any>({
+  elderlyName: '', gender: 'male', age: 0, idCard: '', phoneNumber: '', address: '',
+  emergencyContact: '', emergencyPhone: '', medicalHistory: '', allergyHistory: '',
+})
+
+const openEdit = (record: any) => {
+  editingId.value = record.id
+  editForm.elderlyName = record.name
+  editForm.gender = record.gender === '男' ? 'male' : 'female'
+  editForm.age = record.age
+  editForm.phoneNumber = record.contactPhone
+  editForm.address = record.address || ''
+  editForm.emergencyContact = record.contactName
+  editForm.emergencyPhone = record.contactPhone
+  editForm.medicalHistory = (record.diseases || []).join(',')
+  editForm.allergyHistory = record.allergyHistory || ''
+  editError.value = ''
+  editOpen.value = true
+}
+
+const submitEdit = async () => {
+  if (!editingId.value) return
+  editSubmitting.value = true; editError.value = ''
+  try {
+    await updateElderly(editingId.value, {
+      elderlyName: editForm.elderlyName,
+      gender: editForm.gender,
+      age: editForm.age,
+      idCard: editForm.idCard || '',
+      phoneNumber: editForm.phoneNumber || '',
+      address: editForm.address || '',
+      emergencyContact: editForm.emergencyContact || '',
+      emergencyPhone: editForm.emergencyPhone || '',
+      medicalHistory: editForm.medicalHistory || '',
+      allergyHistory: editForm.allergyHistory || '',
+    })
+    editOpen.value = false
+    await elderlyStore.fetchRecords()
+  } catch (err) {
+    editError.value = err instanceof ApiError ? err.message : '保存失败'
+  } finally { editSubmitting.value = false }
 }
 </script>

@@ -94,6 +94,8 @@ import {
   BellIcon,
   BoxCubeIcon,
   CalenderIcon,
+  DocsIcon,
+  FlagIcon,
   HorizontalDots,
   LayoutDashboardIcon,
   ListIcon,
@@ -165,6 +167,18 @@ const allMenuGroups: MenuGroup[] = [
         icon: UserCircleIcon,
         name: '账号管理',
         path: '/accounts',
+        roles: ['系统管理员'],
+      },
+      {
+        icon: DocsIcon,
+        name: '评估报告',
+        path: '/reports',
+        roles: ['系统管理员'],
+      },
+      {
+        icon: FlagIcon,
+        name: '重点人群',
+        path: '/populations',
         roles: ['系统管理员'],
       },
       {
