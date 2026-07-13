@@ -5,10 +5,6 @@
       <h1 class="mt-2 text-title-sm font-bold text-gray-900 text-balance dark:text-white">个人中心</h1>
     </div>
 
-    <div v-if="loadError" class="mb-6 rounded-xl border border-error-200 bg-error-50 p-4 text-theme-sm text-error-700 dark:border-error-800 dark:bg-error-900/30 dark:text-error-400">
-      {{ loadError }}
-    </div>
-
     <div class="grid grid-cols-12 gap-4 md:gap-6">
       <section class="col-span-12 rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-white/[0.03] xl:col-span-6">
         <h2 class="text-lg font-semibold text-gray-800 dark:text-white/90">基本信息</h2>
@@ -74,7 +70,7 @@
 import { computed, reactive, ref } from 'vue'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
 import { getStoredUser, ApiError } from '@/api/http'
-import { updatePassword, getCurrentUser } from '@/api/auth'
+import { updatePassword } from '@/api/auth'
 
 const stored = getStoredUser()
 const user = reactive({
@@ -88,17 +84,6 @@ const user = reactive({
 })
 
 const genderLabel = computed(() => user.gender === 'male' ? '男' : user.gender === 'female' ? '女' : '—')
-
-const loadError = ref('')
-
-getCurrentUser().then((u: any) => {
-  user.phone = u.phoneNumber || ''
-  user.department = u.department || ''
-  user.title = u.title || ''
-  user.gender = u.gender || ''
-}).catch((err) => {
-  loadError.value = err instanceof ApiError ? err.message : '加载用户信息失败'
-})
 
 const pwdModalOpen = ref(false)
 const pwdSubmitting = ref(false)
