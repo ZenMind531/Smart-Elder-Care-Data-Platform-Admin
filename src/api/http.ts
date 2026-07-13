@@ -101,8 +101,15 @@ const checkAccount = async () => {
     const resp = await fetch(`${apiBaseUrl}/auth/me`, {
       headers: { Authorization: `Bearer ${token}` },
     })
-    if (!resp.ok && resp.status === 401) {
-      emitAuthExpired()
+    // HTTP 401 或 body code 401 都视为过期
+    if (resp.status === 401) {
+      emitAuthExpired(); return
+    }
+    if (resp.ok) {
+      const body = await resp.json().catch(() => null)
+      if (body?.code === 401) {
+        emitAuthExpired()
+      }
     }
   } catch {
     // 网络错误不管，下次再试
