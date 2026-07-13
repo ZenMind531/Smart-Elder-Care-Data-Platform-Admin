@@ -271,6 +271,13 @@
             </select>
           </label>
           <label class="block sm:col-span-1">
+            <span class="mb-1.5 block text-theme-sm font-medium text-gray-700 dark:text-gray-300">绑定老人</span>
+            <select v-model="addForm.elderlyId" class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-3 py-2.5 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90">
+              <option :value="0">暂不绑定</option>
+              <option v-for="elder in elderlyOptions" :key="elder.id" :value="elder.id">{{ elder.name }}</option>
+            </select>
+          </label>
+          <label class="block sm:col-span-1">
             <span class="mb-1.5 block text-theme-sm font-medium text-gray-700 dark:text-gray-300">状态</span>
             <select v-model="addForm.status" class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-3 py-2.5 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90">
               <option value="normal">正常</option>
@@ -370,6 +377,7 @@ const addForm = reactive({
   deviceCode: '',
   deviceName: '',
   deviceType: 'watch' as 'watch' | 'bp_meter' | 'glucometer',
+  elderlyId: 0,
   status: 'normal' as 'normal' | 'abnormal' | 'disabled',
   remark: '',
 })
@@ -378,6 +386,7 @@ const openAddModal = () => {
   addForm.deviceCode = ''
   addForm.deviceName = ''
   addForm.deviceType = 'watch'
+  addForm.elderlyId = 0
   addForm.status = 'normal'
   addForm.remark = ''
   addError.value = ''
@@ -396,10 +405,10 @@ const confirmAdd = async () => {
       deviceCode: addForm.deviceCode.trim(),
       deviceName: addForm.deviceName.trim(),
       deviceType: addForm.deviceType,
-      elderlyId: 0,
+      elderlyId: addForm.elderlyId || 0,
       status: addForm.status,
       remark: addForm.remark.trim() || undefined,
-    } as any)
+    })
     feedback.value = `已创建设备：${addForm.deviceName}`
     addModalOpen.value = false
     await operations.fetchDevices()
