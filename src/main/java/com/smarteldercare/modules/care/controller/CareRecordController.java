@@ -7,6 +7,7 @@ import com.smarteldercare.modules.care.service.CareRecordService;
 import com.smarteldercare.modules.care.vo.CareRecordVO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -50,6 +51,7 @@ public class CareRecordController {
         return ApiResponse.success(careRecordService.updateCareRecord(id, dto));
     }
 
+    @PreAuthorize("hasRole('admin')")
     @DeleteMapping("/{id}")
     public ApiResponse<Void> delete(@PathVariable Long id) {
         careRecordService.deleteCareRecord(id);

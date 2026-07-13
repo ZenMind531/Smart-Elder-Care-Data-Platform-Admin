@@ -2,7 +2,8 @@ package com.smarteldercare.modules.system.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.smarteldercare.common.utils.JwtUtil;
+import com.smarteldercare.common.security.BCryptUtil;
+import com.smarteldercare.common.security.JwtUtil;
 import com.smarteldercare.modules.system.dto.RegisterRequest;
 import com.smarteldercare.modules.system.entity.Doctor;
 import com.smarteldercare.modules.system.entity.Role;
@@ -18,8 +19,13 @@ import org.springframework.stereotype.Service;
 @Service
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements
         UserService {
+
+    @Autowired
+    private JwtUtil jwtUtil;
+
     @Autowired
     private RoleMapper roleMapper;
+
     @Override
     public LoginResult login(String username, String
             password) {
@@ -35,9 +41,16 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements
         }
 
         // ② 验密码
-        if (!user.getPassword().equals(password)) {
-            throw new
-                    IllegalArgumentException("密码错误");
+        if (!BCryptUtil.matches(password, user.getPassword())) {
+            // 兼容旧明文密码：BCrypt 不满足时尝试明文比对
+            if (user.getPassword() != null && user.getPassword().equals(password)) {
+                // 旧密码明文比对通过 → 自动升级为 BCrypt
+                user.setPassword(BCryptUtil.hash(password));
+                this.baseMapper.updateById(user);
+            } else {
+                throw new
+                        IllegalArgumentException("密码错误");
+            }
         }
         if ("pending".equals(user.getStatus())) {
             throw new
@@ -50,7 +63,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements
         }
 
         // ④ 生成 token
-        String token = JwtUtil.generate(user.getId(),
+        String token = jwtUtil.generate(user.getId(),
                 user.getUsername());
 
         // ⑤ 包装返回
@@ -83,7 +96,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements
         // 创建用户
         User user = new User();
         user.setUsername(request.getUsername());
-        user.setPassword(request.getPassword());  // 实际要加密，先明文
+        user.setPassword(BCryptUtil.hash(request.getPassword()));
         user.setRealName(request.getRealName());
         user.setPhoneNumber(request.getPhoneNumber());
         user.setRoleId(request.getRoleId());
@@ -109,10 +122,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements
         if (user == null) {
             throw new IllegalArgumentException("用户不存在");
         }
-        if (!user.getPassword().equals(oldPassword)) {
-            throw new IllegalArgumentException("旧密码不正确");
+        if (!BCryptUtil.matches(oldPassword, user.getPassword())) {
+            // 兼容旧明文密码
+            if (!(user.getPassword() != null && user.getPassword().equals(oldPassword))) {
+                throw new IllegalArgumentException("旧密码不正确");
+            }
         }
-        user.setPassword(newPassword);
+        user.setPassword(BCryptUtil.hash(newPassword));
         this.baseMapper.updateById(user);
     }
 

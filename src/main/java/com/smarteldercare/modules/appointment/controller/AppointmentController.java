@@ -8,6 +8,7 @@ import com.smarteldercare.modules.appointment.service.AppointmentService;
 import com.smarteldercare.modules.appointment.vo.AppointmentVO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -60,6 +61,7 @@ public class AppointmentController {
         return ApiResponse.success();
     }
 
+    @PreAuthorize("hasRole('admin')")
     @DeleteMapping("/{id}")
     public ApiResponse<Void> delete(@PathVariable Long id) {
         appointmentService.deleteAppointment(id);

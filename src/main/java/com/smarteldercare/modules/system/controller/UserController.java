@@ -14,6 +14,8 @@ import
         org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import org.springframework.security.access.prepost.PreAuthorize;
+
 import java.util.Map;
 
 @RestController
@@ -92,6 +94,7 @@ public class UserController {
     }
 
     // ⑤ 删除用户
+    @PreAuthorize("hasRole('admin')")
     @DeleteMapping("/{id}")
     public ApiResponse<?> delete(@PathVariable Long id) {
         if (userService.getById(id) == null) {

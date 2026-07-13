@@ -7,6 +7,7 @@ import com.smarteldercare.common.result.PageResult;
 import com.smarteldercare.modules.report.entity.AssessmentReport;
 import com.smarteldercare.modules.report.service.AssessmentReportService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -52,6 +53,7 @@ public class AssessmentReportController {
         return ApiResponse.success();
     }
 
+    @PreAuthorize("hasRole('admin')")
     @DeleteMapping("/{id}")
     public ApiResponse<Void> delete(@PathVariable Long id) {
         if (assessmentReportService.getById(id) == null) return ApiResponse.error(404, "报告不存在");

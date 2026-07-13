@@ -6,6 +6,7 @@ import
         com.smarteldercare.modules.system.service.RoleService;
 import
         org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -42,6 +43,7 @@ public class RoleController {
     }
 
     // 删除
+    @PreAuthorize("hasRole('admin')")
     @DeleteMapping("/{id}")
     public ApiResponse<?> delete(@PathVariable Long id) {
         roleService.removeById(id);
