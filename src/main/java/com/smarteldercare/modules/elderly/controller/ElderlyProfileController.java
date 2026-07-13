@@ -5,9 +5,12 @@ import com.smarteldercare.common.result.PageResult;
 import com.smarteldercare.modules.elderly.dto.ElderlyProfileDTO;
 import com.smarteldercare.modules.elderly.service.ElderlyProfileService;
 import com.smarteldercare.modules.elderly.vo.ElderlyHealthSummaryVO;
+import com.smarteldercare.modules.elderly.vo.ElderlyImportResultVO;
 import com.smarteldercare.modules.elderly.vo.ElderlyProfileVO;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/elderly")
@@ -44,6 +48,20 @@ public class ElderlyProfileController {
     @GetMapping("/{id}/health-summary")
     public ApiResponse<ElderlyHealthSummaryVO> healthSummary(@PathVariable Long id) {
         return ApiResponse.success(elderlyProfileService.getHealthSummary(id));
+    }
+
+    @GetMapping("/export")
+    public void exportExcel(
+        @RequestParam(required = false) String keyword,
+        @RequestParam(required = false) String gender,
+        HttpServletResponse response
+    ) {
+        elderlyProfileService.exportElderlyProfiles(response, keyword, gender);
+    }
+
+    @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ApiResponse<ElderlyImportResultVO> importExcel(@RequestParam("file") MultipartFile file) {
+        return ApiResponse.success(elderlyProfileService.importElderlyProfiles(file));
     }
 
     @PostMapping
