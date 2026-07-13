@@ -11,7 +11,7 @@ import lombok.EqualsAndHashCode;
 public class ElderlyProfile extends BaseEntity {
 
     private String elderlyName;
-
+    private Long familyMemberId;
     private String gender;
 
     private Integer age;

@@ -10,6 +10,7 @@ USE elderly;
 CREATE TABLE IF NOT EXISTS elderly_profile (
   id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '主键',
   elderly_name VARCHAR(50) NOT NULL COMMENT '老人姓名',
+  family_member_id BIGINT DEFAULT NULL COMMENT '绑定家属ID',
   gender VARCHAR(20) NOT NULL DEFAULT 'unknown' COMMENT '性别：male/female/unknown',
   age INT NOT NULL COMMENT '年龄',
   id_card VARCHAR(30) DEFAULT NULL COMMENT '身份证号',

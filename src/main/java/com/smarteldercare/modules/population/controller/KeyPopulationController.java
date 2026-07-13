@@ -8,6 +8,7 @@ import com.smarteldercare.modules.population.entity.KeyPopulation;
 import com.smarteldercare.modules.population.service.KeyPopulationService;
 import com.smarteldercare.modules.elderly.mapper.ElderlyProfileMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -65,6 +66,7 @@ public class KeyPopulationController {
         return ApiResponse.success();
     }
 
+    @PreAuthorize("hasRole('admin')")
     @DeleteMapping("/{id}")
     public ApiResponse<Void> delete(@PathVariable Long id) {
         if (keyPopulationService.getById(id) == null) return ApiResponse.error(404, "重点人群记录不存在");

@@ -8,6 +8,7 @@ import com.smarteldercare.modules.elderly.vo.ElderlyHealthSummaryVO;
 import com.smarteldercare.modules.elderly.vo.ElderlyProfileVO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -55,6 +56,7 @@ public class ElderlyProfileController {
         return ApiResponse.success(elderlyProfileService.updateElderlyProfile(id, dto));
     }
 
+    @PreAuthorize("hasRole('admin')")
     @DeleteMapping("/{id}")
     public ApiResponse<Void> delete(@PathVariable Long id) {
         elderlyProfileService.deleteElderlyProfile(id);

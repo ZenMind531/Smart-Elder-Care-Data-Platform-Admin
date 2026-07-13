@@ -10,6 +10,7 @@ import
         com.smarteldercare.modules.system.service.DoctorService;
 import
         org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -91,6 +92,7 @@ public class DoctorController {
 //ccccccc
 
     // ⑤ 删除医生
+    @PreAuthorize("hasRole('admin')")
     @DeleteMapping("/{id}")
     public ApiResponse<?> delete(@PathVariable Long id) {
         if (doctorService.getById(id) == null) {

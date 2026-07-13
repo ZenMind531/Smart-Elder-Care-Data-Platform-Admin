@@ -6,8 +6,9 @@ import com.smarteldercare.modules.system.dto.RegisterRequest;
 import com.smarteldercare.modules.system.dto.UpdatePasswordRequest;
 import com.smarteldercare.modules.system.service.UserService;
 import com.smarteldercare.modules.system.vo.LoginResult;
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -17,10 +18,8 @@ public class AuthController {
     @Autowired
     private UserService userService;
 
-    // ① 登录
     @PostMapping("/login")
-    public ApiResponse<LoginResult> login(@RequestBody LoginRequest
-                                                  request) {
+    public ApiResponse<LoginResult> login(@RequestBody LoginRequest request) {
         LoginResult result = userService.login(
                 request.getUsername(),
                 request.getPassword()
@@ -28,38 +27,37 @@ public class AuthController {
         return ApiResponse.success(result);
     }
 
-    // ② 获取当前用户
     @GetMapping("/me")
-    public ApiResponse<?> me(HttpServletRequest request) {
-        Long userId = (Long) request.getAttribute("userId");
-        if (userId == null) {
+    public ApiResponse<?> me() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()
+                || !(auth.getPrincipal() instanceof Long)) {
             return ApiResponse.error(401, "请先登录");
         }
+        Long userId = (Long) auth.getPrincipal();
         return ApiResponse.success(userService.getById(userId));
     }
-    //改密码
+
     @PutMapping("/password")
-    public ApiResponse<?> updatePassword(HttpServletRequest request,
-                                         @RequestBody
-                                         UpdatePasswordRequest req) {
-        Long userId = (Long) request.getAttribute("userId");
-        if (userId == null) {
+    public ApiResponse<?> updatePassword(@RequestBody UpdatePasswordRequest req) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()
+                || !(auth.getPrincipal() instanceof Long)) {
             return ApiResponse.error(401, "请先登录");
         }
+        Long userId = (Long) auth.getPrincipal();
         if (!req.getNewPassword().equals(req.getConfirmPassword())) {
             return ApiResponse.error(400, "两次密码不一致");
         }
-        userService.updatePassword(userId, req.getOldPassword(),
-                req.getNewPassword());
+        userService.updatePassword(userId, req.getOldPassword(), req.getNewPassword());
         return ApiResponse.success();
     }
 
-    // ③ 退出登录
     @PostMapping("/logout")
     public ApiResponse<?> logout() {
         return ApiResponse.success();
     }
-    // ④ 注册
+
     @PostMapping("/register")
     public ApiResponse<?> register(@RequestBody RegisterRequest request) {
         userService.register(request);
