@@ -7,7 +7,7 @@
     </div>
 
     <div class="mb-4 flex items-center justify-end gap-2">
-      <button type="button" class="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-2 text-theme-sm font-medium text-white shadow-theme-xs hover:bg-brand-700" @click="openModal()"><Plus class="size-4" />新增</button>
+      <button v-if="canCreate" type="button" class="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-2 text-theme-sm font-medium text-white shadow-theme-xs hover:bg-brand-700" @click="openModal()"><Plus class="size-4" />新增</button>
       <button type="button" :disabled="loading" class="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-theme-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300" @click="load">刷新</button>
     </div>
 
@@ -28,9 +28,9 @@
               <td class="py-3 pr-4 text-theme-sm text-gray-700 max-w-[260px]"><p class="truncate">{{ p.reason || '—' }}</p></td>
               <td class="py-3 pr-4"><span class="rounded-full px-2 py-0.5 text-theme-xs font-medium" :class="p.followStatus === 'completed' ? 'bg-success-50 text-success-700' : 'bg-warning-50 text-warning-700'">{{ p.followStatus === 'completed' ? '已完成' : '待跟进' }}</span></td>
               <td class="py-3"><div class="flex gap-2">
-                <button v-if="p.followStatus !== 'completed'" type="button" class="rounded-lg border border-success-200 bg-success-50 px-2 py-1 text-theme-xs font-medium text-success-700 hover:bg-success-100" :disabled="actingId === p.id" @click="complete(p.id)">完成跟进</button>
-                <button type="button" class="rounded-lg border border-gray-200 bg-white px-2 py-1 text-theme-xs font-medium text-gray-700 hover:bg-gray-50" @click="openModal(p)">编辑</button>
-                <button type="button" class="rounded-lg border border-error-100 bg-error-50 px-2 py-1 text-theme-xs font-medium text-error-700 hover:bg-error-100" @click="handleDelete(p)">删除</button>
+                <button v-if="canFollow && p.followStatus !== 'completed'" type="button" class="rounded-lg border border-success-200 bg-success-50 px-2 py-1 text-theme-xs font-medium text-success-700 hover:bg-success-100" :disabled="actingId === p.id" @click="complete(p.id)">完成跟进</button>
+                <button v-if="canUpdate" type="button" class="rounded-lg border border-gray-200 bg-white px-2 py-1 text-theme-xs font-medium text-gray-700 hover:bg-gray-50" @click="openModal(p)">编辑</button>
+                <button v-if="canDelete" type="button" class="rounded-lg border border-error-100 bg-error-50 px-2 py-1 text-theme-xs font-medium text-error-700 hover:bg-error-100" @click="handleDelete(p)">删除</button>
               </div></td>
             </tr>
             <tr v-if="!loading && filtered.length === 0"><td colspan="5" class="py-8 text-center text-theme-sm text-gray-500">暂无重点人群记录</td></tr>
@@ -60,8 +60,15 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { Plus } from 'lucide-vue-next'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
-import { ApiError } from '@/api/http'
+import { ApiError, getStoredUser } from '@/api/http'
+import { canUseAction } from '@/config/roles'
 import { listPopulations, createPopulation, updatePopulation, deletePopulation, updateFollowStatus, type KeyPopulationApi, type PopulationPayload, type PopulationType, type FollowStatus } from '@/api/populations'
+
+const roleName = getStoredUser()?.roleName ?? null
+const canCreate = canUseAction(roleName, 'populations:create')
+const canUpdate = canUseAction(roleName, 'populations:update')
+const canDelete = canUseAction(roleName, 'populations:delete')
+const canFollow = canUseAction(roleName, 'populations:follow')
 
 const records = ref<KeyPopulationApi[]>([])
 const loading = ref(false); const error = ref(''); const typeFilter = ref<string>('全部'); const followFilter = ref<string>('全部'); const actingId = ref<number | null>(null)

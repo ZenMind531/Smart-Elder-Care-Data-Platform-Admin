@@ -7,7 +7,7 @@
     </div>
 
     <div class="mb-4 flex items-center justify-end gap-2">
-      <button type="button" class="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-2 text-theme-sm font-medium text-white shadow-theme-xs hover:bg-brand-700" @click="openModal()"><Plus class="size-4" />新增报告</button>
+      <button v-if="canCreate" type="button" class="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-2 text-theme-sm font-medium text-white shadow-theme-xs hover:bg-brand-700" @click="openModal()"><Plus class="size-4" />新增报告</button>
       <button type="button" :disabled="loading" class="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-theme-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300" @click="load">刷新</button>
     </div>
 
@@ -27,7 +27,7 @@
               <td class="py-3 pr-4 text-theme-sm text-gray-700 dark:text-gray-300">{{ r.elderlyName }}</td>
               <td class="py-3 pr-4"><span class="rounded-full px-2 py-0.5 text-theme-xs font-medium" :class="r.riskLevel === 'high' ? 'bg-error-50 text-error-700' : r.riskLevel === 'medium' ? 'bg-warning-50 text-warning-700' : 'bg-success-50 text-success-700'">{{ riskLabel(r.riskLevel) }}</span></td>
               <td class="py-3 pr-4 text-theme-sm text-gray-500 dark:text-gray-400">{{ r.reportTime || '—' }}</td>
-              <td class="py-3"><div class="flex gap-2"><button type="button" class="rounded-lg border border-gray-200 bg-white px-2 py-1 text-theme-xs font-medium text-gray-700 hover:bg-gray-50" @click="openModal(r)">编辑</button><button type="button" class="rounded-lg border border-error-100 bg-error-50 px-2 py-1 text-theme-xs font-medium text-error-700 hover:bg-error-100" @click="handleDelete(r)">删除</button></div></td>
+              <td class="py-3"><div class="flex gap-2"><button v-if="canUpdate" type="button" class="rounded-lg border border-gray-200 bg-white px-2 py-1 text-theme-xs font-medium text-gray-700 hover:bg-gray-50" @click="openModal(r)">编辑</button><button v-if="canDelete" type="button" class="rounded-lg border border-error-100 bg-error-50 px-2 py-1 text-theme-xs font-medium text-error-700 hover:bg-error-100" @click="handleDelete(r)">删除</button></div></td>
             </tr>
             <tr v-if="!loading && filtered.length === 0"><td colspan="5" class="py-8 text-center text-theme-sm text-gray-500">暂无评估报告</td></tr>
           </tbody>
@@ -56,8 +56,14 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { Plus } from 'lucide-vue-next'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
-import { ApiError } from '@/api/http'
+import { ApiError, getStoredUser } from '@/api/http'
+import { canUseAction } from '@/config/roles'
 import { listReports, createReport, updateReport, deleteReport, type AssessmentReportApi, type ReportPayload, type RiskLevel } from '@/api/reports'
+
+const roleName = getStoredUser()?.roleName ?? null
+const canCreate = canUseAction(roleName, 'reports:create')
+const canUpdate = canUseAction(roleName, 'reports:update')
+const canDelete = canUseAction(roleName, 'reports:delete')
 
 const records = ref<AssessmentReportApi[]>([])
 const loading = ref(false)

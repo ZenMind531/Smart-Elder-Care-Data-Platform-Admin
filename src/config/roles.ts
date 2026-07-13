@@ -26,6 +26,15 @@ export type PermissionAction =
   | 'settings:update'
   | 'accounts:manage'
   | 'roles:manage'
+  | 'reports:view'
+  | 'reports:create'
+  | 'reports:update'
+  | 'reports:delete'
+  | 'populations:view'
+  | 'populations:create'
+  | 'populations:update'
+  | 'populations:delete'
+  | 'populations:follow'
 
 export interface StaffRoleOption {
   id: number
@@ -76,16 +85,10 @@ export const staffRoleOptions: StaffRoleOption[] = [
 export const roleAccessMap: Record<StaffRole, string[]> = {
   系统管理员: [
     '/dashboard/admin',
-    '/health',
-    '/alerts',
     '/devices',
     '/settings',
     '/accounts',
     '/profile',
-    '/elderly',
-    '/reports',
-    '/populations',
-    '/ai-assistant',
   ],
   护理管理员: [
     '/dashboard/nurse',
@@ -93,21 +96,26 @@ export const roleAccessMap: Record<StaffRole, string[]> = {
     '/alerts',
     '/care-records',
     '/services',
-    '/profile',
+    '/reports',
+    '/populations',
     '/ai-assistant',
+    '/profile',
   ],
-  医生: ['/dashboard/doctor', '/health', '/alerts', '/elderly', '/profile', '/ai-assistant'],
+  医生: [
+    '/dashboard/doctor',
+    '/elderly',
+    '/health',
+    '/alerts',
+    '/reports',
+    '/populations',
+    '/ai-assistant',
+    '/profile',
+  ],
 }
 
 export const rolePermissionMap: Record<StaffRole, PermissionAction[]> = {
   系统管理员: [
     'dashboard:view',
-    'health:view',
-    'health:delete',
-    'alerts:view',
-    'alerts:handle',
-    'alerts:escalate',
-    'alerts:delete',
     'devices:view',
     'devices:update',
     'settings:view',
@@ -130,6 +138,11 @@ export const rolePermissionMap: Record<StaffRole, PermissionAction[]> = {
     'services:view',
     'services:create',
     'services:update',
+    'reports:view',
+    'populations:view',
+    'populations:create',
+    'populations:update',
+    'populations:follow',
   ],
   医生: [
     'elderly:view',
@@ -139,6 +152,10 @@ export const rolePermissionMap: Record<StaffRole, PermissionAction[]> = {
     'alerts:view',
     'alerts:handle',
     'alerts:escalate',
+    'reports:view',
+    'reports:create',
+    'reports:update',
+    'populations:view',
   ],
 }
 
