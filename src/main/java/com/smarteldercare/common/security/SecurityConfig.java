@@ -62,6 +62,7 @@ public class SecurityConfig {
         cfg.setAllowedOriginPatterns(List.of("*"));
         cfg.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         cfg.setAllowedHeaders(List.of("*"));
+        cfg.setExposedHeaders(List.of("Content-Disposition"));
         cfg.setAllowCredentials(true);
         cfg.setMaxAge(3600L);
 
