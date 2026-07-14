@@ -29,7 +29,9 @@ export interface HealthRecordTrendApi {
 }
 
 export interface HealthRecordPayload {
-  elderlyId: number
+  elderlyId?: number
+  elderlyName?: string
+  retestWarningId?: number
   systolicPressure: number
   diastolicPressure: number
   bloodSugar?: number

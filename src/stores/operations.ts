@@ -46,6 +46,7 @@ export interface HealthRecord {
 
 export interface HealthRecordInput {
   elderlyId?: number
+  retestWarningId?: number
   elderName: string
   room: string
   heartRate: number
@@ -62,7 +63,9 @@ export interface HealthRecordInput {
 export interface AlertRecord {
   id: number
   relatedRecordId?: number
+  retestRecordId?: number
   elderlyId?: number
+  warningType?: string
   elderName: string
   room: string
   type: string
@@ -311,7 +314,10 @@ const toAlertRecord = (record: HealthWarningApi): AlertRecord => {
 
   return {
     id: record.id,
+    relatedRecordId: record.healthRecordId,
+    retestRecordId: record.retestRecordId,
     elderlyId: record.elderlyId,
+    warningType,
     elderName: record.elderlyName || record.elderName || `老人 ${record.elderlyId || record.id}`,
     room: record.room || `ID-${record.elderlyId || record.id}`,
     type: warningTypeMap[warningType] || record.warningContent || warningType || '健康预警',
@@ -555,7 +561,9 @@ export const useOperationsStore = defineStore('operations', {
 
       try {
         const savedRecord = await createHealthRecord({
-          elderlyId: source.elderlyId || 1,
+          elderlyId: source.elderlyId,
+          elderlyName: source.elderName,
+          retestWarningId: source.retestWarningId,
           systolicPressure: source.systolicPressure,
           diastolicPressure: source.diastolicPressure,
           bloodSugar: source.bloodSugar,
@@ -564,63 +572,46 @@ export const useOperationsStore = defineStore('operations', {
           recordTime: apiDateTimeNow(),
           remark: source.remark || localRecord.riskReason,
         })
+        const normalizedRecord = toHealthRecord(savedRecord)
         this.healthRecords = this.healthRecords.map((item) =>
-          item.id === nextId ? toHealthRecord(savedRecord) : item,
+          item.id === nextId ? normalizedRecord : item,
         )
-        if (localRecord.status !== '正常') {
-          void this.fetchAlerts()
+        if (source.retestWarningId || localRecord.status !== '正常') {
+          await this.fetchAlerts()
         }
         this.error = ''
+        return normalizedRecord
       } catch (error) {
+        this.healthRecords = this.healthRecords.filter((item) => item.id !== nextId)
         this.error = error instanceof Error ? error.message : '服务器响应异常，请稍后重试'
-      }
-    },
-    requestHealthRetest(id: number) {
-      const record = this.healthRecords.find((item) => item.id === id)
-      if (record) {
-        record.status = '需复测'
-        record.measuredAt = '刚刚'
-        record.riskReason = record.riskReason || '护理员发起人工复测'
-        // 后端持久化告警
-        void this.createAlertFromHealthRecord(record).catch(() => {
-          // 告警创建失败不影响前端体验，下次刷新会重新拉取
-        })
+        throw error
       }
     },
     async markHealthNormal(id: number) {
       const record = this.healthRecords.find((item) => item.id === id)
       if (!record) return
-      // 确保告警数据已加载
       if (this.alerts.length === 0) {
         try { await this.fetchAlerts() } catch { /* 静默失败 */ }
       }
-      // 匹配健康类型的未处理告警
-      const healthTypes = ['血压异常', '心率异常', '血糖异常', '体温异常', '体征复测', '体征异常', '健康预警']
+      const healthTypes = ['血压异常','心率异常','血糖异常','体温异常','体征复测','体征异常','健康预警']
       const relatedAlerts = this.alerts.filter(
         (alert) =>
           alert.status !== '已处理' &&
           healthTypes.includes(alert.type) &&
-          (alert.elderlyId === record.elderlyId ||
-            (record.elderlyId !== undefined && alert.elderlyId === record.elderlyId)),
+          alert.elderlyId === record.elderlyId,
       )
       if (relatedAlerts.length === 0) {
-        // 无匹配告警，直接移除本地记录
         this.healthRecords = this.healthRecords.filter((item) => item.id !== id)
         return
       }
-      // 逐个 PATCH health_warning status = resolved
       for (const alert of relatedAlerts) {
-        try {
-          await updateHealthWarningStatus(alert.id, {
-            status: 'resolved',
-            handleResult: '复测后体征恢复正常，告警已归档。',
-          })
-          alert.status = '已处理'
-          alert.handleResult = '复测后体征恢复正常，告警已归档。'
-          alert.handledAt = '刚刚'
-        } catch {
-          // 单条失败继续处理后续
-        }
+        await updateHealthWarningStatus(alert.id, {
+          status: 'resolved',
+          handleResult: '复测后体征恢复正常，告警已归档。',
+        })
+        alert.status = '已处理'
+        alert.handleResult = '复测后体征恢复正常，告警已归档。'
+        alert.handledAt = '刚刚'
       }
       this.healthRecords = this.healthRecords.filter((item) => item.id !== id)
     },
@@ -635,53 +626,6 @@ export const useOperationsStore = defineStore('operations', {
         this.healthRecords = snapshot
         this.error = error instanceof Error ? error.message : '服务器响应异常，请稍后重试'
         throw error
-      }
-    },
-    async createAlertFromHealthRecord(record: HealthRecord) {
-      if (record.status === '正常') return
-      if (
-        this.alerts.some(
-          (alert) => alert.relatedRecordId === record.id && alert.status !== '已处理',
-        )
-      ) {
-        return
-      }
-
-      const nextId = Math.max(...this.alerts.map((item) => item.id), 3000) + 1
-      const isCritical = record.status === '异常'
-      const warningType = (record.systolicPressure || 0) >= 140 ? 'blood_pressure' : 'heart_rate'
-      const localAlert: AlertRecord = {
-        id: nextId,
-        relatedRecordId: record.id,
-        elderlyId: record.elderlyId,
-        elderName: record.elderName,
-        room: record.room,
-        type: isCritical ? '体征异常' : '体征复测',
-        level: isCritical ? '紧急' : '关注',
-        source: '健康监测',
-        status: '待处理',
-        time: '刚刚',
-        owner: isCritical ? '当班医生' : '责任护理员',
-        content: `${record.riskReason || '体征异常'}。当前数据：心率 ${record.heartRate} bpm，血压 ${record.bloodPressure}，血糖 ${record.bloodSugar ?? '-'} mmol/L，血氧 ${record.bloodOxygen}%。`,
-        contactPhone: '待补充',
-        slaMinutes: isCritical ? 5 : 15,
-      }
-
-      this.alerts.unshift(localAlert)
-
-      try {
-        const savedAlert = await createHealthWarning({
-          elderlyId: record.elderlyId || 1,
-          warningType,
-          warningLevel: isCritical ? 'high' : 'medium',
-          warningContent: localAlert.content || localAlert.type,
-        })
-        this.alerts = this.alerts.map((item) =>
-          item.id === nextId ? toAlertRecord(savedAlert) : item,
-        )
-        this.error = ''
-      } catch (error) {
-        this.error = error instanceof Error ? error.message : '服务器响应异常，请稍后重试'
       }
     },
     async addManualAlert(payload?: ManualAlertInput) {

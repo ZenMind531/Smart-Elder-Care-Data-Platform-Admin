@@ -40,8 +40,7 @@
           : 'border-brand-200 bg-brand-50 text-brand-700 dark:border-brand-500/30 dark:bg-brand-500/10 dark:text-brand-300'
       "
     >
-      {{ operations.loading ? '正在同步健康数据接口...' :
-      `<span>健康数据接口暂不可用：</span>${operations.error}` }}
+      {{ operations.loading ? '正在同步健康数据接口...' : `健康数据接口暂不可用：${operations.error}` }}
     </p>
 
     <HealthVitalsForm
@@ -229,7 +228,7 @@
                     class="rounded-md border border-success-200 bg-success-50 px-2 py-1 text-[11px] font-medium text-success-700 hover:bg-success-100 dark:border-success-500/30 dark:bg-success-500/10 dark:text-success-300"
                     @click="markNormal(record)"
                   >
-                    复测完成
+                    录入复测
                   </button>
                 </div>
               </div>
@@ -366,22 +365,13 @@
                       详情
                     </button>
                     <button
-                      v-if="record.status === '正常' && canResolveHealth"
-                      type="button"
-                      class="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-theme-xs font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-white/[0.03]"
-                      @click="requestRetest(record)"
-                    >
-                      <Activity class="size-4" />
-                      发起复测
-                    </button>
-                    <button
-                      v-if="record.status !== '正常' && canResolveHealth"
+                      v-if="canResolveHealth && canRetestRecord(record)"
                       type="button"
                       class="inline-flex items-center gap-2 rounded-lg border border-success-200 bg-success-50 px-3 py-1.5 text-theme-xs font-medium text-success-700 shadow-theme-xs hover:bg-success-100 dark:border-success-500/30 dark:bg-success-500/10 dark:text-success-300"
                       @click="markNormal(record)"
                     >
                       <CheckCircle2 class="size-4" />
-                      复测完成
+                      录入复测
                     </button>
                     <button
                       v-if="canDeleteHealth"
@@ -572,7 +562,7 @@ import { getStoredUser } from '@/api/http'
 import { getHealthRecordTrend, type HealthRecordTrendApi } from '@/api/health'
 import { canUseAction } from '@/config/roles'
 import { useOperationsStore } from '@/stores/operations'
-import type { HealthRecord, HealthRecordInput } from '@/stores/operations'
+import type { AlertRecord, HealthRecord, HealthRecordInput } from '@/stores/operations'
 
 const operations = useOperationsStore()
 const currentUser = getStoredUser()
@@ -590,6 +580,8 @@ const trendLoading = ref(false)
 const selectedRecord = ref<HealthRecord | null>(null)
 const recordDetailLoading = ref(false)
 const deletingRecord = ref<HealthRecord | null>(null)
+const activeRetestAlert = ref<AlertRecord | null>(null)
+const retestSourceId = ref<number | null>(null)
 
 onMounted(() => {
   void operations.fetchHealthRecords()
@@ -610,6 +602,69 @@ const createEmptyRecord = (): HealthRecordInput => ({
 })
 
 const newRecord = ref<HealthRecordInput>(createEmptyRecord())
+
+const numericValue = (value: number | string | undefined, fallback: number) => {
+  if (typeof value === 'number') return Number.isFinite(value) ? value : fallback
+  if (!value) return fallback
+
+  const parsed = Number.parseFloat(value)
+  return Number.isFinite(parsed) ? parsed : fallback
+}
+
+const inferRetestWarningType = (record: HealthRecord) => {
+  const systolicPressure = record.systolicPressure || Number(record.bloodPressure.split('/')[0]) || 0
+  const diastolicPressure = record.diastolicPressure || Number(record.bloodPressure.split('/')[1]) || 0
+  const temperature = numericValue(record.temperature, 0)
+
+  if (systolicPressure >= 140 || diastolicPressure >= 90) return 'blood_pressure'
+  if ((record.bloodSugar || 0) >= 7) return 'blood_sugar'
+  if (record.heartRate >= 100 || record.heartRate <= 60) return 'heart_rate'
+  if (temperature >= 37.3) return 'temperature'
+
+  return undefined
+}
+
+const createRetestRecord = (record: HealthRecord, alert?: AlertRecord): HealthRecordInput => {
+  const retestWarningType = alert?.warningType || inferRetestWarningType(record)
+  const retestRecord: HealthRecordInput = {
+    elderlyId: record.elderlyId,
+    retestWarningId: alert?.id,
+    elderName: record.elderName,
+    room: record.room,
+    heartRate: record.heartRate || 82,
+    systolicPressure: record.systolicPressure || Number(record.bloodPressure.split('/')[0]) || 128,
+    diastolicPressure: record.diastolicPressure || Number(record.bloodPressure.split('/')[1]) || 78,
+    bloodSugar: record.bloodSugar || 6.1,
+    temperature: numericValue(record.temperature, 36.6),
+    bloodOxygen: record.bloodOxygen || 97,
+    sleepHours: record.sleepHours || 7,
+    remark: alert ? `针对预警 ${alert.id} 的复测` : `针对体征记录 ${record.id} 的复测`,
+  }
+
+  switch (retestWarningType) {
+    case 'blood_pressure':
+      retestRecord.systolicPressure = 128
+      retestRecord.diastolicPressure = 78
+      break
+    case 'blood_sugar':
+      retestRecord.bloodSugar = 6.1
+      break
+    case 'heart_rate':
+      retestRecord.heartRate = 82
+      break
+    case 'temperature':
+      retestRecord.temperature = 36.6
+      break
+    default:
+      retestRecord.systolicPressure = 128
+      retestRecord.diastolicPressure = 78
+      retestRecord.bloodSugar = 6.1
+      retestRecord.heartRate = 82
+      retestRecord.temperature = 36.6
+  }
+
+  return retestRecord
+}
 
 const elderOptions = computed(() => {
   const map = new Map<string, { key: string; name: string; room: string; elderlyId?: number }>()
@@ -667,12 +722,91 @@ const statusClassMap: Record<HealthRecord['status'], string> = {
 }
 
 const records = computed(() => operations.healthRecords)
-const attentionRecords = computed(() => records.value.filter((record) => record.status !== '正常'))
+const healthAlertTypes = new Set([
+  '血压异常',
+  '心率异常',
+  '血糖异常',
+  '体温异常',
+  '体征复测',
+  '体征异常',
+  '健康预警',
+])
+const healthSubjectKey = (record: HealthRecord) =>
+  record.elderlyId != null ? `elderly:${record.elderlyId}` : `${record.room}:${record.elderName}`
+const alertSubjectKey = (alert: AlertRecord) =>
+  alert.elderlyId != null ? `elderly:${alert.elderlyId}` : `${alert.room}:${alert.elderName}`
+const isUnresolvedHealthAlert = (alert: AlertRecord) =>
+  alert.status !== '已处理' && healthAlertTypes.has(alert.type)
+const recordTemperatureValue = (record: HealthRecord) => {
+  const value = Number.parseFloat(record.temperature)
+  return Number.isFinite(value) ? value : 0
+}
+const recordMatchesAlertType = (record: HealthRecord, alert: AlertRecord) => {
+  switch (alert.type) {
+    case '血压异常':
+      return (record.systolicPressure || 0) >= 140 || (record.diastolicPressure || 0) >= 90
+    case '血糖异常':
+      return (record.bloodSugar || 0) >= 7
+    case '心率异常':
+      return record.heartRate >= 100 || record.heartRate <= 60
+    case '体温异常':
+      return recordTemperatureValue(record) >= 37.3
+    default:
+      return record.status !== '正常'
+  }
+}
+const alertMatchesRecord = (record: HealthRecord, alert: AlertRecord) => {
+  if (alert.relatedRecordId != null) {
+    return alert.relatedRecordId === record.id
+  }
+
+  return alertSubjectKey(alert) === healthSubjectKey(record) && recordMatchesAlertType(record, alert)
+}
+const findPendingHealthAlert = (record: HealthRecord) =>
+  operations.alerts.find(
+    (alert) => isUnresolvedHealthAlert(alert) && alertMatchesRecord(record, alert),
+  )
+const hasPendingHealthAlert = (record: HealthRecord) => Boolean(findPendingHealthAlert(record))
+const canRetestRecord = (record: HealthRecord) => record.status !== '正常' || hasPendingHealthAlert(record)
+const selectRecordForAlert = (alert: AlertRecord) => {
+  if (alert.relatedRecordId != null) {
+    return records.value.find((record) => record.id === alert.relatedRecordId)
+  }
+
+  const subjectRecords = records.value.filter((record) => healthSubjectKey(record) === alertSubjectKey(alert))
+
+  return (
+    subjectRecords.find((record) => recordMatchesAlertType(record, alert)) ||
+    subjectRecords.find((record) => record.status !== '正常') ||
+    subjectRecords[0]
+  )
+}
+const attentionRecords = computed(() => {
+  const seen = new Set<string>()
+
+  return operations.alerts.reduce<HealthRecord[]>((items, alert) => {
+    if (!isUnresolvedHealthAlert(alert)) return items
+
+    const key = alert.relatedRecordId != null ? `record:${alert.relatedRecordId}` : alertSubjectKey(alert)
+    if (seen.has(key)) return items
+
+    const record = selectRecordForAlert(alert)
+    if (!record) return items
+
+    items.push({
+      ...record,
+      status: record.status === '正常' ? '需复测' : record.status,
+      riskReason: alert.content || record.riskReason,
+    })
+    seen.add(key)
+    return items
+  }, [])
+})
 const abnormalCount = computed(
   () => records.value.filter((record) => record.status === '异常').length,
 )
 const retestCount = computed(
-  () => records.value.filter((record) => record.status === '需复测').length,
+  () => attentionRecords.value.length,
 )
 
 const average = (values: number[]) => {
@@ -803,6 +937,8 @@ const heartRateLine = computed(() =>
 
 const resetForm = () => {
   selectedElderKey.value = ''
+  activeRetestAlert.value = null
+  retestSourceId.value = null
   newRecord.value = createEmptyRecord()
 }
 
@@ -832,49 +968,52 @@ const submitVitals = async () => {
     return
   }
 
+  const payload = { ...newRecord.value }
+  const isRetestSubmit = Boolean(payload.retestWarningId || payload.remark?.includes('复测'))
   const statusText = previewStatus.value
-  await operations.addHealthRecord({ ...newRecord.value })
-  feedback.value =
-    statusText === '正常'
-      ? `${newRecord.value.room} ${newRecord.value.elderName} 体征已保存`
-      : `${newRecord.value.room} ${newRecord.value.elderName} 已保存，并生成${statusText}跟进`
-  resetForm()
-}
 
-const requestRetest = (record: HealthRecord) => {
-  if (!canResolveHealth) {
-    feedback.value = '当前角色没有发起复测权限'
-    return
+  try {
+    await operations.addHealthRecord(payload)
+    if (retestSourceId.value) {
+      await operations.markHealthNormal(retestSourceId.value)
+      retestSourceId.value = null
+    }
+    await operations.fetchHealthRecords()
+    await operations.fetchAlerts()
+    feedback.value = isRetestSubmit
+      ? payload.retestWarningId
+        ? `${payload.room} ${payload.elderName} 复测记录已提交，预警状态已按后端判断更新`
+        : `${payload.room} ${payload.elderName} 复测记录已提交`
+      : statusText === '正常'
+        ? `${payload.room} ${payload.elderName} 体征已保存`
+        : `${payload.room} ${payload.elderName} 已保存，并生成${statusText}跟进`
+    resetForm()
+    showForm.value = false
+  } catch (error) {
+    feedback.value = error instanceof Error ? error.message : '体征保存失败，请稍后重试'
   }
-
-  operations.requestHealthRetest(record.id)
-  feedback.value = `${record.room} ${record.elderName} 已加入复测队列`
 }
 
-const markNormal = async (record: HealthRecord) => {
+const markNormal = (record: HealthRecord) => {
   if (!canResolveHealth) {
     feedback.value = '当前角色没有完成复测权限'
     return
   }
-  // 从告警中找对应的健康预警
-  const alert = operations.alerts.find(
-    (a) =>
-      a.status !== '已处理' &&
-      a.elderlyId === record.elderlyId &&
-      ['血压异常', '心率异常', '血糖异常', '体温异常', '体征复测', '体征异常', '健康预警'].includes(a.type),
-  )
-  if (!alert) {
-    feedback.value = '未找到对应预警，请刷新页面后重试'
+
+  if (!canRetestRecord(record)) {
+    feedback.value = '这条体征当前无需复测'
     return
   }
-  try {
-    await operations.resolveAlert(alert.id, '复测后体征恢复正常，告警已归档。')
-    // 同时移除健康记录
-    operations.healthRecords = operations.healthRecords.filter((item) => item.id !== record.id)
-    feedback.value = `${record.room} ${record.elderName} 复测完成，告警已归档`
-  } catch (e) {
-    feedback.value = '复测处理失败，请重试'
-  }
+
+  const alert = findPendingHealthAlert(record)
+  activeRetestAlert.value = alert || null
+  retestSourceId.value = record.id
+  newRecord.value = createRetestRecord(record, alert)
+  selectedElderKey.value = `${record.room}-${record.elderName}`
+  showForm.value = true
+  feedback.value = alert
+    ? `${record.room} ${record.elderName} 已进入复测录入，请确认复测数据后保存`
+    : `${record.room} ${record.elderName} 已进入复测录入，当前没有关联待处理预警`
 }
 
 const openRecordDetail = async (record: HealthRecord) => {

@@ -6,6 +6,8 @@ export type WarningStatus = 'pending' | 'processing' | 'resolved'
 export interface HealthWarningApi {
   id: number
   elderlyId?: number
+  healthRecordId?: number
+  retestRecordId?: number
   elderlyName?: string
   elderName?: string
   room?: string
