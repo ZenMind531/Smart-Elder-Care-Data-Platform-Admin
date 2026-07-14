@@ -593,6 +593,7 @@ const deletingRecord = ref<HealthRecord | null>(null)
 
 onMounted(() => {
   void operations.fetchHealthRecords()
+  void operations.fetchAlerts()
 })
 
 const createEmptyRecord = (): HealthRecordInput => ({
@@ -850,14 +851,30 @@ const requestRetest = (record: HealthRecord) => {
   feedback.value = `${record.room} ${record.elderName} 已加入复测队列`
 }
 
-const markNormal = (record: HealthRecord) => {
+const markNormal = async (record: HealthRecord) => {
   if (!canResolveHealth) {
     feedback.value = '当前角色没有完成复测权限'
     return
   }
-
-  operations.markHealthNormal(record.id)
-  feedback.value = `${record.room} ${record.elderName} 复测完成，相关告警已同步处理`
+  // 从告警中找对应的健康预警
+  const alert = operations.alerts.find(
+    (a) =>
+      a.status !== '已处理' &&
+      a.elderlyId === record.elderlyId &&
+      ['血压异常', '心率异常', '血糖异常', '体温异常', '体征复测', '体征异常', '健康预警'].includes(a.type),
+  )
+  if (!alert) {
+    feedback.value = '未找到对应预警，请刷新页面后重试'
+    return
+  }
+  try {
+    await operations.resolveAlert(alert.id, '复测后体征恢复正常，告警已归档。')
+    // 同时移除健康记录
+    operations.healthRecords = operations.healthRecords.filter((item) => item.id !== record.id)
+    feedback.value = `${record.room} ${record.elderName} 复测完成，告警已归档`
+  } catch (e) {
+    feedback.value = '复测处理失败，请重试'
+  }
 }
 
 const openRecordDetail = async (record: HealthRecord) => {

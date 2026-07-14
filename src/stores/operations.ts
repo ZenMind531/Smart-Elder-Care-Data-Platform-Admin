@@ -587,28 +587,42 @@ export const useOperationsStore = defineStore('operations', {
         })
       }
     },
-    markHealthNormal(id: number) {
+    async markHealthNormal(id: number) {
       const record = this.healthRecords.find((item) => item.id === id)
-      if (record) {
-        const relatedAlerts = this.alerts.filter(
-          (alert) =>
-            alert.status !== '已处理' &&
-            (alert.relatedRecordId === id ||
-              (record.elderlyId !== undefined && alert.elderlyId === record.elderlyId)),
-        )
-        relatedAlerts.forEach((alert) => {
-          alert.status = '已处理'
-          alert.handleResult = '复测后体征恢复正常，告警自动归档。'
-          alert.handledAt = '刚刚'
-          void updateHealthWarningStatus(alert.id, {
-            status: 'resolved',
-            handleResult: alert.handleResult,
-          }).catch(() => {})
-        })
-
-        // 复测完成即从列表中移除
-        this.healthRecords = this.healthRecords.filter((item) => item.id !== id)
+      if (!record) return
+      // 确保告警数据已加载
+      if (this.alerts.length === 0) {
+        try { await this.fetchAlerts() } catch { /* 静默失败 */ }
       }
+      // 匹配健康类型的未处理告警
+      const healthTypes = ['血压异常', '心率异常', '血糖异常', '体温异常', '体征复测', '体征异常', '健康预警']
+      const relatedAlerts = this.alerts.filter(
+        (alert) =>
+          alert.status !== '已处理' &&
+          healthTypes.includes(alert.type) &&
+          (alert.elderlyId === record.elderlyId ||
+            (record.elderlyId !== undefined && alert.elderlyId === record.elderlyId)),
+      )
+      if (relatedAlerts.length === 0) {
+        // 无匹配告警，直接移除本地记录
+        this.healthRecords = this.healthRecords.filter((item) => item.id !== id)
+        return
+      }
+      // 逐个 PATCH health_warning status = resolved
+      for (const alert of relatedAlerts) {
+        try {
+          await updateHealthWarningStatus(alert.id, {
+            status: 'resolved',
+            handleResult: '复测后体征恢复正常，告警已归档。',
+          })
+          alert.status = '已处理'
+          alert.handleResult = '复测后体征恢复正常，告警已归档。'
+          alert.handledAt = '刚刚'
+        } catch {
+          // 单条失败继续处理后续
+        }
+      }
+      this.healthRecords = this.healthRecords.filter((item) => item.id !== id)
     },
     async removeHealthRecord(id: number) {
       const snapshot = [...this.healthRecords]
