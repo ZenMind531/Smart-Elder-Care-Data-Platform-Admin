@@ -12,7 +12,9 @@ public class HealthRecordVO {
 
     private Long elderlyId;
 
-    private String elderlyName;    private Integer systolicPressure;
+    private String elderlyName;
+
+    private Integer systolicPressure;
 
     private Integer diastolicPressure;
 

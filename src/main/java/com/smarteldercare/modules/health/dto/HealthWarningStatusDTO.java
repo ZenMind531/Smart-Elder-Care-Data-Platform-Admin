@@ -8,7 +8,10 @@ import lombok.Data;
 public class HealthWarningStatusDTO {
 
     @NotBlank(message = "不能为空")
-    @Pattern(regexp = "pending|processing|resolved", message = "必须是 pending、processing 或 resolved")
+    @Pattern(
+        regexp = "pending|processing|resolved",
+        message = "必须是 pending、processing 或 resolved"
+    )
     private String status;
 
     private String handleResult;
