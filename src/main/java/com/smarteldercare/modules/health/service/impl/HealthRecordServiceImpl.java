@@ -1,6 +1,7 @@
 package com.smarteldercare.modules.health.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.smarteldercare.common.exception.BusinessException;
@@ -86,6 +87,7 @@ public class HealthRecordServiceImpl
         BeanUtils.copyProperties(dto, healthRecord);
         save(healthRecord);
         checkHealthRecordAndCreateWarning(healthRecord);
+        resolveRecoveredWarnings(healthRecord);
         healthRiskLevelService.recalculateRiskLevel(healthRecord.getElderlyId());
         return toVO(healthRecord);
     }
@@ -127,10 +129,25 @@ public class HealthRecordServiceImpl
         checkTemperature(record);
     }
 
+    private void resolveRecoveredWarnings(HealthRecord record) {
+        if (hasBloodPressure(record) && !isBloodPressureAbnormal(record)) {
+            resolveWarnings(record, "blood_pressure");
+        }
+        if (record.getBloodSugar() != null && !isBloodSugarAbnormal(record)) {
+            resolveWarnings(record, "blood_sugar");
+        }
+        if (record.getHeartRate() != null && !isHeartRateAbnormal(record)) {
+            resolveWarnings(record, "heart_rate");
+        }
+        if (record.getTemperature() != null && !isTemperatureAbnormal(record)) {
+            resolveWarnings(record, "temperature");
+        }
+    }
+
     private void checkBloodPressure(HealthRecord record) {
         Integer systolicPressure = record.getSystolicPressure();
         Integer diastolicPressure = record.getDiastolicPressure();
-        if (systolicPressure == null && diastolicPressure == null) {
+        if (!hasBloodPressure(record)) {
             return;
         }
 
@@ -192,6 +209,28 @@ public class HealthRecordServiceImpl
         return value != null && value >= threshold;
     }
 
+    private boolean hasBloodPressure(HealthRecord record) {
+        return record.getSystolicPressure() != null || record.getDiastolicPressure() != null;
+    }
+
+    private boolean isBloodPressureAbnormal(HealthRecord record) {
+        return greaterThanOrEqual(record.getSystolicPressure(), 140)
+            || greaterThanOrEqual(record.getDiastolicPressure(), 90);
+    }
+
+    private boolean isBloodSugarAbnormal(HealthRecord record) {
+        return record.getBloodSugar().compareTo(new BigDecimal("7.0")) >= 0;
+    }
+
+    private boolean isHeartRateAbnormal(HealthRecord record) {
+        Integer heartRate = record.getHeartRate();
+        return heartRate >= 100 || heartRate <= 60;
+    }
+
+    private boolean isTemperatureAbnormal(HealthRecord record) {
+        return record.getTemperature().compareTo(new BigDecimal("37.3")) >= 0;
+    }
+
     private void createWarning(HealthRecord record, String warningType, String warningLevel, String warningContent) {
         HealthWarning warning = new HealthWarning();
         warning.setElderlyId(record.getElderlyId());
@@ -201,6 +240,19 @@ public class HealthRecordServiceImpl
         warning.setStatus("pending");
         warning.setWarningTime(record.getRecordTime());
         healthWarningMapper.insert(warning);
+    }
+
+    private void resolveWarnings(HealthRecord record, String warningType) {
+        HealthWarning update = new HealthWarning();
+        update.setStatus("resolved");
+        update.setHandleResult("复测结果正常，系统自动处理");
+        update.setHandleTime(record.getRecordTime() == null ? LocalDateTime.now() : record.getRecordTime());
+
+        LambdaUpdateWrapper<HealthWarning> wrapper = new LambdaUpdateWrapper<>();
+        wrapper.eq(HealthWarning::getElderlyId, record.getElderlyId())
+            .eq(HealthWarning::getWarningType, warningType)
+            .ne(HealthWarning::getStatus, "resolved");
+        healthWarningMapper.update(update, wrapper);
     }
 
     private Long normalizePage(Long page) {
