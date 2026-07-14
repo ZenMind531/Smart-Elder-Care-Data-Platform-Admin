@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.smarteldercare.common.exception.BusinessException;
 import com.smarteldercare.common.result.PageResult;
 import com.smarteldercare.common.result.ResultCode;
+import com.smarteldercare.modules.elderly.entity.ElderlyProfile;
 import com.smarteldercare.modules.elderly.mapper.ElderlyProfileMapper;
 import com.smarteldercare.modules.health.dto.HealthRecordDTO;
 import com.smarteldercare.modules.health.entity.HealthRecord;
@@ -25,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -80,16 +82,52 @@ public class HealthRecordServiceImpl
     @Override
     @Transactional(rollbackFor = Exception.class)
     public HealthRecordVO createHealthRecord(HealthRecordDTO dto) {
-        if (elderlyProfileMapper.selectById(dto.getElderlyId()) == null) {
-            throw new BusinessException(ResultCode.NOT_FOUND);
-        }
+        Long elderlyId = resolveElderlyId(dto);
         HealthRecord healthRecord = new HealthRecord();
         BeanUtils.copyProperties(dto, healthRecord);
+        healthRecord.setElderlyId(elderlyId);
         save(healthRecord);
         checkHealthRecordAndCreateWarning(healthRecord);
         resolveRecoveredWarnings(healthRecord);
         healthRiskLevelService.recalculateRiskLevel(healthRecord.getElderlyId());
         return toVO(healthRecord);
+    }
+
+    private Long resolveElderlyId(HealthRecordDTO dto) {
+        if (dto.getElderlyId() != null) {
+            if (elderlyProfileMapper.selectById(dto.getElderlyId()) == null) {
+                throw new BusinessException(ResultCode.NOT_FOUND.getCode(), "老人不存在");
+            }
+            return dto.getElderlyId();
+        }
+
+        String elderlyName = dto.getElderlyName();
+        if (elderlyName == null || elderlyName.trim().isEmpty()) {
+            throw new BusinessException("elderlyId 和 elderlyName 不能同时为空");
+        }
+
+        LambdaQueryWrapper<ElderlyProfile> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(ElderlyProfile::getElderlyName, elderlyName.trim());
+        List<ElderlyProfile> matches = elderlyProfileMapper.selectList(wrapper);
+
+        if (matches.size() == 1) {
+            return matches.get(0).getId();
+        }
+        if (matches.size() > 1) {
+            String ids = matches.stream()
+                .map(ElderlyProfile::getId)
+                .map(String::valueOf)
+                .collect(Collectors.joining(", "));
+            throw new BusinessException("存在同名老人，请选择老人ID：" + ids);
+        }
+
+        ElderlyProfile elderlyProfile = new ElderlyProfile();
+        elderlyProfile.setElderlyName(elderlyName.trim());
+        elderlyProfile.setGender("unknown");
+        elderlyProfile.setAge(0);
+        elderlyProfile.setRiskLevel("low");
+        elderlyProfileMapper.insert(elderlyProfile);
+        return elderlyProfile.getId();
     }
 
     @Override
