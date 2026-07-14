@@ -974,12 +974,13 @@ const submitVitals = async () => {
 
   try {
     await operations.addHealthRecord(payload)
-    if (retestSourceId.value) {
-      await operations.markHealthNormal(retestSourceId.value)
-      retestSourceId.value = null
-    }
     await operations.fetchHealthRecords()
     await operations.fetchAlerts()
+    if (retestSourceId.value) {
+      // 复测提交后清理旧记录（先拉后端数据再清本地，避免 fetchHealthRecords 带回旧数据）
+      operations.healthRecords = operations.healthRecords.filter((item) => item.id !== retestSourceId.value)
+      retestSourceId.value = null
+    }
     feedback.value = isRetestSubmit
       ? payload.retestWarningId
         ? `${payload.room} ${payload.elderName} 复测记录已提交，预警状态已按后端判断更新`
