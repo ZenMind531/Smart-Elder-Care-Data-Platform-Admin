@@ -13,14 +13,30 @@
         </p>
       </div>
 
-      <button
-        v-if="canCreateElderly"
-        type="button"
-        class="inline-flex w-fit items-center justify-center rounded-lg bg-brand-600 px-4 py-2.5 text-theme-sm font-medium text-white shadow-theme-xs hover:bg-brand-700"
-        @click="showAddForm = !showAddForm"
-      >
-        {{ showAddForm ? '收起新增' : '新增老人档案' }}
-      </button>
+      <div class="flex flex-wrap items-center gap-2">
+        <button
+          v-if="canCreateElderly"
+          type="button"
+          class="inline-flex w-fit items-center justify-center rounded-lg bg-brand-600 px-4 py-2.5 text-theme-sm font-medium text-white shadow-theme-xs hover:bg-brand-700"
+          @click="showAddForm = !showAddForm"
+        >
+          {{ showAddForm ? '收起新增' : '新增老人档案' }}
+        </button>
+        <button
+          type="button"
+          class="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-2 text-theme-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
+          @click="handleExport"
+        >
+          导出 Excel
+        </button>
+        <button
+          type="button"
+          class="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-2 text-theme-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
+          @click="handleImport"
+        >
+          导入 Excel
+        </button>
+      </div>
     </div>
 
     <section
@@ -528,7 +544,7 @@ import AdminLayout from '@/components/layout/AdminLayout.vue'
 import { useElderlyStore } from '@/stores/elderly'
 import type { CareLevel, ElderStatus } from '@/stores/elderly'
 import { updateElderly, type ElderlyPayload } from '@/api/elderly'
-import { ApiError } from '@/api/http'
+import { ApiError, getAuthToken } from '@/api/http'
 
 const elderlyStore = useElderlyStore()
 
@@ -705,5 +721,39 @@ const submitEdit = async () => {
   } catch (err) {
     editError.value = err instanceof ApiError ? err.message : '保存失败'
   } finally { editSubmitting.value = false }
+}
+
+// 导入导出
+const handleExport = () => {
+  const token = getAuthToken()
+  if (!token) return
+  window.open(`/api/elderly/export?token=${encodeURIComponent(token)}`, '_blank')
+}
+
+const handleImport = () => {
+  const input = document.createElement('input')
+  input.type = 'file'
+  input.accept = '.xlsx,.xls'
+  input.onchange = async () => {
+    const file = input.files?.[0]
+    if (!file) return
+    const token = getAuthToken()
+    if (!token) { feedback.value = '请先登录'; return }
+    const formData = new FormData()
+    formData.append('file', file)
+    try {
+      const res = await fetch('/api/elderly/import', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      })
+      const data = await res.json()
+      feedback.value = data?.data?.message || data?.message || '导入完成'
+      await elderlyStore.fetchRecords()
+    } catch (e) {
+      feedback.value = '导入失败，请重试'
+    }
+  }
+  input.click()
 }
 </script>
