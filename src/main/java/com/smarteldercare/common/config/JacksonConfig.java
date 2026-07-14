@@ -1,6 +1,8 @@
 package com.smarteldercare.common.config;
 
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import java.time.LocalDate;
@@ -22,6 +24,8 @@ public class JacksonConfig {
     public Jackson2ObjectMapperBuilderCustomizer jackson2ObjectMapperBuilderCustomizer() {
         return builder -> builder
             .featuresToDisable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+            .deserializerByType(LocalDateTime.class, new LocalDateTimeDeserializer(DATE_TIME_FORMATTER))
+            .deserializerByType(LocalDate.class, new LocalDateDeserializer(DATE_FORMATTER))
             .serializerByType(LocalDateTime.class, new LocalDateTimeSerializer(DATE_TIME_FORMATTER))
             .serializerByType(LocalDate.class, new LocalDateSerializer(DATE_FORMATTER));
     }
