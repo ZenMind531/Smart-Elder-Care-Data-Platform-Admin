@@ -1,7 +1,6 @@
 package com.smarteldercare.modules.health.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.smarteldercare.common.exception.BusinessException;
@@ -87,8 +86,11 @@ public class HealthRecordServiceImpl
         BeanUtils.copyProperties(dto, healthRecord);
         healthRecord.setElderlyId(elderlyId);
         save(healthRecord);
-        checkHealthRecordAndCreateWarning(healthRecord);
-        resolveRecoveredWarnings(healthRecord);
+        if (dto.getRetestWarningId() != null) {
+            handleRetestWarning(dto.getRetestWarningId(), healthRecord);
+        } else {
+            checkHealthRecordAndCreateWarning(healthRecord);
+        }
         healthRiskLevelService.recalculateRiskLevel(healthRecord.getElderlyId());
         return toVO(healthRecord);
     }
@@ -167,19 +169,29 @@ public class HealthRecordServiceImpl
         checkTemperature(record);
     }
 
-    private void resolveRecoveredWarnings(HealthRecord record) {
-        if (hasBloodPressure(record) && !isBloodPressureAbnormal(record)) {
-            resolveWarnings(record, "blood_pressure");
+    private void handleRetestWarning(Long warningId, HealthRecord retestRecord) {
+        HealthWarning warning = healthWarningMapper.selectById(warningId);
+        if (warning == null) {
+            throw new BusinessException(ResultCode.NOT_FOUND.getCode(), "复测预警不存在");
         }
-        if (record.getBloodSugar() != null && !isBloodSugarAbnormal(record)) {
-            resolveWarnings(record, "blood_sugar");
+        if (!warning.getElderlyId().equals(retestRecord.getElderlyId())) {
+            throw new BusinessException("复测记录和预警不属于同一个老人");
         }
-        if (record.getHeartRate() != null && !isHeartRateAbnormal(record)) {
-            resolveWarnings(record, "heart_rate");
+        if (!hasMeasurementForWarningType(retestRecord, warning.getWarningType())) {
+            throw new BusinessException("复测数据缺少对应的指标：" + warning.getWarningType());
         }
-        if (record.getTemperature() != null && !isTemperatureAbnormal(record)) {
-            resolveWarnings(record, "temperature");
+
+        warning.setRetestRecordId(retestRecord.getId());
+        if (isNormalForWarningType(retestRecord, warning.getWarningType())) {
+            warning.setStatus("resolved");
+            warning.setHandleResult("复测结果正常，系统自动处理");
+            warning.setHandleTime(retestRecord.getRecordTime() == null ? LocalDateTime.now() : retestRecord.getRecordTime());
+        } else {
+            warning.setStatus("processing");
+            warning.setHandleResult("复测结果仍异常，请继续跟进");
+            warning.setHandleTime(null);
         }
+        healthWarningMapper.updateById(warning);
     }
 
     private void checkBloodPressure(HealthRecord record) {
@@ -272,6 +284,7 @@ public class HealthRecordServiceImpl
     private void createWarning(HealthRecord record, String warningType, String warningLevel, String warningContent) {
         HealthWarning warning = new HealthWarning();
         warning.setElderlyId(record.getElderlyId());
+        warning.setHealthRecordId(record.getId());
         warning.setWarningType(warningType);
         warning.setWarningLevel(warningLevel);
         warning.setWarningContent(warningContent);
@@ -280,17 +293,24 @@ public class HealthRecordServiceImpl
         healthWarningMapper.insert(warning);
     }
 
-    private void resolveWarnings(HealthRecord record, String warningType) {
-        HealthWarning update = new HealthWarning();
-        update.setStatus("resolved");
-        update.setHandleResult("复测结果正常，系统自动处理");
-        update.setHandleTime(record.getRecordTime() == null ? LocalDateTime.now() : record.getRecordTime());
+    private boolean hasMeasurementForWarningType(HealthRecord record, String warningType) {
+        return switch (warningType) {
+            case "blood_pressure" -> hasBloodPressure(record);
+            case "blood_sugar" -> record.getBloodSugar() != null;
+            case "heart_rate" -> record.getHeartRate() != null;
+            case "temperature" -> record.getTemperature() != null;
+            default -> false;
+        };
+    }
 
-        LambdaUpdateWrapper<HealthWarning> wrapper = new LambdaUpdateWrapper<>();
-        wrapper.eq(HealthWarning::getElderlyId, record.getElderlyId())
-            .eq(HealthWarning::getWarningType, warningType)
-            .ne(HealthWarning::getStatus, "resolved");
-        healthWarningMapper.update(update, wrapper);
+    private boolean isNormalForWarningType(HealthRecord record, String warningType) {
+        return switch (warningType) {
+            case "blood_pressure" -> !isBloodPressureAbnormal(record);
+            case "blood_sugar" -> !isBloodSugarAbnormal(record);
+            case "heart_rate" -> !isHeartRateAbnormal(record);
+            case "temperature" -> !isTemperatureAbnormal(record);
+            default -> false;
+        };
     }
 
     private Long normalizePage(Long page) {

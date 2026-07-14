@@ -17,6 +17,8 @@ public class HealthRecordDTO {
 
     private String elderlyName;
 
+    private Long retestWarningId;
+
     @Min(value = 0, message = "不能小于0")
     @Max(value = 300, message = "不能大于300")
     private Integer systolicPressure;

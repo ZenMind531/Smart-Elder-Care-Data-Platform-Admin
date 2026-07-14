@@ -382,6 +382,8 @@ POST /api/health-records
 ```json
 {
   "elderlyId": 1,
+  "elderlyName": "王建国",
+  "retestWarningId": null,
   "systolicPressure": 145,
   "diastolicPressure": 92,
   "bloodSugar": 7.8,
@@ -389,6 +391,27 @@ POST /api/health-records
   "temperature": 36.7,
   "recordTime": "2026-07-08 10:00:00",
   "remark": "血压偏高"
+}
+```
+
+说明：
+
+- `elderlyId` 优先；如果不传 `elderlyId`，可以传 `elderlyName`。
+- 只传 `elderlyName` 时，后端按姓名查老人；查不到会新建基础老人档案；查到多个同名会提示选择具体老人 ID。
+- 普通新增健康数据时不传 `retestWarningId`。
+- 复测某条预警时传 `retestWarningId`，后端会把本次健康记录作为复测记录关联到该预警。
+- 异常健康数据会自动生成健康预警，并在预警里保存触发预警的 `healthRecordId`。
+
+复测请求示例：
+
+```json
+{
+  "elderlyId": 1,
+  "retestWarningId": 8,
+  "systolicPressure": 120,
+  "diastolicPressure": 78,
+  "recordTime": "2026-07-08 11:00:00",
+  "remark": "复测血压正常"
 }
 ```
 
@@ -423,6 +446,8 @@ POST /api/health-warnings
 ```json
 {
   "elderlyId": 1,
+  "healthRecordId": 21,
+  "retestRecordId": null,
   "warningType": "blood_pressure",
   "warningLevel": "high",
   "warningContent": "血压超过正常范围"
@@ -441,6 +466,12 @@ PATCH /api/health-warnings/{id}/status
   "handleResult": "已电话联系老人并通知医生"
 }
 ```
+
+说明：
+
+- `healthRecordId`：触发该预警的原始健康记录 ID。
+- `retestRecordId`：完成复测后关联的复测健康记录 ID。
+- 复测推荐通过 `POST /api/health-records` 新增复测健康记录并传 `retestWarningId`，由后端自动判断是否将预警改成 `resolved`。
 
 ### 7.5 删除预警
 

@@ -52,6 +52,8 @@ CREATE TABLE IF NOT EXISTS health_record (
 CREATE TABLE IF NOT EXISTS health_warning (
   id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '主键',
   elderly_id BIGINT NOT NULL COMMENT '老人ID',
+  health_record_id BIGINT DEFAULT NULL COMMENT '触发预警的健康记录ID',
+  retest_record_id BIGINT DEFAULT NULL COMMENT '复测健康记录ID',
   warning_type VARCHAR(50) NOT NULL COMMENT '预警类型：blood_pressure/blood_sugar/heart_rate/temperature',
   warning_level VARCHAR(20) NOT NULL COMMENT '预警等级：low/medium/high',
   warning_content VARCHAR(500) NOT NULL COMMENT '预警内容',
@@ -63,6 +65,8 @@ CREATE TABLE IF NOT EXISTS health_warning (
   update_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   deleted TINYINT NOT NULL DEFAULT 0 COMMENT '逻辑删除：0未删除，1已删除',
   KEY idx_health_warning_elderly_id (elderly_id),
+  KEY idx_health_warning_record_id (health_record_id),
+  KEY idx_health_warning_retest_record_id (retest_record_id),
   KEY idx_health_warning_level (warning_level),
   KEY idx_health_warning_status (status),
   KEY idx_health_warning_time (warning_time),
