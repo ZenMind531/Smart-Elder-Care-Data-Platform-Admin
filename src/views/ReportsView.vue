@@ -111,24 +111,29 @@ const filtered = computed(() => records.value.filter(r => {
 
 const riskLabel = (l?: RiskLevel) => l === 'high' ? '高风险' : l === 'medium' ? '中风险' : '低风险'
 
+const pad = (v: number) => String(v).padStart(2, '0')
+const formatLocalDateTime = (d = new Date()) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
+const normalizeReportTime = (v?: string) => { if (!v) return formatLocalDateTime(); if (/^\d{4}-\d{2}-\d{2}$/.test(v)) return `${v} 00:00:00`; return v }
+
 const modalOpen = ref(false)
 const submitting = ref(false)
 const formError = ref('')
-const form = reactive<ReportPayload & { editing: boolean; id?: number }>({ editing: false, elderlyId: 0, reportTitle: '', riskLevel: 'medium', summary: '', suggestion: '', reportTime: new Date().toISOString().slice(0,10) })
+const form = reactive<ReportPayload & { editing: boolean; id?: number }>({ editing: false, elderlyId: 0, reportTitle: '', riskLevel: 'medium', summary: '', suggestion: '', reportTime: formatLocalDateTime() })
 
 const openModal = (r?: AssessmentReportApi) => {
   formError.value = ''
-  if (r) { form.editing = true; form.id = r.id; form.elderlyId = r.elderlyId || 0; form.reportTitle = r.reportTitle || ''; form.riskLevel = r.riskLevel || 'medium'; form.summary = r.summary || ''; form.suggestion = r.suggestion || ''; form.reportTime = r.reportTime || '' }
-  else { form.editing = false; form.id = undefined; form.elderlyId = 0; form.reportTitle = ''; form.riskLevel = 'medium'; form.summary = ''; form.suggestion = ''; form.reportTime = new Date().toISOString().slice(0,10) }
+  if (r) { form.editing = true; form.id = r.id; form.elderlyId = r.elderlyId || 0; form.reportTitle = r.reportTitle || ''; form.riskLevel = r.riskLevel || 'medium'; form.summary = r.summary || ''; form.suggestion = r.suggestion || ''; form.reportTime = normalizeReportTime(r.reportTime) }
+  else { form.editing = false; form.id = undefined; form.elderlyId = 0; form.reportTitle = ''; form.riskLevel = 'medium'; form.summary = ''; form.suggestion = ''; form.reportTime = formatLocalDateTime() }
   modalOpen.value = true
 }
 
 const submitForm = async () => {
   if (!form.elderlyId) { formError.value = '请选择老人'; return }
   submitting.value = true; formError.value = ''
+  const rt = normalizeReportTime(form.reportTime)
   try {
-    if (form.editing && form.id) await updateReport(form.id, { elderlyId: form.elderlyId, reportTitle: form.reportTitle, riskLevel: form.riskLevel, summary: form.summary, suggestion: form.suggestion, reportTime: form.reportTime })
-    else await createReport({ elderlyId: form.elderlyId, reportTitle: form.reportTitle, riskLevel: form.riskLevel, summary: form.summary, suggestion: form.suggestion, reportTime: form.reportTime })
+    if (form.editing && form.id) await updateReport(form.id, { elderlyId: form.elderlyId, reportTitle: form.reportTitle, riskLevel: form.riskLevel, summary: form.summary, suggestion: form.suggestion, reportTime: rt })
+    else await createReport({ elderlyId: form.elderlyId, reportTitle: form.reportTitle, riskLevel: form.riskLevel, summary: form.summary, suggestion: form.suggestion, reportTime: rt })
     modalOpen.value = false; await load()
   } catch (e) { formError.value = e instanceof ApiError ? e.message : '保存失败' }
   finally { submitting.value = false }
