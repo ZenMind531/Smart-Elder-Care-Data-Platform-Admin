@@ -590,12 +590,6 @@ export const useOperationsStore = defineStore('operations', {
     markHealthNormal(id: number) {
       const record = this.healthRecords.find((item) => item.id === id)
       if (record) {
-        record.status = '正常'
-        record.heartRate = Math.min(Math.max(record.heartRate, 70), 88)
-        record.bloodOxygen = Math.max(record.bloodOxygen, 97)
-        record.measuredAt = '刚刚'
-        record.riskReason = '复测后体征恢复正常'
-
         const relatedAlerts = this.alerts.filter(
           (alert) =>
             alert.status !== '已处理' &&
@@ -611,6 +605,9 @@ export const useOperationsStore = defineStore('operations', {
             handleResult: alert.handleResult,
           }).catch(() => {})
         })
+
+        // 复测完成即从列表中移除
+        this.healthRecords = this.healthRecords.filter((item) => item.id !== id)
       }
     },
     async removeHealthRecord(id: number) {
