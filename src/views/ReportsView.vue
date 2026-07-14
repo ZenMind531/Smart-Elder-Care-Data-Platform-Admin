@@ -40,7 +40,15 @@
         <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">{{ form.editing ? '编辑报告' : '新增报告' }}</h3>
         <form class="mt-4 grid gap-4 sm:grid-cols-2" @submit.prevent="submitForm">
           <label class="block sm:col-span-2"><span class="mb-1.5 block text-theme-sm font-medium text-gray-700 dark:text-gray-300">报告标题</span><input v-model="form.reportTitle" type="text" required class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm dark:border-gray-700 dark:bg-white/[0.03] dark:text-white/90" /></label>
-          <label class="block"><span class="mb-1.5 block text-theme-sm font-medium text-gray-700 dark:text-gray-300">老人ID</span><input v-model.number="form.elderlyId" type="number" required class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm dark:border-gray-700 dark:bg-white/[0.03] dark:text-white/90" /></label>
+          <label class="block"><span class="mb-1.5 block text-theme-sm font-medium text-gray-700 dark:text-gray-300">选择老人</span>
+            <select v-model.number="form.elderlyId" class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-3 py-2.5 text-sm dark:border-gray-700 dark:bg-gray-900 dark:text-white/90">
+              <option :value="0" disabled>请选择老人</option>
+              <option v-for="elder in elderlyOptions" :key="elder.id" :value="elder.id">{{ elderlyLabel(elder) }}</option>
+              <option v-if="form.elderlyId && !elderlyOptions.some(e => e.id === form.elderlyId)" :value="form.elderlyId">老人ID {{ form.elderlyId }}</option>
+            </select>
+            <p v-if="elderlyLoading" class="mt-1 text-theme-xs text-gray-400">加载老人列表中…</p>
+            <p v-if="elderlyError" class="mt-1 text-theme-xs text-error-500">{{ elderlyError }}</p>
+          </label>
           <label class="block"><span class="mb-1.5 block text-theme-sm font-medium text-gray-700 dark:text-gray-300">风险等级</span><select v-model="form.riskLevel" class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-3 py-2.5 text-sm dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"><option value="low">低风险</option><option value="medium">中风险</option><option value="high">高风险</option></select></label>
           <label class="block sm:col-span-2"><span class="mb-1.5 block text-theme-sm font-medium text-gray-700 dark:text-gray-300">评估摘要</span><textarea v-model="form.summary" rows="3" required class="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm dark:border-gray-700 dark:bg-white/[0.03] dark:text-white/90"></textarea></label>
           <label class="block sm:col-span-2"><span class="mb-1.5 block text-theme-sm font-medium text-gray-700 dark:text-gray-300">建议</span><textarea v-model="form.suggestion" rows="3" class="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm dark:border-gray-700 dark:bg-white/[0.03] dark:text-white/90"></textarea></label>
@@ -59,6 +67,7 @@ import AdminLayout from '@/components/layout/AdminLayout.vue'
 import { ApiError, getStoredUser } from '@/api/http'
 import { canUseAction } from '@/config/roles'
 import { listReports, createReport, updateReport, deleteReport, type AssessmentReportApi, type ReportPayload, type RiskLevel } from '@/api/reports'
+import { listElderly, type ElderlyApiRecord } from '@/api/elderly'
 
 const roleName = getStoredUser()?.roleName ?? null
 const canCreate = canUseAction(roleName, 'reports:create')
@@ -71,8 +80,29 @@ const error = ref('')
 const keyword = ref('')
 const riskFilter = ref<string>('全部')
 
+const elderlyOptions = ref<ElderlyApiRecord[]>([])
+const elderlyLoading = ref(false)
+const elderlyError = ref('')
+
+const fetchElderly = async () => {
+  elderlyLoading.value = true; elderlyError.value = ''
+  try {
+    const r = await listElderly({ page: 1, size: 200 })
+    elderlyOptions.value = r.records
+  } catch (e) {
+    elderlyError.value = '老人档案加载失败，请刷新后重试'
+  } finally { elderlyLoading.value = false }
+}
+
+const elderlyLabel = (e: ElderlyApiRecord) => {
+  const parts = [`${e.elderlyName || '未命名'} / ID ${e.id}`]
+  if (e.age != null) parts.push(`${e.age}岁`)
+  if (e.riskLevel) parts.push(e.riskLevel === 'high' ? '高风险' : e.riskLevel === 'medium' ? '中风险' : '低风险')
+  return parts.join(' / ')
+}
+
 const load = async () => { loading.value = true; error.value = ''; try { const r = await listReports({ page:1,size:100 }); records.value = r.records } catch (e) { error.value = e instanceof ApiError ? e.message : '加载失败' } finally { loading.value = false } }
-onMounted(() => { void load() })
+onMounted(() => { void load(); void fetchElderly() })
 
 const filtered = computed(() => records.value.filter(r => {
   const kw = keyword.value.trim().toLowerCase()
@@ -94,6 +124,7 @@ const openModal = (r?: AssessmentReportApi) => {
 }
 
 const submitForm = async () => {
+  if (!form.elderlyId) { formError.value = '请选择老人'; return }
   submitting.value = true; formError.value = ''
   try {
     if (form.editing && form.id) await updateReport(form.id, { elderlyId: form.elderlyId, reportTitle: form.reportTitle, riskLevel: form.riskLevel, summary: form.summary, suggestion: form.suggestion, reportTime: form.reportTime })
