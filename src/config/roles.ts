@@ -142,6 +142,7 @@ export const rolePermissionMap: Record<StaffRole, PermissionAction[]> = {
     'populations:view',
     'populations:create',
     'populations:update',
+    'populations:delete',
     'populations:follow',
   ],
   医生: [
@@ -156,6 +157,7 @@ export const rolePermissionMap: Record<StaffRole, PermissionAction[]> = {
     'reports:create',
     'reports:update',
     'populations:view',
+    'populations:follow',
   ],
 }
 
