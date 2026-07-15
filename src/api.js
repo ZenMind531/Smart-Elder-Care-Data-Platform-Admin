@@ -48,6 +48,9 @@ export const elderly = {
 
   /** POST /api/family/elderly/bind → null (绑定已有老人) */
   bind: (elderlyId) => request('/family/elderly/bind', { method: 'POST', body: JSON.stringify({ elderlyId }) }),
+
+  /** PUT /api/family/elderly/update → null (根据身份证号修改老人) */
+  update: (body) => request('/family/elderly/update', { method: 'PUT', body: JSON.stringify(body) }),
 }
 
 // ─── 预约管理 ───────────────────────────────────
@@ -58,4 +61,12 @@ export const reservations = {
 
   /** POST /api/family/reservation → null */
   create: (body) => request('/family/reservation', { method: 'POST', body: JSON.stringify(body) }),
+}
+
+// ─── 健康数据 ───────────────────────────────────
+
+export const health = {
+  /** GET /api/health-records?elderlyId=&page=&size= → { records, total, page, size } */
+  list: (elderlyId, page = 1, size = 20) =>
+    request(`/health-records?elderlyId=${elderlyId}&page=${page}&size=${size}`),
 }

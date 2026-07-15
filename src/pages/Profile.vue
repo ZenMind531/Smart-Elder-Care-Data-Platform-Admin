@@ -41,7 +41,7 @@
     <section class="px-5 mt-8">
       <button
         @click="handleLogout"
-        class="w-full flex items-center justify-center gap-2 px-4 py-3.5 rounded-lg bg-error/5 text-error text-sm font-medium active:bg-error/10 transition-colors"
+        class="w-full flex items-center justify-center gap-2 px-4 py-3.5 rounded-full bg-error/5 text-error text-sm font-medium active:bg-error/10 transition-colors"
       >
         <PhSignOut :size="18" />
         退出登录

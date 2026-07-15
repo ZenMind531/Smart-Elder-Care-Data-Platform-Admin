@@ -11,30 +11,16 @@
     >{{ fieldErrors._general }}</div>
 
     <form @submit.prevent="handleRegister" class="space-y-4" novalidate>
-      <!-- Username -->
-      <div>
-        <label class="block text-[14px] font-medium text-ink mb-1.5 tracking-[-0.224px]">用户名</label>
-        <input
-          v-model="form.username"
-          type="text"
-          maxlength="20"
-          placeholder="4-20位字符"
-          :class="inputClass('username')"
-        />
-        <p v-if="fieldError('username')" class="mt-1 text-[12px] text-error">{{ fieldError('username') }}</p>
-        <p v-else class="mt-1 text-[12px] text-muted">4-20位</p>
-      </div>
-
-      <!-- Real Name -->
+      <!-- Name -->
       <div>
         <label class="block text-[14px] font-medium text-ink mb-1.5 tracking-[-0.224px]">真实姓名</label>
         <input
-          v-model="form.realName"
+          v-model="form.name"
           type="text"
           placeholder="请输入真实姓名"
-          :class="inputClass('realName')"
+          :class="inputClass('name')"
         />
-        <p v-if="fieldError('realName')" class="mt-1 text-[12px] text-error">{{ fieldError('realName') }}</p>
+        <p v-if="fieldError('name')" class="mt-1 text-[12px] text-error">{{ fieldError('name') }}</p>
         <p v-else class="mt-1 text-[12px] text-muted">必填</p>
       </div>
 
@@ -42,13 +28,13 @@
       <div>
         <label class="block text-[14px] font-medium text-ink mb-1.5 tracking-[-0.224px]">手机号</label>
         <input
-          v-model="form.phoneNumber"
+          v-model="form.phone"
           type="tel"
           maxlength="11"
           placeholder="11位手机号"
-          :class="inputClass('phoneNumber')"
+          :class="inputClass('phone')"
         />
-        <p v-if="fieldError('phoneNumber')" class="mt-1 text-[12px] text-error">{{ fieldError('phoneNumber') }}</p>
+        <p v-if="fieldError('phone')" class="mt-1 text-[12px] text-error">{{ fieldError('phone') }}</p>
         <p v-else class="mt-1 text-[12px] text-muted">11位手机号，1开头</p>
       </div>
 
@@ -106,9 +92,8 @@ const showPwd = ref(false)
 const fieldErrors = reactive({})
 
 const form = reactive({
-  username: '',
-  realName: '',
-  phoneNumber: '',
+  name: '',
+  phone: '',
   password: '',
 })
 
@@ -125,7 +110,7 @@ function fieldError(field) {
 }
 
 function parseFieldError(message) {
-  const map = { username: 'username', phoneNumber: 'phoneNumber', realName: 'realName', password: 'password' }
+  const map = { phone: 'phone', name: 'name', password: 'password' }
   for (const key of Object.keys(map)) {
     if (message.toLowerCase().startsWith(key.toLowerCase())) {
       return { field: key, text: message.slice(key.length).trim() }
@@ -137,16 +122,12 @@ function parseFieldError(message) {
 async function handleRegister() {
   Object.keys(fieldErrors).forEach((k) => delete fieldErrors[k])
 
-  if (!form.realName.trim()) {
-    fieldErrors.realName = '姓名不能为空'
+  if (!form.name.trim()) {
+    fieldErrors.name = '姓名不能为空'
     return
   }
-  if (form.username.length < 4 || form.username.length > 20) {
-    fieldErrors.username = '用户名长度为4-20位'
-    return
-  }
-  if (!/^1\d{10}$/.test(form.phoneNumber)) {
-    fieldErrors.phoneNumber = '手机号格式不正确（需要11位手机号）'
+  if (!/^1\d{10}$/.test(form.phone)) {
+    fieldErrors.phone = '手机号格式不正确（需要11位手机号）'
     return
   }
   if (form.password.length < 8 || form.password.length > 20) {
@@ -162,11 +143,9 @@ async function handleRegister() {
 
   try {
     await auth.register({
-      username: form.username,
-      realName: form.realName,
-      phoneNumber: form.phoneNumber,
+      phone: form.phone,
       password: form.password,
-      roleId: 3,
+      name: form.name,
     })
     router.push('/login')
   } catch (e) {

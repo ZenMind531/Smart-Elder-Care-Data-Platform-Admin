@@ -29,7 +29,7 @@
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 
 defineProps({
-  color: { type: String, default: '#cc785c' },
+  color: { type: String, default: '#0066cc' },
 })
 
 const config = {

@@ -37,7 +37,7 @@
             :key="s.value"
             type="button"
             @click="form.serviceType = s.value"
-            class="h-11 rounded-lg border text-sm font-medium transition-colors"
+            class="h-11 rounded-full border text-sm font-medium transition-colors"
             :class="form.serviceType === s.value
               ? 'border-primary bg-primary/10 text-primary'
               : 'border-hairline text-muted'"
@@ -65,7 +65,7 @@
             :key="t"
             type="button"
             @click="form.serviceTime = t"
-            class="flex-1 h-11 rounded-lg border text-sm font-medium transition-colors"
+            class="flex-1 h-11 rounded-full border text-sm font-medium transition-colors"
             :class="form.serviceTime === t
               ? 'border-primary bg-primary/10 text-primary'
               : 'border-hairline text-muted'"
@@ -88,7 +88,7 @@
       <button
         type="submit"
         :disabled="submitting"
-        class="w-full h-11 rounded-lg bg-primary text-white font-medium text-sm active:bg-primary-active disabled:bg-primary-disabled disabled:text-muted transition-colors"
+        class="w-full h-11 rounded-full bg-primary text-white font-medium text-sm active:bg-primary-active disabled:bg-primary-disabled disabled:text-muted transition-colors"
       >
         {{ submitting ? '提交中...' : '提交预约' }}
       </button>

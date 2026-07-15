@@ -35,6 +35,14 @@
       </div>
     </section>
 
+    <!-- Empty hint -->
+    <section v-else class="px-5 mt-12 text-center">
+      <div class="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
+        <PhHeart :size="28" class="text-muted" />
+      </div>
+      <p class="text-muted text-[15px]">还没有绑定老人</p>
+    </section>
+
     <!-- Bind by ID -->
     <section class="px-5 mt-6">
       <h2 class="text-sm font-medium text-muted uppercase tracking-wider mb-3">绑定已有老人</h2>
@@ -56,136 +64,23 @@
       </div>
     </section>
 
-    <!-- Register new elderly -->
+    <!-- Entry to register new elderly -->
     <section class="px-5 mt-8">
-      <h2 class="text-sm font-medium text-muted uppercase tracking-wider mb-3">注册新老人</h2>
-
-      <form @submit.prevent="handleRegister" class="space-y-4">
-        <div>
-          <label class="block text-sm font-medium text-ink mb-1.5">姓名 *</label>
-          <input
-            v-model="form.elderlyName"
-            type="text"
-            required
-            placeholder="请输入老人姓名"
-            class="w-full h-11 px-4 rounded-lg border border-hairline bg-white text-ink placeholder:text-muted focus:outline-none focus:border-primary transition-colors"
-          />
-        </div>
-
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-sm font-medium text-ink mb-1.5">性别 *</label>
-            <select
-              v-model="form.gender"
-              required
-              class="w-full h-11 px-4 rounded-lg border border-hairline bg-white text-ink focus:outline-none focus:border-primary transition-colors appearance-none"
-            >
-              <option value="" disabled>请选择</option>
-              <option value="male">男</option>
-              <option value="female">女</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-ink mb-1.5">年龄 *</label>
-            <input
-              v-model.number="form.age"
-              type="number"
-              required
-              min="1"
-              max="150"
-              placeholder="年龄"
-              class="w-full h-11 px-4 rounded-lg border border-hairline bg-white text-ink placeholder:text-muted focus:outline-none focus:border-primary transition-colors"
-            />
-          </div>
-        </div>
-
-        <div>
-          <label class="block text-sm font-medium text-ink mb-1.5">身份证号</label>
-          <input
-            v-model="form.idCard"
-            type="text"
-            placeholder="选填"
-            class="w-full h-11 px-4 rounded-lg border border-hairline bg-white text-ink placeholder:text-muted focus:outline-none focus:border-primary transition-colors"
-          />
-        </div>
-
-        <div>
-          <label class="block text-sm font-medium text-ink mb-1.5">手机号</label>
-          <input
-            v-model="form.phoneNumber"
-            type="tel"
-            placeholder="选填"
-            class="w-full h-11 px-4 rounded-lg border border-hairline bg-white text-ink placeholder:text-muted focus:outline-none focus:border-primary transition-colors"
-          />
-        </div>
-
-        <div>
-          <label class="block text-sm font-medium text-ink mb-1.5">地址</label>
-          <input
-            v-model="form.address"
-            type="text"
-            placeholder="选填"
-            class="w-full h-11 px-4 rounded-lg border border-hairline bg-white text-ink placeholder:text-muted focus:outline-none focus:border-primary transition-colors"
-          />
-        </div>
-
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-sm font-medium text-ink mb-1.5">紧急联系人</label>
-            <input
-              v-model="form.emergencyContact"
-              type="text"
-              placeholder="选填"
-              class="w-full h-11 px-4 rounded-lg border border-hairline bg-white text-ink placeholder:text-muted focus:outline-none focus:border-primary transition-colors"
-            />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-ink mb-1.5">紧急电话</label>
-            <input
-              v-model="form.emergencyPhone"
-              type="tel"
-              placeholder="选填"
-              class="w-full h-11 px-4 rounded-lg border border-hairline bg-white text-ink placeholder:text-muted focus:outline-none focus:border-primary transition-colors"
-            />
-          </div>
-        </div>
-
-        <div>
-          <label class="block text-sm font-medium text-ink mb-1.5">既往病史</label>
-          <input
-            v-model="form.medicalHistory"
-            type="text"
-            placeholder="选填"
-            class="w-full h-11 px-4 rounded-lg border border-hairline bg-white text-ink placeholder:text-muted focus:outline-none focus:border-primary transition-colors"
-          />
-        </div>
-
-        <div>
-          <label class="block text-sm font-medium text-ink mb-1.5">过敏史</label>
-          <input
-            v-model="form.allergyHistory"
-            type="text"
-            placeholder="选填"
-            class="w-full h-11 px-4 rounded-lg border border-hairline bg-white text-ink placeholder:text-muted focus:outline-none focus:border-primary transition-colors"
-          />
-        </div>
-
-        <button
-          type="submit"
-          :disabled="registerLoading"
-          class="w-full h-11 rounded-lg bg-primary text-white font-medium text-sm active:bg-primary-active disabled:bg-primary-disabled disabled:text-muted transition-colors"
-        >
-          {{ registerLoading ? '注册中...' : '注册并绑定' }}
-        </button>
-      </form>
+      <router-link
+        to="/elderly/new"
+        class="flex items-center justify-center gap-2 w-full h-11 rounded-full border-2 border-dashed border-hairline text-muted text-sm font-medium active:bg-surface-card transition-colors"
+      >
+        <PhPlusCircle :size="18" />
+        注册新老人
+      </router-link>
     </section>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { elderly } from '../api.js'
-import { PhCaretLeft } from '@phosphor-icons/vue'
+import { PhCaretLeft, PhHeart, PhPlusCircle } from '@phosphor-icons/vue'
 
 const boundList = ref([])
 const error = ref('')
@@ -213,38 +108,6 @@ async function handleBind() {
     error.value = e.message
   } finally {
     bindLoading.value = false
-  }
-}
-
-// ── 注册新老人 ──
-const registerLoading = ref(false)
-const form = reactive({
-  elderlyName: '',
-  gender: '',
-  age: null,
-  idCard: '',
-  phoneNumber: '',
-  address: '',
-  emergencyContact: '',
-  emergencyPhone: '',
-  medicalHistory: '',
-  allergyHistory: '',
-})
-
-async function handleRegister() {
-  error.value = ''
-  success.value = ''
-  registerLoading.value = true
-  try {
-    await elderly.register({ ...form })
-    success.value = '注册成功，已自动绑定'
-    // Reset form
-    Object.keys(form).forEach((k) => { form[k] = typeof form[k] === 'number' ? null : '' })
-    await loadBound()
-  } catch (e) {
-    error.value = e.message
-  } finally {
-    registerLoading.value = false
   }
 }
 

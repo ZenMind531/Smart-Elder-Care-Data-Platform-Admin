@@ -88,9 +88,76 @@
         </div>
       </section>
 
+      <!-- Latest Health Metrics — Apple Watch rings -->
+      <section v-if="latestHealth" class="px-5 mt-5">
+        <div class="bg-white border border-hairline rounded-[18px] p-5">
+          <div class="flex items-center justify-between mb-2">
+            <p class="text-xs text-muted uppercase tracking-wider">最新健康数据</p>
+            <span class="text-[12px] text-muted-soft">{{ latestHealth.recordTime?.slice(0, 16) }}</span>
+          </div>
+          <div class="grid grid-cols-2 gap-y-4 gap-x-2 place-items-center py-2">
+            <RingGauge
+              :value="latestHealth.systolicPressure"
+              label="血压"
+              :color="sysColor(latestHealth.systolicPressure)"
+              :max-value="200"
+              :inner="{ value: latestHealth.diastolicPressure, color: diaColor(latestHealth.diastolicPressure), maxValue: 130 }"
+              :delay="0"
+              :size="90"
+              :font-size="18"
+            />
+            <RingGauge
+              :value="latestHealth.heartRate"
+              label="心率"
+              unit="bpm"
+              :color="hrColor(latestHealth.heartRate)"
+              :max-value="150"
+              :delay="0.12"
+              :size="90"
+              :font-size="18"
+            />
+            <RingGauge
+              :value="latestHealth.bloodSugar"
+              label="血糖"
+              unit="mmol/L"
+              :color="bsColor(latestHealth.bloodSugar)"
+              :max-value="15"
+              :delay="0.24"
+              :size="90"
+              :font-size="18"
+            />
+            <RingGauge
+              :value="latestHealth.temperature"
+              label="体温"
+              unit="°C"
+              :color="tempColor(latestHealth.temperature)"
+              :max-value="42"
+              :min-value="35"
+              :delay="0.36"
+              :size="90"
+              :font-size="18"
+            />
+          </div>
+          <router-link
+            :to="`/elderly/${info.id}/health`"
+            class="mt-2 flex items-center justify-center gap-1.5 text-[13px] text-primary font-medium py-2 active:opacity-70"
+          >
+            查看全部健康数据
+            <PhCaretRight :size="14" />
+          </router-link>
+        </div>
+      </section>
+
       <!-- Quick Actions -->
       <section class="px-5 mt-6 mb-4">
-        <div class="grid grid-cols-2 gap-3">
+        <div class="grid grid-cols-3 gap-3">
+          <router-link
+            :to="`/elderly/new?edit=${info.id}`"
+            class="flex items-center gap-3 p-4 rounded-[18px] bg-white border border-hairline-soft active:scale-[0.98] transition-transform"
+          >
+            <PhPencilSimple :size="20" class="text-primary" />
+            <span class="text-sm font-medium text-ink">编辑</span>
+          </router-link>
           <router-link
             :to="`/appointments/new?elderlyId=${info.id}`"
             class="flex items-center gap-3 p-4 rounded-[18px] bg-white border border-hairline-soft active:scale-[0.98] transition-transform"
@@ -114,13 +181,43 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { elderly } from '../api.js'
+import { elderly, health } from '../api.js'
 import { pageLoading } from '../loading.js'
-import { PhCaretLeft, PhCalendarCheck, PhClock } from '@phosphor-icons/vue'
+import RingGauge from '../components/RingGauge.vue'
+import { PhCaretLeft, PhCaretRight, PhCalendarCheck, PhClock, PhPencilSimple } from '@phosphor-icons/vue'
+
+// ── Ring color helpers ──
+const G = '#34c759', Y = '#ff9500', R = '#ff3b30'
+function sysColor(v) {
+  if (v >= 140) return R
+  if (v >= 120) return Y
+  return G
+}
+function diaColor(v) {
+  if (v >= 90) return R
+  if (v >= 80) return Y
+  return G
+}
+function hrColor(v) {
+  if (v > 110 || v < 50) return R
+  if (v > 100 || v < 60) return Y
+  return G
+}
+function bsColor(v) {
+  if (v > 10) return R
+  if (v > 7.0) return Y
+  return G
+}
+function tempColor(v) {
+  if (v > 38.5) return R
+  if (v > 37.3) return Y
+  return G
+}
 
 const route = useRoute()
 const loading = ref(true)
 const error = ref('')
+const latestHealth = ref(null)
 
 watch(loading, (v) => { pageLoading.value = v }, { immediate: true })
 
@@ -147,6 +244,12 @@ onMounted(async () => {
     const found = list.find((e) => e.id === id)
     if (!found) throw new Error('未找到该老人信息')
     info.value = found
+
+    // Fetch latest health record
+    try {
+      const h = await health.list(id, 1, 1)
+      if (h.records?.length) latestHealth.value = h.records[0]
+    } catch (_) { /* health data optional */ }
   } catch (e) {
     error.value = e.message
   } finally {

@@ -26,7 +26,6 @@
           <PhHeart :size="28" class="text-muted" />
         </div>
         <p class="text-muted text-[17px] mb-4">还没有绑定老人</p>
-        <!-- Apple pill CTA -->
         <router-link
           to="/bind"
           class="inline-flex items-center gap-2 px-6 h-11 rounded-full bg-primary text-white text-[17px] font-medium active:scale-95 transition-all hover:bg-primary-active"
@@ -36,7 +35,7 @@
         </router-link>
       </div>
 
-      <!-- Elderly cards: Apple 18px radius, white, hairline border, no shadow -->
+      <!-- Elderly cards with health data -->
       <router-link
         v-for="elder in elderlyList"
         :key="elder.id"
@@ -62,6 +61,29 @@
               </p>
             </div>
             <PhCaretRight :size="18" class="text-muted-soft flex-shrink-0" />
+          </div>
+
+          <!-- Latest health metrics -->
+          <div v-if="elder._health" class="mt-3 pt-3 border-t border-hairline-soft">
+            <div class="grid grid-cols-4 gap-2">
+              <div class="text-center">
+                <p class="text-[10px] text-muted-soft">血压</p>
+                <p class="text-[13px] font-semibold text-ink mt-0.5">{{ elder._health.systolicPressure }}/{{ elder._health.diastolicPressure }}</p>
+              </div>
+              <div class="text-center">
+                <p class="text-[10px] text-muted-soft">心率</p>
+                <p class="text-[13px] font-semibold text-ink mt-0.5">{{ elder._health.heartRate }}</p>
+              </div>
+              <div class="text-center">
+                <p class="text-[10px] text-muted-soft">血糖</p>
+                <p class="text-[13px] font-semibold text-ink mt-0.5">{{ elder._health.bloodSugar }}</p>
+              </div>
+              <div class="text-center">
+                <p class="text-[10px] text-muted-soft">体温</p>
+                <p class="text-[13px] font-semibold text-ink mt-0.5">{{ elder._health.temperature }}</p>
+              </div>
+            </div>
+            <p class="text-[10px] text-muted-soft text-right mt-1">{{ elder._health.recordTime?.slice(0, 16) }}</p>
           </div>
         </article>
       </router-link>
@@ -114,7 +136,7 @@
 
 <script setup>
 import { ref, onMounted, watch } from 'vue'
-import { elderly } from '../api.js'
+import { elderly, health } from '../api.js'
 import { pageLoading } from '../loading.js'
 import { PhUser, PhHeart, PhPlus, PhCaretRight, PhCalendarCheck, PhClock, PhPlusCircle, PhGear } from '@phosphor-icons/vue'
 
@@ -135,6 +157,16 @@ function riskLabel(level) {
 onMounted(async () => {
   try {
     elderlyList.value = await elderly.list()
+
+    // Fetch latest health record for each elderly
+    await Promise.all(
+      elderlyList.value.map(async (elder) => {
+        try {
+          const h = await health.list(elder.id, 1, 1)
+          if (h.records?.length) elder._health = h.records[0]
+        } catch (_) { /* optional */ }
+      })
+    )
   } catch (e) {
     error.value = e.message
   } finally {
