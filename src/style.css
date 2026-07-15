@@ -1,0 +1,78 @@
+@import "tailwindcss";
+
+@theme {
+  /* ── Apple Action Blue #0066cc ── */
+  --color-primary: #0066cc;
+  --color-primary-active: #0055aa;
+  --color-primary-disabled: #e0e0e0;
+
+  /* ── Apple Surfaces ── */
+  --color-canvas: #f5f5f7;           /* parchment — default page floor */
+  --color-surface-soft: #fafafc;     /* pearl — secondary buttons, soft sections */
+  --color-surface-card: #ffffff;     /* pure white — cards */
+  --color-surface-cream-strong: #e8e0d2;  /* kept for compatibility */
+  --color-surface-dark: #272729;     /* near-black tile 1 */
+  --color-surface-dark-elevated: #2a2a2c;  /* near-black tile 2 */
+  --color-surface-dark-soft: #252527;      /* near-black tile 3 */
+
+  /* ── Apple Text ── */
+  --color-ink: #1d1d1f;             /* headlines / strong body */
+  --color-body-strong: #1d1d1f;     /* same as ink */
+  --color-body: #1d1d1f;            /* body text — Apple uses same near-black */
+  --color-muted: #7a7a7a;           /* ink-muted-48 — secondary copy */
+  --color-muted-soft: #999999;      /* captions, fine print */
+
+  /* ── On-surface ── */
+  --color-on-primary: #ffffff;
+  --color-on-dark: #ffffff;
+  --color-on-dark-soft: #cccccc;
+
+  /* ── Semantic ── */
+  --color-success: #34c759;
+  --color-warning: #ff9500;
+  --color-error: #ff3b30;
+
+  /* ── Hairlines ── */
+  --color-hairline: #e0e0e0;
+  --color-hairline-soft: #f0f0f0;
+
+  /* ── Apple Typography — SF Pro (Inter fallback) ── */
+  --font-display: "SF Pro Display", "Inter Display", system-ui, -apple-system, sans-serif;
+  --font-sans: "SF Pro Text", "Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: "SF Mono", "JetBrains Mono", ui-monospace, monospace;
+}
+
+/* Base */
+html {
+  font-family: var(--font-sans);
+  background: #f5f5f7;
+  color: #1d1d1f;
+  font-size: 17px;
+  letter-spacing: -0.374px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Mobile viewport */
+body {
+  min-height: 100dvh;
+  max-width: 480px;
+  margin: 0 auto;
+  background: #f5f5f7;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #d2d2d7;
+  border-radius: 4px;
+}
