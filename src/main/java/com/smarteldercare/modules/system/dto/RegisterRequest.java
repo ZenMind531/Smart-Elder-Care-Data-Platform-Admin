@@ -1,5 +1,7 @@
 package com.smarteldercare.modules.system.dto;
 
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -7,9 +9,16 @@ import lombok.Setter;
 
 @Getter
 public class RegisterRequest {
+    @Size(min = 4, max = 20, message = "用户名长度为4-20位")
     private String username;
+
+    @Pattern(regexp = "^(?=.*[a-zA-Z])(?=.*\\d).{8,20}$", message = "密码必须包含字母和数字，长度8-20位")
     private String password;
+
+    @Size(min = 1, max = 50, message = "姓名不能为空")
     private String realName;
+
+    @Pattern(regexp = "^1[3-9]\\d{9}$", message = "手机号格式不正确（需要11位手机号）")
     private String phoneNumber;
     private Long RoleId;
 
