@@ -13,8 +13,11 @@ import lombok.Data;
 @Data
 public class HealthRecordDTO {
 
-    @NotNull(message = "不能为空")
     private Long elderlyId;
+
+    private String elderlyName;
+
+    private Long retestWarningId;
 
     @Min(value = 0, message = "不能小于0")
     @Max(value = 300, message = "不能大于300")

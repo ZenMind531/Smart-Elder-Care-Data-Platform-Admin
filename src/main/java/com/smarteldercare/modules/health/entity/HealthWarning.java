@@ -13,6 +13,10 @@ public class HealthWarning extends BaseEntity {
 
     private Long elderlyId;
 
+    private Long healthRecordId;
+
+    private Long retestRecordId;
+
     private String warningType;
 
     private String warningLevel;

@@ -11,6 +11,10 @@ public class HealthWarningVO {
 
     private Long elderlyId;
 
+    private Long healthRecordId;
+
+    private Long retestRecordId;
+
     private String elderlyName;
 
     private String warningType;
