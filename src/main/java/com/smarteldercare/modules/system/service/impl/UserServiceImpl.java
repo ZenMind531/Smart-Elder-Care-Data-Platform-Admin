@@ -2,8 +2,10 @@ package com.smarteldercare.modules.system.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.smarteldercare.common.exception.BusinessException;
 import com.smarteldercare.common.security.BCryptUtil;
 import com.smarteldercare.common.security.JwtUtil;
+import com.smarteldercare.common.security.RateLimiter;
 import com.smarteldercare.modules.system.dto.RegisterRequest;
 import com.smarteldercare.modules.system.entity.Doctor;
 import com.smarteldercare.modules.system.entity.Role;
@@ -26,18 +28,29 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements
     @Autowired
     private RoleMapper roleMapper;
 
+    @Autowired
+    private RateLimiter rateLimiter;
+
     @Override
-    public LoginResult login(String username, String
-            password) {
+    public LoginResult login(String username, String password) {
+        String safeUsername = username == null ? "" : username.trim();
+        String limitKey = "login:limit:" + safeUsername;
+
+        // 登录前检查是否被锁定
+        try {
+            rateLimiter.checkLocked(limitKey);
+        } catch (RateLimiter.TooManyException e) {
+            throw new BusinessException(403, e.getMessage());
+        }
+
         // ① 查用户
-        QueryWrapper<User> wrapper = new
-                QueryWrapper<>();
-        wrapper.eq("username", username);
+        QueryWrapper<User> wrapper = new QueryWrapper<>();
+        wrapper.eq("username", safeUsername);
         User user = this.baseMapper.selectOne(wrapper);
 
         if (user == null) {
-            throw new
-                    IllegalArgumentException("用户名不存在");
+            recordLoginFailure(limitKey);
+            throw new BusinessException(401, "用户名或密码错误");
         }
 
         // ② 验密码
@@ -48,23 +61,24 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements
                 user.setPassword(BCryptUtil.hash(password));
                 this.baseMapper.updateById(user);
             } else {
-                throw new
-                        IllegalArgumentException("密码错误");
+                recordLoginFailure(limitKey);
+                throw new BusinessException(401, "用户名或密码错误");
             }
         }
-        if ("pending".equals(user.getStatus())) {
-            throw new
-                    IllegalArgumentException("账号正在审核中，请等待管理员审核");
-        }
+
         // ③ 查状态
+        if ("pending".equals(user.getStatus())) {
+            throw new IllegalArgumentException("账号正在审核中，请等待管理员审核");
+        }
         if ("disabled".equals(user.getStatus())) {
-            throw new
-                    IllegalArgumentException("账号已被禁用");
+            throw new IllegalArgumentException("账号已被禁用");
         }
 
+        // 登录成功 → 清零
+        rateLimiter.clear(limitKey);
+
         // ④ 生成 token
-        String token = jwtUtil.generate(user.getId(),
-                user.getUsername());
+        String token = jwtUtil.generate(user.getId(), user.getUsername());
 
         // ⑤ 包装返回
         LoginResult result = new LoginResult();
@@ -75,15 +89,24 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements
         info.setUsername(user.getUsername());
         info.setRealName(user.getRealName());
 
-
         Role role = roleMapper.selectById(user.getRoleId());
         info.setRoleName(role != null ? role.getRoleName() : "未知角色");
 
         result.setUserInfo(info);
         return result;
     }
+
+    private void recordLoginFailure(String limitKey) {
+        try {
+            rateLimiter.recordFailure(limitKey);
+        } catch (RateLimiter.TooManyException e) {
+            throw new BusinessException(403, e.getMessage());
+        }
+    }
+
     @Autowired
     private DoctorMapper doctorMapper;
+
     @Override
     public void register(RegisterRequest request) {
         // 查用户名是否已存在
@@ -109,15 +132,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements
         doctor.setTitle(request.getTitle());
         doctor.setStatus("pending");
 
-
-
         this.baseMapper.insert(user);
-         doctorMapper.insert(doctor);
+        doctorMapper.insert(doctor);
     }
 
     @Override
-    public void updatePassword(Long userId, String oldPassword, String
-            newPassword) {
+    public void updatePassword(Long userId, String oldPassword, String newPassword) {
         User user = this.baseMapper.selectById(userId);
         if (user == null) {
             throw new IllegalArgumentException("用户不存在");
@@ -131,6 +151,4 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements
         user.setPassword(BCryptUtil.hash(newPassword));
         this.baseMapper.updateById(user);
     }
-
-
 }
