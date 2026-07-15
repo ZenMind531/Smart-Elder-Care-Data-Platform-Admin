@@ -31,7 +31,28 @@ public class FamilyMemberServiceImpl
     private final ElderlyProfileMapper elderlyProfileMapper;
     private final ServiceReservationMapper serviceReservationMapper;
     private final JwtUtil jwtUtil;
+    @Override
+    public void updateElderly(ElderlyProfileDTO dto, Long familyMemberId) {
+        // 根据身份证号找老人
+        LambdaQueryWrapper<ElderlyProfile> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(ElderlyProfile::getIdCard, dto.getIdCard());
+        ElderlyProfile profile = elderlyProfileMapper.selectOne(wrapper);
 
+        // 没找到这个人
+        if (profile == null) {
+            throw new BusinessException("未找到该老人");
+        }
+
+        // 这个老人不属于你
+        if (!familyMemberId.equals(profile.getFamilyMemberId())) {
+            throw new BusinessException("该老人不属于您，无权修改");
+        }
+
+        // 更新字段，保留 id 和 familyMemberId 不变
+        BeanUtils.copyProperties(dto, profile);
+        profile.setFamilyMemberId(familyMemberId);
+        elderlyProfileMapper.updateById(profile);
+    }
     // ========== 1. 注册 ==========
     @Override
     public void register(FamilyRegisterRequest request) {

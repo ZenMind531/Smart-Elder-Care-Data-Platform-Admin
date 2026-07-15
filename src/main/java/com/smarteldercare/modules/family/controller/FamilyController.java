@@ -56,6 +56,15 @@ public class FamilyController {
                 familyMemberId);
         return ApiResponse.success(result);
     }
+    // ========== 修改老人信息 ==========
+    @PutMapping("/elderly/update")
+    public ApiResponse<?> updateElderly(
+            @RequestBody ElderlyProfileDTO dto,
+            HttpServletRequest request) {
+        Long familyMemberId = getFamilyMemberId(request);
+        familyMemberService.updateElderly(dto, familyMemberId);
+        return ApiResponse.success();
+    }
 
     // ========== 4. 绑定已有老人 ==========
     @PostMapping("/elderly/bind")

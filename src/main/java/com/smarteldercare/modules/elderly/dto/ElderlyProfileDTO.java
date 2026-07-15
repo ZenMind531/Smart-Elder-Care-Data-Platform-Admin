@@ -22,6 +22,7 @@ public class ElderlyProfileDTO {
     @Max(value = 130, message = "不能大于130")
     private Integer age;
 
+    @NotBlank(message = "身份证号不能为空")
     private String idCard;
 
     private String phoneNumber;

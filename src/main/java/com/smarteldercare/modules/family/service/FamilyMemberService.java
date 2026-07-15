@@ -19,7 +19,7 @@ public interface FamilyMemberService extends
 
     // 注册
     void register(FamilyRegisterRequest request);
-
+    void updateElderly(ElderlyProfileDTO dto, Long familyMemberId);
     // 登录
     LoginVO login(FamilyLoginRequest request);
 
