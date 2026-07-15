@@ -791,3 +791,63 @@ PATCH /api/appointments/{id}/status
 ```
 DELETE /api/appointments/{id}
 ```
+
+---
+
+## 十三、家属端服务预约模块
+
+### 13.1 创建服务预约
+
+```
+POST /api/family/reservation
+```
+
+请求头：
+
+```text
+Authorization: Bearer <family_token>
+```
+
+```json
+{
+  "elderlyId": 1,
+  "serviceType": "home_care",
+  "serviceDate": "2026-07-20",
+  "serviceTime": "09:00",
+  "remark": "上门护理服务"
+}
+```
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| elderlyId | Long | **是** | 老人ID |
+| serviceType | String | **是** | 服务类型 |
+| serviceDate | Date | **是** | 服务日期，格式 yyyy-MM-dd |
+| serviceTime | String | **是** | 服务时间 |
+| remark | String | 否 | 备注 |
+
+### 13.2 查看我的预约列表
+
+```
+GET /api/family/reservation/list
+```
+
+请求头：
+
+```text
+Authorization: Bearer <family_token>
+```
+
+返回字段：
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | Long | 预约ID |
+| elderlyId | Long | 老人ID |
+| elderlyName | String | 老人姓名 |
+| serviceType | String | 服务类型 |
+| serviceDate | Date | 服务日期 |
+| serviceTime | String | 服务时间 |
+| remark | String | 备注 |
+| status | String | 预约状态 |
+| createTime | DateTime | 创建时间 |
