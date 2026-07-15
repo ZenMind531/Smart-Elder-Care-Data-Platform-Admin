@@ -13,6 +13,8 @@ import com.smarteldercare.modules.appointment.mapper.AppointmentMapper;
 import com.smarteldercare.modules.appointment.service.AppointmentService;
 import com.smarteldercare.modules.appointment.vo.AppointmentVO;
 import com.smarteldercare.modules.elderly.mapper.ElderlyProfileMapper;
+import com.smarteldercare.modules.family.entity.ServiceReservation;
+import com.smarteldercare.modules.family.mapper.ServiceReservationMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
@@ -27,6 +29,8 @@ public class AppointmentServiceImpl
         implements AppointmentService {
 
     private final ElderlyProfileMapper elderlyProfileMapper;
+    private final ServiceReservationMapper serviceReservationMapper;
+
 
     @Override
     public PageResult<AppointmentVO> listAppointments(Long page, Long size, Long elderlyId, String status, String serviceType) {
@@ -85,6 +89,17 @@ public class AppointmentServiceImpl
             appointment.setCancelReason(dto.getCancelReason());
         }
         updateById(appointment);
+
+        // 同步更新 service_reservation
+        LambdaQueryWrapper<ServiceReservation> wrapper = new
+                LambdaQueryWrapper<>();
+        wrapper.eq(ServiceReservation::getElderlyId,
+                appointment.getElderlyId());
+        ServiceReservation sr = serviceReservationMapper.selectOne(wrapper);
+        if (sr != null) {
+            sr.setStatus(dto.getStatus());
+            serviceReservationMapper.updateById(sr);
+        }
     }
 
     @Override

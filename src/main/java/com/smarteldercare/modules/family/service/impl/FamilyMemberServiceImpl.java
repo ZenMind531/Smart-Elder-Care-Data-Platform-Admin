@@ -19,11 +19,16 @@ import com.smarteldercare.modules.family.vo.ReservationVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import com.smarteldercare.modules.appointment.entity.Appointment;
+import com.smarteldercare.modules.appointment.mapper.AppointmentMapper;
 
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+
 public class FamilyMemberServiceImpl
         extends ServiceImpl<FamilyMemberMapper, FamilyMember>
         implements FamilyMemberService {
@@ -31,6 +36,7 @@ public class FamilyMemberServiceImpl
     private final ElderlyProfileMapper elderlyProfileMapper;
     private final ServiceReservationMapper serviceReservationMapper;
     private final JwtUtil jwtUtil;
+    private final AppointmentMapper appointmentMapper;
     @Override
     public void updateElderly(ElderlyProfileDTO dto, Long familyMemberId) {
         // 根据身份证号找老人
@@ -137,14 +143,27 @@ public class FamilyMemberServiceImpl
 
     // ========== 6. 创建预约 ==========
     @Override
-    public void createReservation(ReservationRequest request, Long familyMemberId) {
+    public void createReservation(ReservationRequest request, Long
+            familyMemberId) {
+        // 家属端自己的表
         ServiceReservation reservation = new ServiceReservation();
         BeanUtils.copyProperties(request, reservation);
         reservation.setFamilyMemberId(familyMemberId);
         reservation.setStatus("pending");
         serviceReservationMapper.insert(reservation);
-    }
 
+        // 管理端/医生端的表
+        Appointment appointment = new Appointment();
+        appointment.setElderlyId(request.getElderlyId());
+        appointment.setServiceType(request.getServiceType());
+
+        appointment.setAppointmentTime(LocalDateTime.of(request.getServiceDate(),
+                "上午".equals(request.getServiceTime()) ? LocalTime.of(9, 0) :
+                        LocalTime.of(14, 0)));
+        appointment.setDescription(request.getRemark());
+        appointment.setStatus("pending");
+        appointmentMapper.insert(appointment);
+    }
     // ========== 7. 查看我的预约列表 ==========
     @Override
     public List<ReservationVO> getMyReservationList(Long familyMemberId) {
