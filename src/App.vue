@@ -2,7 +2,7 @@
   <div class="min-h-[100dvh] bg-canvas">
     <router-view v-slot="{ Component }">
       <transition name="page" mode="out-in">
-        <component :is="Component" />
+        <component :is="Component" :key="$route.fullPath" />
       </transition>
     </router-view>
 
@@ -27,16 +27,21 @@ const isGuestRoute = computed(() => route.meta.guest)
 </script>
 
 <style>
-.page-enter-active,
+/* ── Spring-like page transition ── */
+.page-enter-active {
+  transition: transform 0.45s cubic-bezier(0.22, 0.61, 0.36, 1), opacity 0.35s ease;
+}
 .page-leave-active {
-  transition: opacity 0.25s ease, transform 0.25s ease;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.6, 1), opacity 0.25s ease;
+  position: absolute;  /* so enter & leave overlap for out-in */
+  width: 100%;
 }
 .page-enter-from {
   opacity: 0;
-  transform: translateX(20px);
+  transform: translateX(28px);
 }
 .page-leave-to {
   opacity: 0;
-  transform: translateX(-20px);
+  transform: translateX(-28px);
 }
 </style>

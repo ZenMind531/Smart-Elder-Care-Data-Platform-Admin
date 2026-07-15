@@ -17,10 +17,11 @@
     <div v-else-if="error" class="px-5 py-20 text-center text-error">{{ error }}</div>
 
     <!-- Empty -->
-    <div v-else-if="!records.length" class="px-5 py-20 text-center text-muted">
-      <PhHeartbeat :size="40" class="mx-auto mb-3 text-muted-soft" />
-      <p>暂无健康数据记录</p>
-    </div>
+    <EmptyState
+      v-else-if="!records.length"
+      type="health"
+      message="暂无健康数据记录"
+    />
 
     <!-- Records List -->
     <div v-else class="px-5 mt-5 space-y-3">
@@ -113,7 +114,8 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { health } from '../api.js'
 import RingGauge from '../components/RingGauge.vue'
-import { PhCaretLeft, PhHeartbeat } from '@phosphor-icons/vue'
+import EmptyState from '../components/EmptyState.vue'
+import { PhCaretLeft } from '@phosphor-icons/vue'
 
 // ── Ring color helpers ──
 const G = '#34c759', Y = '#ff9500', R = '#ff3b30'

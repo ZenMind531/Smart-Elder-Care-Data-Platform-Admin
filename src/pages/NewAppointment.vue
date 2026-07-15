@@ -90,7 +90,8 @@
         :disabled="submitting"
         class="w-full h-11 rounded-full bg-primary text-white font-medium text-sm active:bg-primary-active disabled:bg-primary-disabled disabled:text-muted transition-colors"
       >
-        {{ submitting ? '提交中...' : '提交预约' }}
+        <span v-if="success" class="submit-done-label">已提交 ✓</span>
+        <span v-else>{{ submitting ? '提交中...' : '提交预约' }}</span>
       </button>
     </form>
   </div>
@@ -153,3 +154,13 @@ async function handleSubmit() {
   }
 }
 </script>
+
+<style scoped>
+.submit-done-label {
+  animation: done-pop 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+@keyframes done-pop {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+</style>

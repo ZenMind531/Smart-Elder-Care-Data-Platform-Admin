@@ -13,80 +13,82 @@
     <div v-if="error" class="mx-5 mt-4 bg-error/10 text-error text-sm rounded-lg px-4 py-3">{{ error }}</div>
     <div v-if="success" class="mx-5 mt-4 bg-success/10 text-success text-sm rounded-lg px-4 py-3">{{ success }}</div>
 
-    <!-- Already bound -->
-    <section v-if="boundList.length > 0" class="px-5 mt-5">
-      <p class="text-xs text-muted uppercase tracking-wider mb-3">已绑定 ({{ boundList.length }})</p>
-      <div class="space-y-2">
-        <div
-          v-for="e in boundList"
-          :key="e.id"
-          class="flex items-center justify-between bg-white border border-hairline rounded-[18px] px-4 py-3"
-        >
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-full bg-primary/15 flex items-center justify-center">
-              <span class="font-display text-lg text-primary">{{ e.elderlyName?.charAt(0) }}</span>
-            </div>
-            <div>
-              <p class="text-sm font-medium text-ink">{{ e.elderlyName }}</p>
-              <p class="text-xs text-muted">{{ e.age }}岁 · {{ e.gender === 'male' ? '男' : '女' }}</p>
+    <!-- Content: only when loaded -->
+    <template v-if="!loading">
+      <!-- Already bound -->
+      <section v-if="boundList.length > 0" class="px-5 mt-5">
+        <p class="text-xs text-muted uppercase tracking-wider mb-3">已绑定 ({{ boundList.length }})</p>
+        <div class="space-y-2">
+          <div
+            v-for="e in boundList"
+            :key="e.id"
+            class="flex items-center justify-between bg-white border border-hairline rounded-[18px] px-4 py-3"
+          >
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-full bg-primary/15 flex items-center justify-center">
+                <span class="font-display text-lg text-primary">{{ e.elderlyName?.charAt(0) }}</span>
+              </div>
+              <div>
+                <p class="text-sm font-medium text-ink">{{ e.elderlyName }}</p>
+                <p class="text-xs text-muted">{{ e.age }}岁 · {{ e.gender === 'male' ? '男' : '女' }}</p>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <!-- Empty hint -->
-    <section v-else class="px-5 mt-12 text-center">
-      <div class="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
-        <PhHeart :size="28" class="text-muted" />
-      </div>
-      <p class="text-muted text-[15px]">还没有绑定老人</p>
-    </section>
+      <!-- Empty -->
+      <EmptyState v-else type="elderly" message="还没有绑定老人" />
 
-    <!-- Bind by ID -->
-    <section class="px-5 mt-6">
-      <h2 class="text-sm font-medium text-muted uppercase tracking-wider mb-3">绑定已有老人</h2>
-      <p class="text-xs text-muted-soft mb-3">输入老人 ID 绑定已有老人</p>
-      <div class="flex gap-2">
-        <input
-          v-model="bindId"
-          type="number"
-          placeholder="输入老人 ID"
-          class="flex-1 h-11 px-4 rounded-lg border border-hairline bg-white text-ink placeholder:text-muted focus:outline-none focus:border-primary transition-colors"
-        />
-        <button
-          @click="handleBind"
-          :disabled="bindLoading"
-          class="px-5 h-11 rounded-full bg-primary text-white text-[17px] font-medium active:bg-primary-active disabled:bg-primary-disabled disabled:text-muted transition-colors shrink-0"
+      <!-- Bind by ID -->
+      <section class="px-5 mt-6">
+        <h2 class="text-sm font-medium text-muted uppercase tracking-wider mb-3">绑定已有老人</h2>
+        <p class="text-xs text-muted-soft mb-3">输入老人 ID 绑定已有老人</p>
+        <div class="flex gap-2">
+          <input
+            v-model="bindId"
+            type="number"
+            placeholder="输入老人 ID"
+            class="flex-1 h-11 px-4 rounded-lg border border-hairline bg-white text-ink placeholder:text-muted focus:outline-none focus:border-primary transition-colors"
+          />
+          <button
+            @click="handleBind"
+            :disabled="bindLoading"
+            class="px-5 h-11 rounded-full bg-primary text-white text-[17px] font-medium active:bg-primary-active disabled:bg-primary-disabled disabled:text-muted transition-colors shrink-0"
+          >
+            {{ bindLoading ? '绑定中...' : '绑定' }}
+          </button>
+        </div>
+      </section>
+
+      <!-- Entry to register new elderly -->
+      <section class="px-5 mt-8">
+        <router-link
+          to="/elderly/new"
+          class="flex items-center justify-center gap-2 w-full h-11 rounded-full border-2 border-dashed border-hairline text-muted text-sm font-medium active:bg-surface-card transition-colors"
         >
-          {{ bindLoading ? '绑定中...' : '绑定' }}
-        </button>
-      </div>
-    </section>
-
-    <!-- Entry to register new elderly -->
-    <section class="px-5 mt-8">
-      <router-link
-        to="/elderly/new"
-        class="flex items-center justify-center gap-2 w-full h-11 rounded-full border-2 border-dashed border-hairline text-muted text-sm font-medium active:bg-surface-card transition-colors"
-      >
-        <PhPlusCircle :size="18" />
-        注册新老人
-      </router-link>
-    </section>
+          <PhPlusCircle :size="18" />
+          注册新老人
+        </router-link>
+      </section>
+    </template>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { elderly } from '../api.js'
-import { PhCaretLeft, PhHeart, PhPlusCircle } from '@phosphor-icons/vue'
+import { pageLoading } from '../loading.js'
+import EmptyState from '../components/EmptyState.vue'
+import { PhCaretLeft, PhPlusCircle } from '@phosphor-icons/vue'
 
 const boundList = ref([])
 const error = ref('')
 const success = ref('')
+const loading = ref(true)
 
-// ── 绑定已有老人 ──
+watch(loading, (v) => { pageLoading.value = v }, { immediate: true })
+
 const bindId = ref('')
 const bindLoading = ref(false)
 
@@ -117,5 +119,8 @@ async function loadBound() {
   } catch {}
 }
 
-onMounted(loadBound)
+onMounted(async () => {
+  await loadBound()
+  loading.value = false
+})
 </script>

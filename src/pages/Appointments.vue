@@ -17,12 +17,11 @@
     <div v-if="error" class="px-5 py-20 text-center text-error">{{ error }}</div>
 
     <!-- Empty -->
-    <div v-else-if="!loading && list.length === 0" class="px-5 py-20 text-center">
-      <div class="w-14 h-14 rounded-full bg-white border border-hairline flex items-center justify-center mx-auto mb-3">
-        <PhCalendarCheck :size="24" class="text-muted-soft" />
-      </div>
-      <p class="text-muted text-sm">暂无预约</p>
-    </div>
+    <EmptyState
+      v-else-if="!loading && list.length === 0"
+      type="calendar"
+      message="暂无预约"
+    />
 
     <!-- List -->
     <div v-else-if="!loading" class="px-5 mt-4 space-y-3">
@@ -65,6 +64,7 @@
 import { ref, onMounted, watch } from 'vue'
 import { reservations } from '../api.js'
 import { pageLoading } from '../loading.js'
+import EmptyState from '../components/EmptyState.vue'
 import { PhPlus, PhCalendarCheck, PhCalendar, PhClock } from '@phosphor-icons/vue'
 
 const list = ref([])

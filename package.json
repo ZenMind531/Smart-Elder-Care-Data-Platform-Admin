@@ -10,7 +10,9 @@
   },
   "dependencies": {
     "@phosphor-icons/vue": "^2.2.1",
+    "canvas-confetti": "^1.9.4",
     "motion": "^12.42.2",
+    "motion-v": "^2.3.0",
     "vue": "^3.5.39",
     "vue-router": "^4.6.4"
   },
