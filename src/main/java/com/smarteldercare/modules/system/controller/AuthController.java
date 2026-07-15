@@ -6,6 +6,7 @@ import com.smarteldercare.modules.system.dto.RegisterRequest;
 import com.smarteldercare.modules.system.dto.UpdatePasswordRequest;
 import com.smarteldercare.modules.system.service.UserService;
 import com.smarteldercare.modules.system.vo.LoginResult;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -59,7 +60,7 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ApiResponse<?> register(@RequestBody RegisterRequest request) {
+    public ApiResponse<?> register(@Valid @RequestBody RegisterRequest request) {
         userService.register(request);
         return ApiResponse.success();
     }
