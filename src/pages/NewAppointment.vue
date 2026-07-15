@@ -146,7 +146,7 @@ async function handleSubmit() {
       remark: form.remark,
     })
     success.value = '预约已提交，等待确认'
-    setTimeout(() => router.push('/appointments'), 1500)
+    router.push('/appointments')
   } catch (e) {
     error.value = e.message
   } finally {
