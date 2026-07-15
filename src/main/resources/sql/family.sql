@@ -1,0 +1,17 @@
+-- 家属模块建表 SQL
+
+-- 1. 家属账号表
+CREATE TABLE IF NOT EXISTS family_member (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    phone VARCHAR(20) NOT NULL UNIQUE COMMENT '手机号（登录账号）',
+    password VARCHAR(255) NOT NULL COMMENT '密码',
+    name VARCHAR(50) NOT NULL COMMENT '家属姓名',
+    status VARCHAR(20) NOT NULL DEFAULT 'enabled' COMMENT '账号状态',
+    create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    update_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted TINYINT NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='家属账号表';
+
+-- 2. 老人表新增家属绑定字段
+-- （已执行，MySQL 不支持 ADD COLUMN IF NOT EXISTS，手动跑下面这句）
+-- ALTER TABLE elderly_profile ADD COLUMN family_member_id BIGINT DEFAULT NULL COMMENT '绑定家属ID';
