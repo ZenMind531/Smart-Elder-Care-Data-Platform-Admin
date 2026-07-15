@@ -1,7 +1,7 @@
 <template>
   <div class="pb-24">
     <!-- Header -->
-    <header class="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-hairline">
+    <header class="sticky top-0 z-10 bg-[#f5f5f7]/80 backdrop-blur-md">
       <div class="flex items-center h-14 px-4 gap-3">
         <button @click="$router.back()" class="w-9 h-9 flex items-center justify-center -ml-1">
           <PhCaretLeft :size="22" class="text-primary" />
@@ -16,7 +16,7 @@
     <template v-else-if="!loading">
       <!-- Elderly Card -->
       <div class="px-5 mt-5">
-        <article class="relative bg-white border border-hairline rounded-[18px] p-5 overflow-hidden">
+        <article class="relative glass-card p-5 overflow-hidden scroll-item">
           <div class="absolute top-0 right-0 w-32 h-32 bg-white border border-hairline-soft rounded-bl-full opacity-60"></div>
           <div class="relative flex items-center gap-4">
             <div class="w-16 h-16 rounded-full bg-primary/15 flex items-center justify-center flex-shrink-0">
@@ -39,58 +39,56 @@
         </article>
       </div>
 
-      <!-- Details -->
-      <section class="px-5 mt-5 space-y-3">
-        <div class="bg-white border border-hairline rounded-[18px] p-5">
-          <p class="text-xs text-muted uppercase tracking-wider mb-3">基本信息</p>
-          <dl class="space-y-3">
-            <div class="flex justify-between">
-              <dt class="text-sm text-muted">身份证号</dt>
-              <dd class="text-[14px] text-ink">{{ info.idCard || '未填写' }}</dd>
-            </div>
-            <div class="flex justify-between">
-              <dt class="text-sm text-muted">手机号</dt>
-              <dd class="text-[14px] text-ink">{{ info.phoneNumber || '未填写' }}</dd>
-            </div>
-            <div class="flex justify-between">
-              <dt class="text-sm text-muted">地址</dt>
-              <dd class="text-[14px] text-ink text-right max-w-[60%]">{{ info.address || '未填写' }}</dd>
-            </div>
-          </dl>
-        </div>
-
-        <div class="bg-white border border-hairline rounded-[18px] p-5">
-          <p class="text-xs text-muted uppercase tracking-wider mb-3">紧急联系人</p>
-          <dl class="space-y-3">
-            <div class="flex justify-between">
-              <dt class="text-sm text-muted">联系人</dt>
-              <dd class="text-[14px] text-ink">{{ info.emergencyContact || '未填写' }}</dd>
-            </div>
-            <div class="flex justify-between">
-              <dt class="text-sm text-muted">联系电话</dt>
-              <dd class="text-[14px] text-ink">{{ info.emergencyPhone || '未填写' }}</dd>
-            </div>
-          </dl>
-        </div>
-
-        <div class="bg-white border border-hairline rounded-[18px] p-5">
-          <p class="text-xs text-muted uppercase tracking-wider mb-3">健康信息</p>
-          <dl class="space-y-3">
-            <div class="flex justify-between">
-              <dt class="text-sm text-muted">既往病史</dt>
-              <dd class="text-[14px] text-ink text-right max-w-[60%]">{{ info.medicalHistory || '无' }}</dd>
-            </div>
-            <div class="flex justify-between">
-              <dt class="text-sm text-muted">过敏史</dt>
-              <dd class="text-[14px] text-ink text-right max-w-[60%]">{{ info.allergyHistory || '无' }}</dd>
-            </div>
-          </dl>
+      <!-- Details: one card with dividers -->
+      <section class="px-5 mt-5">
+        <div class="glass-card p-5 scroll-item divide-y divide-hairline-soft">
+          <div class="pb-4">
+            <p class="text-xs text-muted uppercase tracking-wider mb-3">基本信息</p>
+            <dl class="space-y-3">
+              <div class="flex justify-between">
+                <dt class="text-sm text-muted">身份证号</dt>
+                <dd class="text-[14px] text-ink">{{ info.idCard || '未填写' }}</dd>
+              </div>
+              <div class="flex justify-between">
+                <dt class="text-sm text-muted">手机号</dt>
+                <dd class="text-[14px] text-ink">{{ info.phoneNumber || '未填写' }}</dd>
+              </div>
+              <div class="flex justify-between">
+                <dt class="text-sm text-muted">地址</dt>
+                <dd class="text-[14px] text-ink text-right max-w-[60%]">{{ info.address || '未填写' }}</dd>
+              </div>
+            </dl>
+          </div>
+          <div class="py-4">
+            <dl class="space-y-3">
+              <div class="flex justify-between">
+                <dt class="text-sm text-muted">紧急联系人</dt>
+                <dd class="text-[14px] text-ink">{{ info.emergencyContact || '未填写' }}</dd>
+              </div>
+              <div class="flex justify-between">
+                <dt class="text-sm text-muted">联系电话</dt>
+                <dd class="text-[14px] text-ink">{{ info.emergencyPhone || '未填写' }}</dd>
+              </div>
+            </dl>
+          </div>
+          <div class="pt-4">
+            <dl class="space-y-3">
+              <div class="flex justify-between">
+                <dt class="text-sm text-muted">既往病史</dt>
+                <dd class="text-[14px] text-ink text-right max-w-[60%]">{{ info.medicalHistory || '无' }}</dd>
+              </div>
+              <div class="flex justify-between">
+                <dt class="text-sm text-muted">过敏史</dt>
+                <dd class="text-[14px] text-ink text-right max-w-[60%]">{{ info.allergyHistory || '无' }}</dd>
+              </div>
+            </dl>
+          </div>
         </div>
       </section>
 
       <!-- Latest Health Metrics — Apple Watch rings -->
       <section v-if="latestHealth" class="px-5 mt-5">
-        <div class="bg-white border border-hairline rounded-[18px] p-5">
+        <div class="glass-card p-5 scroll-item">
           <div class="flex items-center justify-between mb-2">
             <p class="text-xs text-muted uppercase tracking-wider">最新健康数据</p>
             <span class="text-[12px] text-muted-soft">{{ latestHealth.recordTime?.slice(0, 16) }}</span>
@@ -179,12 +177,16 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import { elderly, health } from '../api.js'
 import { pageLoading } from '../loading.js'
 import RingGauge from '../components/RingGauge.vue'
-import { PhCaretLeft, PhCaretRight, PhCalendarCheck, PhClock, PhPencilSimple } from '@phosphor-icons/vue'
+import gsap from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { PhCaretLeft, PhCaretRight, PhCalendarCheck, PhClock } from '@phosphor-icons/vue'
+
+gsap.registerPlugin(ScrollTrigger)
 
 // ── Ring color helpers ──
 const G = '#34c759', Y = '#ff9500', R = '#ff3b30'
@@ -254,6 +256,20 @@ onMounted(async () => {
     error.value = e.message
   } finally {
     loading.value = false
+    // GSAP scroll-triggered entrance for cards below hero
+    await nextTick()
+    gsap.utils.toArray('.scroll-item').forEach((el) => {
+      gsap.from(el, {
+        opacity: 0, y: 30,
+        duration: 0.6,
+        ease: 'power2.out',
+        scrollTrigger: {
+          trigger: el,
+          start: 'top 88%',
+          toggleActions: 'play none none none',
+        },
+      })
+    })
   }
 })
 </script>

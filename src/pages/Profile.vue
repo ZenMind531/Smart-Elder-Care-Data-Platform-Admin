@@ -1,6 +1,6 @@
 <template>
   <div class="pb-24">
-    <header class="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-hairline">
+    <header class="sticky top-0 z-10 bg-[#f5f5f7]/80 backdrop-blur-md">
       <div class="flex items-center h-14 px-5">
         <h1 class="font-semibold text-[21px] text-ink tracking-tight">个人中心</h1>
       </div>
@@ -20,7 +20,7 @@
 
     <!-- Menu -->
     <section class="px-5 mt-8 space-y-1">
-      <router-link to="/bind" class="flex items-center justify-between px-4 py-3.5 rounded-[18px] bg-white border border-hairline-soft active:scale-[0.98] transition-transform">
+      <router-link to="/bind" class="glass-card flex items-center justify-between px-4 py-3.5 rounded-[18px] active:scale-[0.98] transition-transform">
         <div class="flex items-center gap-3">
           <PhHeart :size="20" class="text-primary" />
           <span class="text-sm font-medium text-ink">绑定管理</span>
@@ -28,7 +28,7 @@
         <PhCaretRight :size="16" class="text-muted-soft" />
       </router-link>
 
-      <router-link to="/appointments" class="flex items-center justify-between px-4 py-3.5 rounded-[18px] bg-white border border-hairline-soft active:scale-[0.98] transition-transform">
+      <router-link to="/appointments" class="glass-card flex items-center justify-between px-4 py-3.5 rounded-[18px] active:scale-[0.98] transition-transform">
         <div class="flex items-center gap-3">
           <PhCalendarCheck :size="20" class="text-primary" />
           <span class="text-sm font-medium text-ink">我的预约</span>

@@ -1,7 +1,8 @@
 <template>
   <div class="pb-24">
+
     <!-- Apple frosted header -->
-    <header class="sticky top-0 z-10 bg-white/80 backdrop-blur-xl border-b border-hairline-soft">
+    <header class="sticky top-0 z-10 bg-[#f5f5f7]/80 backdrop-blur-xl">
       <div class="flex items-center justify-between px-5 h-14">
         <h1 class="text-ink text-2xl tracking-[-0.28px] font-semibold">CarePulse</h1>
         <router-link to="/profile" class="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center">
@@ -44,7 +45,7 @@
         :to="`/elderly/${elder.id}`"
         class="block"
       >
-        <article class="bg-white rounded-[18px] border border-hairline p-5 active:scale-[0.98] transition-transform">
+        <article class="glass-card p-5 active:scale-[0.98] transition-transform">
           <div class="flex items-center gap-4">
             <div class="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
               <span class="text-xl font-semibold text-primary tracking-[-0.28px]">{{ elder.elderlyName?.charAt(0) }}</span>
@@ -90,45 +91,21 @@
         </article>
       </router-link>
 
-      <!-- Quick Actions -->
-      <section v-if="elderlyList.length > 0">
-        <h2 class="text-[12px] font-semibold text-muted uppercase tracking-wider mb-3">快捷操作</h2>
-        <div class="grid grid-cols-2 gap-3">
+      <!-- Launcher-style icon grid -->
+      <section v-if="elderlyList.length > 0" class="mt-4">
+        <div class="grid grid-cols-4 gap-4 place-items-center">
           <router-link
-            to="/appointments/new"
-            class="flex flex-col items-center gap-2 p-4 rounded-[18px] bg-white border border-hairline active:scale-[0.98] transition-transform"
+            v-for="item in launcherItems" :key="item.label"
+            :to="item.to"
+            class="flex flex-col items-center gap-2 active:scale-[0.92] transition-transform"
           >
-            <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-              <PhCalendarCheck :size="20" class="text-primary" />
+            <div
+              class="w-16 h-16 rounded-[22px] flex items-center justify-center shadow-sm"
+              :style="{ background: item.bg }"
+            >
+              <component :is="item.icon" :size="28" :style="{ color: item.fg }" />
             </div>
-            <span class="text-[14px] font-medium text-ink tracking-[-0.224px]">预约服务</span>
-          </router-link>
-          <router-link
-            to="/appointments"
-            class="flex flex-col items-center gap-2 p-4 rounded-[18px] bg-white border border-hairline active:scale-[0.98] transition-transform"
-          >
-            <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-              <PhClock :size="20" class="text-primary" />
-            </div>
-            <span class="text-[14px] font-medium text-ink tracking-[-0.224px]">我的预约</span>
-          </router-link>
-          <router-link
-            to="/bind"
-            class="flex flex-col items-center gap-2 p-4 rounded-[18px] bg-white border border-hairline active:scale-[0.98] transition-transform"
-          >
-            <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-              <PhPlusCircle :size="20" class="text-primary" />
-            </div>
-            <span class="text-[14px] font-medium text-ink tracking-[-0.224px]">绑定老人</span>
-          </router-link>
-          <router-link
-            to="/profile"
-            class="flex flex-col items-center gap-2 p-4 rounded-[18px] bg-white border border-hairline active:scale-[0.98] transition-transform"
-          >
-            <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-              <PhGear :size="20" class="text-primary" />
-            </div>
-            <span class="text-[14px] font-medium text-ink tracking-[-0.224px]">个人中心</span>
+            <span class="text-[12px] font-medium text-ink">{{ item.label }}</span>
           </router-link>
         </div>
       </section>
@@ -147,6 +124,14 @@ const userName = ref(JSON.parse(localStorage.getItem('user') || '{}').name || '�
 const elderlyList = ref([])
 const loading = ref(true)
 const error = ref('')
+
+// Apple Watch style launcher grid
+const launcherItems = [
+  { label: '预约服务', icon: PhCalendarCheck, to: '/appointments/new', bg: '#0066cc', fg: '#ffffff' },
+  { label: '我的预约', icon: PhClock,         to: '/appointments',      bg: '#e8f0fe', fg: '#0066cc' },
+  { label: '绑定老人', icon: PhPlusCircle,    to: '/bind',              bg: '#e6f4ea', fg: '#34c759' },
+  { label: '个人中心', icon: PhGear,          to: '/profile',           bg: '#f0f0f5', fg: '#7a7a7a' },
+]
 
 watch(loading, (v) => { pageLoading.value = v }, { immediate: true })
 
@@ -179,6 +164,7 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+/* ── Card entrance ── */
 @keyframes home-enter {
   from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: translateY(0); }

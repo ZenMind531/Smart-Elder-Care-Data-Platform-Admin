@@ -1,6 +1,6 @@
 <template>
   <div class="pb-24">
-    <header class="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-hairline">
+    <header class="sticky top-0 z-10 bg-[#f5f5f7]/80 backdrop-blur-md">
       <div class="flex items-center h-14 px-4 gap-3">
         <button @click="$router.back()" class="w-9 h-9 flex items-center justify-center -ml-1">
           <PhCaretLeft :size="22" class="text-primary" />

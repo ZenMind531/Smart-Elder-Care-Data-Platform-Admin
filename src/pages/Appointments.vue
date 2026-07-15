@@ -1,6 +1,6 @@
 <template>
   <div class="pb-24">
-    <header class="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-hairline">
+    <header class="sticky top-0 z-10 bg-[#f5f5f7]/80 backdrop-blur-md">
       <div class="flex items-center justify-between h-14 px-5">
         <h1 class="font-semibold text-[21px] text-ink tracking-tight">我的预约</h1>
         <router-link
@@ -28,7 +28,7 @@
       <div
         v-for="apt in list"
         :key="apt.id"
-        class="bg-white border border-hairline rounded-[18px] p-4"
+        class="glass-card p-4"
       >
         <div class="flex items-start justify-between">
           <div class="flex-1 min-w-0">

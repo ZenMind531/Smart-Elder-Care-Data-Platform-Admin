@@ -1,6 +1,7 @@
 <template>
   <div
     class="ring-gauge flex flex-col items-center gap-1"
+    :class="{ 'ring-paused': !animate }"
     :style="{ '--ring-delay': `${delay}s`, '--circ-o': circO, '--circ-i': circI }"
   >
     <div class="relative" :style="{ width: `${size}px`, height: `${size}px` }">
@@ -59,6 +60,8 @@ const props = defineProps({
   fontSize: { type: Number, default: 18 },
   unitSize: { type: Number, default: 10 },
   inner:    { type: Object, default: null },
+  /** Set false to pause entrance animation (for scroll-triggered control) */
+  animate:  { type: Boolean, default: true },
 })
 
 const sw   = 6
@@ -135,5 +138,17 @@ const progGapI  = computed(() => +(circI - progDashI.value).toFixed(2))
 .ring-progress-i {
   animation: ring-draw-inner 0.9s cubic-bezier(0.4, 0, 0.2, 1) forwards;
   animation-delay: calc(var(--ring-delay) + 0.2s);
+}
+
+/* Paused state: hide progress rings until triggered */
+.ring-paused .ring-progress-o,
+.ring-paused .ring-progress-i {
+  animation: none;
+  stroke-dasharray: 0 var(--ring-circ-o);
+}
+.ring-paused {
+  animation: none;
+  opacity: 0;
+  transform: translateY(12px);
 }
 </style>

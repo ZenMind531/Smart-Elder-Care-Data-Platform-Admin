@@ -13,6 +13,7 @@ import Profile from './pages/Profile.vue'
 import BindElderly from './pages/BindElderly.vue'
 import NewElderly from './pages/NewElderly.vue'
 import HealthRecords from './pages/HealthRecords.vue'
+import GsapDemo from './pages/GsapDemo.vue'
 
 const routes = [
   { path: '/', redirect: '/home' },
@@ -26,6 +27,7 @@ const routes = [
   { path: '/profile', component: Profile, meta: { auth: true } },
   { path: '/bind', component: BindElderly, meta: { auth: true } },
   { path: '/elderly/new', component: NewElderly, meta: { auth: true } },
+  { path: '/gsap-demo', component: GsapDemo },
 ]
 
 const router = createRouter({

@@ -1,6 +1,6 @@
 <template>
   <div class="pb-24">
-    <header class="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-hairline">
+    <header class="sticky top-0 z-10 bg-[#f5f5f7]/80 backdrop-blur-md">
       <div class="flex items-center h-14 px-4 gap-3">
         <button @click="$router.back()" class="w-9 h-9 flex items-center justify-center -ml-1">
           <PhCaretLeft :size="22" class="text-primary" />
@@ -16,22 +16,19 @@
     <!-- Content: only when loaded -->
     <template v-if="!loading">
       <!-- Already bound -->
-      <section v-if="boundList.length > 0" class="px-5 mt-5">
-        <p class="text-xs text-muted uppercase tracking-wider mb-3">已绑定 ({{ boundList.length }})</p>
-        <div class="space-y-2">
-          <div
-            v-for="e in boundList"
-            :key="e.id"
-            class="flex items-center justify-between bg-white border border-hairline rounded-[18px] px-4 py-3"
-          >
-            <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-full bg-primary/15 flex items-center justify-center">
-                <span class="font-display text-lg text-primary">{{ e.elderlyName?.charAt(0) }}</span>
-              </div>
-              <div>
-                <p class="text-sm font-medium text-ink">{{ e.elderlyName }}</p>
-                <p class="text-xs text-muted">{{ e.age }}岁 · {{ e.gender === 'male' ? '男' : '女' }}</p>
-              </div>
+      <section v-if="boundList.length > 0" class="px-5 mt-5 space-y-2">
+        <div
+          v-for="e in boundList"
+          :key="e.id"
+          class="glass-card flex items-center justify-between px-4 py-3"
+        >
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-primary/15 flex items-center justify-center">
+              <span class="font-display text-lg text-primary">{{ e.elderlyName?.charAt(0) }}</span>
+            </div>
+            <div>
+              <p class="text-sm font-medium text-ink">{{ e.elderlyName }}</p>
+              <p class="text-xs text-muted">{{ e.age }}岁 · {{ e.gender === 'male' ? '男' : '女' }}</p>
             </div>
           </div>
         </div>
@@ -42,7 +39,6 @@
 
       <!-- Bind by ID -->
       <section class="px-5 mt-6">
-        <h2 class="text-sm font-medium text-muted uppercase tracking-wider mb-3">绑定已有老人</h2>
         <p class="text-xs text-muted-soft mb-3">输入老人 ID 绑定已有老人</p>
         <div class="flex gap-2">
           <input

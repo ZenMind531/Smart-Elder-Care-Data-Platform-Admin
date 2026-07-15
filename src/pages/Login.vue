@@ -20,7 +20,7 @@
       </p>
 
       <!-- Apple-style card: 18px radius, white, hairline border, no shadow -->
-      <div class="mt-10 bg-white rounded-[18px] border border-hairline p-7">
+      <div class="mt-10 glass-card p-7">
         <div
           v-if="error"
           class="mb-4 bg-error/8 text-error text-[13px] rounded-lg px-4 py-2.5"
