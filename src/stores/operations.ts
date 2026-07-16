@@ -23,6 +23,26 @@ import {
   type DeviceStatusApi,
 } from '@/api/devices'
 import { listRoles, type RoleApiRecord } from '@/api/roles'
+import {
+  listCareRecords,
+  createCareRecord,
+  updateCareRecord,
+  deleteCareRecord,
+  type CareRecordApi,
+  type CareType,
+  type CareRecordPayload,
+} from '@/api/care-records'
+import {
+  listAppointments,
+  createAppointment,
+  updateAppointment,
+  patchAppointmentStatus,
+  deleteAppointment,
+  type AppointmentApi,
+  type AppointmentStatus,
+  type ServiceType,
+  type AppointmentPayload,
+} from '@/api/appointments'
 import { normalizeStaffRole } from '@/config/roles'
 
 export interface HealthRecord {
@@ -105,6 +125,7 @@ export interface DeviceRecord {
 
 export interface CareRecord {
   id: number
+  elderlyId?: number
   elderName: string
   room: string
   type: string
@@ -112,17 +133,21 @@ export interface CareRecord {
   caregiver: string
   status: '已完成' | '进行中' | '待补录'
   time: string
+  remark?: string
 }
 
 export interface ServiceAppointment {
   id: number
+  elderlyId?: number
   elderName: string
   room: string
   service: string
   requester: string
   scheduledAt: string
-  status: '待确认' | '已预约' | '服务中' | '已完成'
+  status: '未完成' | '已完成' | '已取消'
   assignee: string
+  description?: string
+  cancelReason?: string
 }
 
 export interface RoleRecord {
@@ -407,6 +432,56 @@ const mergeRoleRecords = (roles: RoleRecord[]) =>
       return mergedRoles
     }, [])
 
+const careTypeLabel = (t?: CareType) => {
+  if (t === 'medication') return '服药'
+  if (t === 'vital_signs') return '体征监测'
+  if (t === 'cleaning') return '清洁护理'
+  if (t === 'feeding') return '饮食护理'
+  if (t === 'exercise') return '康复训练'
+  return '其他护理'
+}
+
+const serviceTypeLabel = (t?: ServiceType) => {
+  if (t === 'health_check') return '健康检查'
+  if (t === 'home_care') return '上门护理'
+  if (t === 'rehabilitation') return '康复训练'
+  if (t === 'consultation') return '健康咨询'
+  return '其他服务'
+}
+
+const normalizedAppointmentStatus = (status?: AppointmentStatus): ServiceAppointment['status'] => {
+  if (status === 'completed') return '已完成'
+  if (status === 'cancelled') return '已取消'
+  return '未完成' // pending, confirmed, or unknown → 未完成
+}
+
+const toCareRecord = (r: CareRecordApi): CareRecord => ({
+  id: r.id,
+  elderlyId: r.elderlyId,
+  elderName: r.elderlyName || `老人ID-${r.elderlyId || '未知'}`,
+  room: r.elderlyId ? `ID-${r.elderlyId}` : '—',
+  type: careTypeLabel(r.careType),
+  content: r.careContent || '',
+  caregiver: r.caregiver || '—',
+  status: '已完成', // API 无 status 字段，护理记录完成后即为已完成
+  time: r.careTime || r.createTime || '接口同步',
+  remark: r.remark,
+})
+
+const toServiceAppointment = (a: AppointmentApi): ServiceAppointment => ({
+  id: a.id,
+  elderlyId: a.elderlyId,
+  elderName: a.elderlyName || `老人ID-${a.elderlyId || '未知'}`,
+  room: a.elderlyId ? `ID-${a.elderlyId}` : '—',
+  service: serviceTypeLabel(a.serviceType),
+  requester: '系统登记',
+  scheduledAt: a.appointmentTime || a.createTime || '接口同步',
+  status: normalizedAppointmentStatus(a.status),
+  assignee: a.doctorName || '待分配',
+  description: a.description,
+  cancelReason: a.cancelReason,
+})
+
 export const useOperationsStore = defineStore('operations', {
   state: () => ({
     loading: false,
@@ -423,7 +498,7 @@ export const useOperationsStore = defineStore('operations', {
     unresolvedAlerts: (state) => state.alerts.filter((alert) => alert.status !== '已处理').length,
     onlineDevices: (state) => state.devices.filter((device) => device.status === '在线').length,
     pendingServices: (state) =>
-      state.serviceAppointments.filter((service) => service.status === '待确认').length,
+      state.serviceAppointments.filter((service) => service.status === '未完成').length,
     todayCareDone: (state) =>
       state.careRecords.filter((record) => record.status === '已完成').length,
   },
@@ -511,14 +586,32 @@ export const useOperationsStore = defineStore('operations', {
         this.loading = false
       }
     },
-    async fetchCareRecordsSafe() {
-      // 临时：后端暂未提供 care-records 接口，这里静默失败，
-      // 让 CareProgressCard 在无数据时显示 0%
+    async fetchCareRecords() {
+      this.loading = true
+      this.error = ''
+
       try {
-        // 未来接入：const result = await listCareRecords(...)
-        // this.careRecords = result.records.map(...)
+        const result = await listCareRecords({ page: 1, size: 100 })
+        this.careRecords = result.records.map(toCareRecord)
       } catch (error) {
+        this.careRecords = []
         this.error = error instanceof Error ? error.message : '服务器响应异常，请稍后重试'
+      } finally {
+        this.loading = false
+      }
+    },
+    async fetchServiceAppointments() {
+      this.loading = true
+      this.error = ''
+
+      try {
+        const result = await listAppointments({ page: 1, size: 100 })
+        this.serviceAppointments = result.records.map(toServiceAppointment)
+      } catch (error) {
+        this.serviceAppointments = []
+        this.error = error instanceof Error ? error.message : '服务器响应异常，请稍后重试'
+      } finally {
+        this.loading = false
       }
     },
     async addHealthRecord(payload?: HealthRecordInput) {
@@ -743,50 +836,122 @@ export const useOperationsStore = defineStore('operations', {
         }
       }
     },
-    addCareRecord() {
-      const nextId = Math.max(...this.careRecords.map((item) => item.id), 5000) + 1
-
-      this.careRecords.unshift({
+    async createCareRecord(payload: CareRecordPayload) {
+      const nextId = Math.max(...this.careRecords.map((item) => item.id), 0) + 1
+      const localRecord: CareRecord = {
         id: nextId,
-        elderName: '刘玉梅',
-        room: 'C-212',
-        type: '临时巡房',
-        content: '已完成临时巡房，老人状态稳定，设备连接正常。',
-        caregiver: '王护工',
+        elderlyId: payload.elderlyId,
+        elderName: `老人ID-${payload.elderlyId}`,
+        room: `ID-${payload.elderlyId}`,
+        type: careTypeLabel(payload.careType),
+        content: payload.careContent,
+        caregiver: payload.caregiver || '—',
         status: '已完成',
-        time: '刚刚',
-      })
-    },
-    addServiceAppointment() {
-      const nextId = Math.max(...this.serviceAppointments.map((item) => item.id), 7000) + 1
+        time: payload.careTime,
+        remark: payload.remark,
+      }
+      this.careRecords.unshift(localRecord)
 
-      this.serviceAppointments.unshift({
+      try {
+        const savedRecord = toCareRecord(await createCareRecord(payload))
+        this.careRecords = this.careRecords.map((item) =>
+          item.id === nextId ? savedRecord : item,
+        )
+        this.error = ''
+        return savedRecord
+      } catch (error) {
+        this.careRecords = this.careRecords.filter((item) => item.id !== nextId)
+        this.error = error instanceof Error ? error.message : '服务器响应异常，请稍后重试'
+        throw error
+      }
+    },
+    async updateCareRecordById(id: number, payload: CareRecordPayload) {
+      const savedRecord = toCareRecord(await updateCareRecord(id, payload))
+      this.careRecords = this.careRecords.map((item) =>
+        item.id === id ? savedRecord : item,
+      )
+      this.error = ''
+    },
+    async deleteCareRecordById(id: number) {
+      const snapshot = [...this.careRecords]
+      this.careRecords = this.careRecords.filter((item) => item.id !== id)
+      try {
+        await deleteCareRecord(id)
+        this.error = ''
+      } catch (error) {
+        this.careRecords = snapshot
+        this.error = error instanceof Error ? error.message : '服务器响应异常，请稍后重试'
+        throw error
+      }
+    },
+    async createAppointment(payload: AppointmentPayload) {
+      const nextId = Math.max(...this.serviceAppointments.map((item) => item.id), 0) + 1
+      const localRecord: ServiceAppointment = {
         id: nextId,
-        elderName: '刘玉梅',
-        room: 'C-212',
-        service: '康复训练',
-        requester: '刘晨',
-        scheduledAt: '明日 10:30',
-        status: '待确认',
-        assignee: '康复师王敏',
-      })
-    },
-    confirmService(id: number) {
-      const service = this.serviceAppointments.find((item) => item.id === id)
-      if (service && service.status === '待确认') {
-        service.status = '已预约'
+        elderlyId: payload.elderlyId,
+        elderName: `老人ID-${payload.elderlyId}`,
+        room: `ID-${payload.elderlyId}`,
+        service: serviceTypeLabel(payload.serviceType),
+        requester: '系统登记',
+        scheduledAt: payload.appointmentTime,
+        status: '未完成',
+        assignee: payload.doctorName || '待分配',
+        description: payload.description,
+      }
+      this.serviceAppointments.unshift(localRecord)
+
+      try {
+        const savedRecord = toServiceAppointment(await createAppointment(payload))
+        this.serviceAppointments = this.serviceAppointments.map((item) =>
+          item.id === nextId ? savedRecord : item,
+        )
+        this.error = ''
+        return savedRecord
+      } catch (error) {
+        this.serviceAppointments = this.serviceAppointments.filter((item) => item.id !== nextId)
+        this.error = error instanceof Error ? error.message : '服务器响应异常，请稍后重试'
+        throw error
       }
     },
-    startService(id: number) {
-      const service = this.serviceAppointments.find((item) => item.id === id)
-      if (service && service.status === '已预约') {
-        service.status = '服务中'
-      }
+    async updateAppointmentById(id: number, payload: AppointmentPayload) {
+      const savedRecord = toServiceAppointment(await updateAppointment(id, payload))
+      this.serviceAppointments = this.serviceAppointments.map((item) =>
+        item.id === id ? savedRecord : item,
+      )
+      this.error = ''
     },
-    completeService(id: number) {
-      const service = this.serviceAppointments.find((item) => item.id === id)
-      if (service) {
-        service.status = '已完成'
+    async updateAppointmentStatus(id: number, status: AppointmentStatus, cancelReason?: string) {
+      const localStatus = normalizedAppointmentStatus(status)
+      // 乐观更新：先改本地，再调 API
+      this.serviceAppointments = this.serviceAppointments.map((item) =>
+        item.id === id ? { ...item, status: localStatus, cancelReason: cancelReason || item.cancelReason } : item,
+      )
+      try {
+        const result = await patchAppointmentStatus(id, { status, cancelReason })
+        // 用 API 返回的真实数据替换（如果有的话）
+        if (result && result.id) {
+          const savedRecord = toServiceAppointment(result)
+          this.serviceAppointments = this.serviceAppointments.map((item) =>
+            item.id === id ? savedRecord : item,
+          )
+        }
+      } catch {
+        // API 失败则重新拉取，回滚乐观更新
+        try { await this.fetchServiceAppointments() } catch { /* 静默 */ }
+        throw new Error('状态更新失败，请刷新后重试')
+      }
+      this.error = ''
+    },
+    async deleteAppointmentById(id: number) {
+      const snapshot = [...this.serviceAppointments]
+      this.serviceAppointments = this.serviceAppointments.filter((item) => item.id !== id)
+      try {
+        await deleteAppointment(id)
+        this.error = ''
+      } catch (error) {
+        this.serviceAppointments = snapshot
+        this.error = error instanceof Error ? error.message : '服务器响应异常，请稍后重试'
+        throw error
       }
     },
     toggleRole(id: number) {
