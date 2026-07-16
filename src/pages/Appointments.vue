@@ -74,10 +74,18 @@ const error = ref('')
 watch(loading, (v) => { pageLoading.value = v }, { immediate: true })
 
 function statusStyle(s) {
-  return { pending: 'bg-warning/10 text-warning' }[s] || 'bg-muted/10 text-muted'
+  return {
+    completed: 'bg-success/10 text-success',
+    pending: 'bg-warning/10 text-warning',
+    cancelled: 'bg-error/10 text-error',
+  }[s] || 'bg-muted/10 text-muted'
 }
 function statusLabel(s) {
-  return { pending: '待确认' }[s] || s
+  return {
+    completed: '已完成',
+    pending: '未完成',
+    cancelled: '已取消',
+  }[s] || s
 }
 
 onMounted(async () => {
