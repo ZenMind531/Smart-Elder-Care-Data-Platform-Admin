@@ -52,7 +52,7 @@
       <article
         v-for="stat in stats"
         :key="stat.label"
-        class="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-white/[0.03]"
+        class="rounded-[18px] border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-white/[0.03]"
       >
         <p class="text-theme-sm text-gray-500 dark:text-gray-400">{{ stat.label }}</p>
         <p class="mt-2 text-title-sm font-bold text-gray-900 tabular-nums dark:text-white">
@@ -63,7 +63,7 @@
     </section>
 
     <div class="mt-6 grid grid-cols-12 gap-4 md:gap-6">
-      <section class="col-span-12 rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-white/[0.03] xl:col-span-8">
+      <section class="col-span-12 rounded-[18px] border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-white/[0.03] xl:col-span-8">
         <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 class="text-lg font-semibold text-gray-800 text-balance dark:text-white/90">
@@ -171,7 +171,7 @@
       </section>
 
       <aside class="col-span-12 space-y-6 xl:col-span-4">
-        <section class="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-white/[0.03]">
+        <section class="rounded-[18px] border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-white/[0.03]">
           <h2 class="text-lg font-semibold text-gray-800 text-balance dark:text-white/90">维护提醒</h2>
           <div class="mt-5 space-y-3">
             <article
@@ -199,7 +199,7 @@
           </div>
         </section>
 
-        <section class="rounded-2xl border border-brand-100 bg-brand-25 p-5 dark:border-brand-900 dark:bg-brand-500/[0.08]">
+        <section class="rounded-[18px] border border-brand-100 bg-brand-25 p-5 dark:border-brand-900 dark:bg-brand-500/[0.08]">
           <h2 class="text-lg font-semibold text-gray-900 text-balance dark:text-white">设备巡检策略</h2>
           <ul class="mt-4 space-y-3 text-theme-sm text-gray-600 dark:text-gray-300">
             <li>低电量低于 20% 时自动生成更换电池任务。</li>
@@ -216,7 +216,7 @@
       class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 p-4"
       @click.self="bindModalOpen = false"
     >
-      <div class="w-full max-w-sm rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-lg dark:border-gray-800 dark:bg-gray-900">
+      <div class="w-full max-w-sm rounded-[18px] border border-gray-200 bg-white p-5 shadow-theme-lg dark:border-gray-800 dark:bg-gray-900">
         <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">绑定设备到老人</h3>
         <p class="mt-1 text-theme-sm text-gray-500 dark:text-gray-400">
           为「{{ bindTarget?.name }}」选择要绑定的老人。
@@ -250,7 +250,7 @@
       class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 p-4"
       @click.self="addModalOpen = false"
     >
-      <div class="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-lg dark:border-gray-800 dark:bg-gray-900">
+      <div class="w-full max-w-md rounded-[18px] border border-gray-200 bg-white p-5 shadow-theme-lg dark:border-gray-800 dark:bg-gray-900">
         <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">添加设备</h3>
         <p class="mt-1 text-theme-sm text-gray-500 dark:text-gray-400">录入新设备信息，创建后可在列表中绑定老人。</p>
         <form class="mt-4 grid gap-4 sm:grid-cols-2" @submit.prevent="confirmAdd">
@@ -282,7 +282,7 @@
             <select v-model="addForm.status" class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-3 py-2.5 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90">
               <option value="normal">正常</option>
               <option value="abnormal">异常</option>
-              <option value="disabled">停用</option>
+              <option value="offline">停用</option>
             </select>
           </label>
           <label class="block sm:col-span-2">
@@ -378,7 +378,7 @@ const addForm = reactive({
   deviceName: '',
   deviceType: 'watch' as 'watch' | 'bp_meter' | 'glucometer',
   elderlyId: 0,
-  status: 'normal' as 'normal' | 'abnormal' | 'disabled',
+  status: 'normal' as 'normal' | 'abnormal' | 'offline',
   remark: '',
 })
 

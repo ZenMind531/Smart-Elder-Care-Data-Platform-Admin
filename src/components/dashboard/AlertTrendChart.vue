@@ -1,6 +1,6 @@
 <template>
   <section
-    class="rounded-2xl border border-gray-200 bg-white px-5 pb-5 pt-5 shadow-theme-xs dark:border-gray-800 dark:bg-white/[0.03] sm:px-6 sm:pt-6"
+    class="rounded-[18px] border border-gray-200 bg-white px-5 pb-5 pt-5 shadow-theme-xs dark:border-gray-800 dark:bg-white/[0.03] sm:px-6 sm:pt-6"
   >
     <div class="flex items-start justify-between gap-4">
       <div>
@@ -52,7 +52,7 @@ const chartOptions = computed(() => ({
     toolbar: { show: false },
     animations: { enabled: false },
   },
-  colors: ['#f79009'],
+  colors: ['#0066cc'],
   plotOptions: {
     bar: {
       borderRadius: 6,

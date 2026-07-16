@@ -17,7 +17,7 @@
 
     <div class="grid grid-cols-12 gap-4 md:gap-6">
       <section
-        class="col-span-12 rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-white/[0.03] xl:col-span-7"
+        class="col-span-12 rounded-[18px] border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-white/[0.03] xl:col-span-7"
         :aria-busy="profileLoading || profileSaving"
       >
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -172,7 +172,7 @@
       </section>
 
       <section
-        class="col-span-12 rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-white/[0.03] xl:col-span-5"
+        class="col-span-12 rounded-[18px] border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-white/[0.03] xl:col-span-5"
       >
         <h2 class="text-lg font-semibold text-gray-800 text-balance dark:text-white/90">
           安全设置
@@ -207,7 +207,7 @@
       @click.self="closePwdModal"
       @keydown.esc="closePwdModal"
     >
-      <div class="w-full max-w-sm rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-lg dark:border-gray-800 dark:bg-gray-900">
+      <div class="w-full max-w-sm rounded-[18px] border border-gray-200 bg-white p-5 shadow-theme-lg dark:border-gray-800 dark:bg-gray-900">
         <h3
           id="password-dialog-title"
           class="text-lg font-semibold text-gray-800 dark:text-white/90"

@@ -3,7 +3,7 @@
     <article
       v-for="metric in items"
       :key="metric.key"
-      class="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-white/[0.03] md:p-6"
+      class="rounded-[18px] border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-white/[0.03] md:p-6"
     >
       <div class="flex items-start justify-between gap-4">
         <div

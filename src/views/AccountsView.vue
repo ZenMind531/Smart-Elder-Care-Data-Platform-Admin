@@ -35,7 +35,7 @@
       <article
         v-for="stat in stats"
         :key="stat.label"
-        class="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-white/[0.03]"
+        class="rounded-[18px] border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-white/[0.03]"
       >
         <p class="text-theme-sm text-gray-500 dark:text-gray-400">{{ stat.label }}</p>
         <p class="mt-2 text-title-sm font-bold text-gray-900 tabular-nums dark:text-white">
@@ -56,7 +56,7 @@
       </button>
     </div>
 
-    <section class="mt-6 rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-white/[0.03]">
+    <section class="mt-6 rounded-[18px] border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-white/[0.03]">
       <div class="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
         <div>
           <h2 class="text-lg font-semibold text-gray-800 text-balance dark:text-white/90">
@@ -218,7 +218,7 @@
       class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 p-4"
       @click.self="closeAccountModal"
     >
-      <div class="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-lg dark:border-gray-800 dark:bg-gray-900">
+      <div class="w-full max-w-md rounded-[18px] border border-gray-200 bg-white p-5 shadow-theme-lg dark:border-gray-800 dark:bg-gray-900">
         <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">
           {{ accountModalTitle }}
         </h3>

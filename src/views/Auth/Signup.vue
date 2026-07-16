@@ -2,7 +2,7 @@
 <template>
   <FullScreenLayout>
     <main class="flex min-h-dvh items-center justify-center bg-gray-50 p-6 dark:bg-gray-950">
-      <div class="w-full max-w-md overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-theme-lg dark:border-gray-800 dark:bg-gray-900">
+      <div class="w-full max-w-md overflow-hidden rounded-[18px] border border-gray-200 bg-white shadow-theme-lg dark:border-gray-800 dark:bg-gray-900">
         <section class="px-6 py-10 sm:px-10">
 
           <div>

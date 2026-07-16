@@ -41,7 +41,7 @@
 
     <section
       v-if="showAddForm"
-      class="mb-6 rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-white/[0.03]"
+      class="mb-6 rounded-[18px] border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-white/[0.03]"
     >
       <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <div>
@@ -168,6 +168,7 @@
           <input
             v-model="newRecord.idCard"
             type="text"
+            required
             placeholder="用于后端档案建档"
             class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-theme-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-white/[0.03] dark:text-white/90"
           />
@@ -251,7 +252,7 @@
       <article
         v-for="stat in stats"
         :key="stat.label"
-        class="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-white/[0.03]"
+        class="rounded-[18px] border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-white/[0.03]"
       >
         <div class="flex items-start justify-between gap-4">
           <div>
@@ -272,7 +273,7 @@
 
     <div class="mt-6 grid grid-cols-12 gap-4 md:gap-6">
       <section
-        class="col-span-12 rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-white/[0.03] xl:col-span-8"
+        class="col-span-12 rounded-[18px] border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-white/[0.03] xl:col-span-8"
       >
         <div class="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
           <div>
@@ -455,7 +456,7 @@
 
       <aside class="col-span-12 space-y-6 xl:col-span-4">
         <section
-          class="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-white/[0.03]"
+          class="rounded-[18px] border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-white/[0.03]"
         >
           <h2 class="text-lg font-semibold text-gray-800 text-balance dark:text-white/90">
             重点关注对象
@@ -500,7 +501,7 @@
         </section>
 
         <section
-          class="rounded-2xl border border-brand-100 bg-brand-25 p-5 dark:border-brand-900 dark:bg-brand-500/[0.08]"
+          class="rounded-[18px] border border-brand-100 bg-brand-25 p-5 dark:border-brand-900 dark:bg-brand-500/[0.08]"
         >
           <h2 class="text-lg font-semibold text-gray-900 text-balance dark:text-white">
             档案建设建议
@@ -516,7 +517,7 @@
 
     <!-- 编辑弹窗 -->
     <div v-if="editOpen" class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 p-4" @click.self="editOpen = false">
-      <div class="w-full max-w-lg rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-lg max-h-[90vh] overflow-y-auto dark:border-gray-800 dark:bg-gray-900">
+      <div class="w-full max-w-lg rounded-[18px] border border-gray-200 bg-white p-5 shadow-theme-lg max-h-[90vh] overflow-y-auto dark:border-gray-800 dark:bg-gray-900">
         <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">编辑老人档案</h3>
         <form class="mt-4 grid gap-4 sm:grid-cols-2" @submit.prevent="submitEdit">
           <label class="block"><span class="mb-1.5 block text-theme-sm font-medium">姓名</span><input v-model="editForm.elderlyName" type="text" required class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm dark:border-gray-700 dark:bg-white/[0.03] dark:text-white/90" /></label>
@@ -659,6 +660,10 @@ const resetNewRecord = () => {
 }
 
 const submitNewRecord = async () => {
+  if (!newRecord.value.idCard?.trim()) {
+    feedback.value = '请填写身份证号'
+    return
+  }
   const diseases = newRecord.value.medicalHistory
     .split(/[、,，;；\s]+/)
     .map((item) => item.trim())

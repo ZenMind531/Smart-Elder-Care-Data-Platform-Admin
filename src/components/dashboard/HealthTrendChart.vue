@@ -1,6 +1,6 @@
 <template>
   <section
-    class="rounded-2xl border border-gray-200 bg-white px-5 pb-5 pt-5 shadow-theme-xs dark:border-gray-800 dark:bg-white/[0.03] sm:px-6 sm:pt-6"
+    class="rounded-[18px] border border-gray-200 bg-white px-5 pb-5 pt-5 shadow-theme-xs dark:border-gray-800 dark:bg-white/[0.03] sm:px-6 sm:pt-6"
   >
     <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
       <div>
@@ -15,7 +15,7 @@
 
     <div class="mt-4 flex flex-wrap items-center gap-4 text-theme-xs text-gray-500 dark:text-gray-400">
       <span class="inline-flex items-center gap-2">
-        <span class="size-2.5 rounded-full bg-teal-600"></span>
+        <span class="size-2.5 rounded-full bg-brand-500"></span>
         平均心率
       </span>
       <span class="inline-flex items-center gap-2">
@@ -55,11 +55,11 @@
             </text>
           </g>
 
-          <path :d="pressurePath" fill="none" stroke="#f79009" stroke-linecap="round" stroke-width="3" />
-          <path :d="heartPath" fill="none" stroke="#0d9488" stroke-linecap="round" stroke-width="3" />
+          <path :d="pressurePath" fill="none" stroke="#0066cc" stroke-linecap="round" stroke-width="3" />
+          <path :d="heartPath" fill="none" stroke="#0066cc" stroke-linecap="round" stroke-width="3" />
 
           <g v-for="point in pressurePoints" :key="`pressure-${point.label}`">
-            <circle :cx="point.x" :cy="point.y" r="4.5" fill="#f79009" stroke="#ffffff" stroke-width="2" />
+            <circle :cx="point.x" :cy="point.y" r="4.5" fill="#0066cc" stroke="#ffffff" stroke-width="2" />
             <text
               :x="point.x"
               :y="point.y + 21"
@@ -71,12 +71,12 @@
           </g>
 
           <g v-for="point in heartPoints" :key="`heart-${point.label}`">
-            <circle :cx="point.x" :cy="point.y" r="4.5" fill="#0d9488" stroke="#ffffff" stroke-width="2" />
+            <circle :cx="point.x" :cy="point.y" r="4.5" fill="#0066cc" stroke="#ffffff" stroke-width="2" />
             <text
               :x="point.x"
               :y="point.y - 12"
               text-anchor="middle"
-              class="fill-teal-700 text-[11px] font-semibold tabular-nums dark:fill-teal-300"
+              class="fill-brand-700 text-[11px] font-semibold tabular-nums dark:fill-brand-300"
             >
               {{ point.value }}
             </text>

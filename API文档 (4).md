@@ -382,6 +382,8 @@ POST /api/health-records
 ```json
 {
   "elderlyId": 1,
+  "elderlyName": "王建国",
+  "retestWarningId": null,
   "systolicPressure": 145,
   "diastolicPressure": 92,
   "bloodSugar": 7.8,
@@ -389,6 +391,27 @@ POST /api/health-records
   "temperature": 36.7,
   "recordTime": "2026-07-08 10:00:00",
   "remark": "血压偏高"
+}
+```
+
+说明：
+
+- `elderlyId` 优先；如果不传 `elderlyId`，可以传 `elderlyName`。
+- 只传 `elderlyName` 时，后端按姓名查老人；查不到会新建基础老人档案；查到多个同名会提示选择具体老人 ID。
+- 普通新增健康数据时不传 `retestWarningId`。
+- 复测某条预警时传 `retestWarningId`，后端会把本次健康记录作为复测记录关联到该预警。
+- 异常健康数据会自动生成健康预警，并在预警里保存触发预警的 `healthRecordId`。
+
+复测请求示例：
+
+```json
+{
+  "elderlyId": 1,
+  "retestWarningId": 8,
+  "systolicPressure": 120,
+  "diastolicPressure": 78,
+  "recordTime": "2026-07-08 11:00:00",
+  "remark": "复测血压正常"
 }
 ```
 
@@ -423,6 +446,8 @@ POST /api/health-warnings
 ```json
 {
   "elderlyId": 1,
+  "healthRecordId": 21,
+  "retestRecordId": null,
   "warningType": "blood_pressure",
   "warningLevel": "high",
   "warningContent": "血压超过正常范围"
@@ -441,6 +466,12 @@ PATCH /api/health-warnings/{id}/status
   "handleResult": "已电话联系老人并通知医生"
 }
 ```
+
+说明：
+
+- `healthRecordId`：触发该预警的原始健康记录 ID。
+- `retestRecordId`：完成复测后关联的复测健康记录 ID。
+- 复测推荐通过 `POST /api/health-records` 新增复测健康记录并传 `retestWarningId`，由后端自动判断是否将预警改成 `resolved`。
 
 ### 7.5 删除预警
 
@@ -605,3 +636,218 @@ PATCH /api/devices/{id}/status
   "status": "abnormal"
 }
 ```
+
+---
+
+## 十一、护理记录模块
+
+### 11.1 护理记录列表
+
+```
+GET /api/care-records?page=1&size=10&elderlyId=1&careType=medication
+```
+
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| page | Long | 否 | 页码，默认 1 |
+| size | Long | 否 | 每页条数，默认 10 |
+| elderlyId | Long | 否 | 老人ID筛选 |
+| careType | String | 否 | 护理类型：medication/vital_signs/cleaning/feeding/exercise/other |
+
+### 11.2 护理记录详情
+
+```
+GET /api/care-records/{id}
+```
+
+### 11.3 新增护理记录
+
+```
+POST /api/care-records
+```
+
+```json
+{
+  "elderlyId": 1,
+  "caregiver": "张护士",
+  "careType": "medication",
+  "careContent": "口服降压药硝苯地平10mg",
+  "careTime": "2026-07-13 08:30:00",
+  "remark": "饭后服用"
+}
+```
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| elderlyId | Long | **是** | 老人ID |
+| careType | String | **是** | medication/vital_signs/cleaning/feeding/exercise/other |
+| careContent | String | **是** | 护理内容描述 |
+| careTime | DateTime | **是** | 护理执行时间 |
+| caregiver | String | 否 | 护理人员姓名 |
+| remark | String | 否 | 备注 |
+
+### 11.4 修改护理记录
+
+```
+PUT /api/care-records/{id}
+```
+
+请求体同新增。
+
+### 11.5 删除护理记录
+
+```
+DELETE /api/care-records/{id}
+```
+
+---
+
+## 十二、服务预约模块
+
+### 12.1 预约列表
+
+```
+GET /api/appointments?page=1&size=10&elderlyId=1&status=pending&serviceType=health_check
+```
+
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| page | Long | 否 | 页码，默认 1 |
+| size | Long | 否 | 每页条数，默认 10 |
+| elderlyId | Long | 否 | 老人ID筛选 |
+| status | String | 否 | 状态：pending/confirmed/completed/cancelled |
+| serviceType | String | 否 | 服务类型：health_check/home_care/rehabilitation/consultation/other |
+
+### 12.2 预约详情
+
+```
+GET /api/appointments/{id}
+```
+
+### 12.3 新增预约
+
+```
+POST /api/appointments
+```
+
+```json
+{
+  "elderlyId": 1,
+  "serviceType": "health_check",
+  "appointmentTime": "2026-07-20 09:00:00",
+  "doctorName": "张医生",
+  "description": "每月例行健康检查"
+}
+```
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| elderlyId | Long | **是** | 老人ID |
+| serviceType | String | **是** | health_check/home_care/rehabilitation/consultation/other |
+| appointmentTime | DateTime | **是** | 预约时间 |
+| doctorName | String | 否 | 服务人员姓名 |
+| description | String | 否 | 预约描述 |
+
+> 新增后状态默认为 `pending`（待确认）。
+
+### 12.4 修改预约
+
+```
+PUT /api/appointments/{id}
+```
+
+请求体同新增。
+
+### 12.5 修改预约状态
+
+```
+PATCH /api/appointments/{id}/status
+```
+
+```json
+{
+  "status": "confirmed"
+}
+```
+
+取消时需传取消原因：
+
+```json
+{
+  "status": "cancelled",
+  "cancelReason": "老人自行取消"
+}
+```
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| status | String | **是** | pending/confirmed/completed/cancelled |
+| cancelReason | String | 否 | 取消原因（取消时填写） |
+
+> 状态流转：`pending` → `confirmed` → `completed`（正常流程）；任意状态 → `cancelled`（取消）。
+
+### 12.6 删除预约
+
+```
+DELETE /api/appointments/{id}
+```
+
+---
+
+## 十三、家属端服务预约模块
+
+### 13.1 创建服务预约
+
+```
+POST /api/family/reservation
+```
+
+请求头：
+
+```text
+Authorization: Bearer <family_token>
+```
+
+```json
+{
+  "elderlyId": 1,
+  "serviceType": "home_care",
+  "serviceDate": "2026-07-20",
+  "serviceTime": "09:00",
+  "remark": "上门护理服务"
+}
+```
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| elderlyId | Long | **是** | 老人ID |
+| serviceType | String | **是** | 服务类型 |
+| serviceDate | Date | **是** | 服务日期，格式 yyyy-MM-dd |
+| serviceTime | String | **是** | 服务时间 |
+| remark | String | 否 | 备注 |
+
+### 13.2 查看我的预约列表
+
+```
+GET /api/family/reservation/list
+```
+
+请求头：
+
+```text
+Authorization: Bearer <family_token>
+```
+
+返回字段：
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | Long | 预约ID |
+| elderlyId | Long | 老人ID |
+| elderlyName | String | 老人姓名 |
+| serviceType | String | 服务类型 |
+| serviceDate | Date | 服务日期 |
+| serviceTime | String | 服务时间 |
+| remark | String | 备注 |
+| status | String | 预约状态 |
+| createTime | DateTime | 创建时间 |

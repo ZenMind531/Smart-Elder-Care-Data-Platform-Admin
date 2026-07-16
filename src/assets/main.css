@@ -55,18 +55,19 @@
   --color-white: #ffffff;
   --color-black: #101828;
 
-  --color-brand-25: #f6fefc;
-  --color-brand-50: #f0fdfa;
-  --color-brand-100: #ccfbf1;
-  --color-brand-200: #99f6e4;
-  --color-brand-300: #5eead4;
-  --color-brand-400: #2dd4bf;
-  --color-brand-500: #14b8a6;
-  --color-brand-600: #0d9488;
-  --color-brand-700: #0f766e;
-  --color-brand-800: #115e59;
-  --color-brand-900: #134e4a;
-  --color-brand-950: #042f2e;
+  /* ── Apple Action Blue #0066cc ── */
+  --color-brand-25: #f5f9ff;
+  --color-brand-50: #e8f2fd;
+  --color-brand-100: #cde3f9;
+  --color-brand-200: #9cc8f3;
+  --color-brand-300: #6badea;
+  --color-brand-400: #3a92e1;
+  --color-brand-500: #0066cc;
+  --color-brand-600: #0055aa;
+  --color-brand-700: #004488;
+  --color-brand-800: #003366;
+  --color-brand-900: #002244;
+  --color-brand-950: #001122;
 
   --color-blue-light-25: #f5fbff;
   --color-blue-light-50: #f0f9ff;
@@ -81,45 +82,47 @@
   --color-blue-light-900: #0b4a6f;
   --color-blue-light-950: #062c41;
 
+  /* ── Apple Grays ── */
   --color-gray-25: #fcfcfd;
-  --color-gray-50: #f9fafb;
-  --color-gray-100: #f2f4f7;
-  --color-gray-200: #e4e7ec;
-  --color-gray-300: #d0d5dd;
-  --color-gray-400: #98a2b3;
-  --color-gray-500: #667085;
-  --color-gray-600: #475467;
-  --color-gray-700: #344054;
-  --color-gray-800: #1d2939;
-  --color-gray-900: #101828;
-  --color-gray-950: #0c111d;
-  --color-gray-dark: #1a2231;
+  --color-gray-50: #f5f5f7;       /* parchment */
+  --color-gray-100: #f0f0f0;      /* divider-soft */
+  --color-gray-200: #e0e0e0;      /* hairline */
+  --color-gray-300: #cccccc;      /* body-muted */
+  --color-gray-400: #999999;
+  --color-gray-500: #7a7a7a;      /* ink-muted-48 */
+  --color-gray-600: #555555;
+  --color-gray-700: #333333;      /* ink-muted-80 */
+  --color-gray-800: #1d1d1f;      /* ink / body */
+  --color-gray-900: #0d0d0f;
+  --color-gray-950: #050506;
+  --color-gray-dark: #1a1a1a;
 
-  --color-orange-25: #fffaf5;
-  --color-orange-50: #fff6ed;
-  --color-orange-100: #ffead5;
-  --color-orange-200: #fddcab;
-  --color-orange-300: #feb273;
-  --color-orange-400: #fd853a;
-  --color-orange-500: #fb6514;
-  --color-orange-600: #ec4a0a;
-  --color-orange-700: #c4320a;
-  --color-orange-800: #9c2a10;
-  --color-orange-900: #7e2410;
-  --color-orange-950: #511c10;
+  --color-orange-25: #f5f9ff;
+  --color-orange-50: #e8f2fd;
+  --color-orange-100: #cde3f9;
+  --color-orange-200: #9cc8f3;
+  --color-orange-300: #6badea;
+  --color-orange-400: #3a92e1;
+  --color-orange-500: #0066cc;
+  --color-orange-600: #0055aa;
+  --color-orange-700: #004488;
+  --color-orange-800: #003366;
+  --color-orange-900: #002244;
+  --color-orange-950: #001122;
 
-  --color-success-25: #f6fef9;
-  --color-success-50: #ecfdf3;
-  --color-success-100: #d1fadf;
-  --color-success-200: #a6f4c5;
-  --color-success-300: #6ce9a6;
-  --color-success-400: #32d583;
-  --color-success-500: #12b76a;
-  --color-success-600: #039855;
-  --color-success-700: #027a48;
-  --color-success-800: #05603a;
-  --color-success-900: #054f31;
-  --color-success-950: #053321;
+  /* ── Semantic: Success → Brand Blue (Apple: single accent) ── */
+  --color-success-25: #f5f9ff;
+  --color-success-50: #e8f2fd;
+  --color-success-100: #cde3f9;
+  --color-success-200: #9cc8f3;
+  --color-success-300: #6badea;
+  --color-success-400: #3a92e1;
+  --color-success-500: #0066cc;
+  --color-success-600: #0055aa;
+  --color-success-700: #004488;
+  --color-success-800: #003366;
+  --color-success-900: #002244;
+  --color-success-950: #001122;
 
   --color-error-25: #fffbfa;
   --color-error-50: #fef3f2;
@@ -134,18 +137,19 @@
   --color-error-900: #7a271a;
   --color-error-950: #55160c;
 
-  --color-warning-25: #fffcf5;
-  --color-warning-50: #fffaeb;
-  --color-warning-100: #fef0c7;
-  --color-warning-200: #fedf89;
-  --color-warning-300: #fec84b;
-  --color-warning-400: #fdb022;
-  --color-warning-500: #f79009;
-  --color-warning-600: #dc6803;
-  --color-warning-700: #b54708;
-  --color-warning-800: #93370d;
-  --color-warning-900: #7a2e0e;
-  --color-warning-950: #4e1d09;
+  /* ── Semantic: Warning → Muted Gray (Apple: no yellow) ── */
+  --color-warning-25: #fafaf9;
+  --color-warning-50: #f5f5f3;
+  --color-warning-100: #ebebe8;
+  --color-warning-200: #d9d9d5;
+  --color-warning-300: #c4c4bf;
+  --color-warning-400: #a8a8a2;
+  --color-warning-500: #7a7a7a;
+  --color-warning-600: #666666;
+  --color-warning-700: #555555;
+  --color-warning-800: #444444;
+  --color-warning-900: #333333;
+  --color-warning-950: #1d1d1f;
 
   --color-theme-pink-500: #ee46bc;
 
@@ -159,7 +163,7 @@
   --shadow-theme-xl: 0px 20px 24px -4px rgba(16, 24, 40, 0.08),
     0px 8px 8px -4px rgba(16, 24, 40, 0.03);
   --shadow-datepicker: -5px 0 0 #262d3c, 5px 0 0 #262d3c;
-  --shadow-focus-ring: 0px 0px 0px 4px rgba(13, 148, 136, 0.14);
+  --shadow-focus-ring: 0px 0px 0px 4px rgba(0, 102, 204, 0.14);
   --shadow-slider-navigation: 0px 1px 2px 0px rgba(16, 24, 40, 0.1),
     0px 1px 3px 0px rgba(16, 24, 40, 0.1);
   --shadow-tooltip: 0px 4px 6px -2px rgba(16, 24, 40, 0.05),
@@ -346,4 +350,42 @@
 }
 .dark .apexcharts-toolbar {
   @apply !text-white/90;
+}
+
+/* ── Apple Design: Component Utilities ── */
+
+/* Card — Apple store-utility-card: 18px radius, hairline border, no shadow */
+@utility apple-card {
+  @apply rounded-[18px] border border-gray-200 bg-white;
+}
+
+/* Button — Primary pill CTA: full-round, Action Blue, press scale */
+@utility apple-btn-primary {
+  @apply inline-flex items-center justify-center gap-2 rounded-full bg-brand-600 px-5 py-2.5 text-theme-sm font-medium text-white transition-transform hover:bg-brand-700 active:scale-95;
+}
+
+/* Button — Secondary ghost pill */
+@utility apple-btn-ghost {
+  @apply inline-flex items-center justify-center gap-2 rounded-full border border-brand-600 bg-transparent px-5 py-2.5 text-theme-sm font-medium text-brand-600 transition-transform hover:bg-brand-50 active:scale-95;
+}
+
+/* Button — Utility rect (compact, 8px radius) */
+@utility apple-btn-utility {
+  @apply inline-flex items-center justify-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-2 text-theme-sm font-medium text-gray-700 transition-transform hover:bg-gray-50 active:scale-95;
+}
+
+/* Input — Apple-style form field: 8px radius, hairline border */
+@utility apple-input {
+  @apply h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-theme-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10;
+}
+
+/* Page header — Apple display headline */
+@utility apple-page-title {
+  @apply text-title-xl font-semibold text-gray-900 text-balance;
+  letter-spacing: -0.28px;
+}
+
+/* Section label / eyebrow */
+@utility apple-eyebrow {
+  @apply text-theme-sm font-semibold uppercase tracking-wider text-brand-600;
 }

@@ -16,7 +16,7 @@
     </p>
     <router-link
       :to="roleOption.dutyPath"
-      class="mt-4 flex items-center justify-center rounded-lg bg-brand-600 p-3 text-theme-sm font-medium text-white hover:bg-brand-700"
+      class="mt-4 flex items-center justify-center rounded-full bg-brand-600 p-3 text-theme-sm font-medium text-white hover:bg-brand-700"
     >
       {{ roleOption.dutyAction }}
     </router-link>

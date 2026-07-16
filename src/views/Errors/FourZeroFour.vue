@@ -1,6 +1,6 @@
 <template>
   <main class="flex min-h-dvh flex-col items-center justify-center bg-gray-50 p-6 text-center dark:bg-gray-950">
-    <div class="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-8 shadow-theme-lg dark:border-gray-800 dark:bg-gray-900">
+    <div class="w-full max-w-md rounded-[18px] border border-gray-200 bg-white p-8 shadow-theme-lg dark:border-gray-800 dark:bg-gray-900">
       <span
         class="mx-auto flex size-12 items-center justify-center rounded-xl bg-brand-50 text-lg font-bold text-brand-700 dark:bg-brand-500/15 dark:text-brand-300"
       >

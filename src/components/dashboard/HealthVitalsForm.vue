@@ -21,7 +21,7 @@
           @change="onElderSelect(($event.target as HTMLSelectElement).value)"
         >
           <option value="">手动录入</option>
-          <option v-for="elder in elders" :key="elder.key" :value="elder.key">{{ elder.room }} · {{ elder.name }}</option>
+          <option v-for="elder in elders" :key="elder.key" :value="elder.key">{{ elder.name }}</option>
         </select>
       </label>
 
@@ -76,8 +76,8 @@
       </label>
 
       <div class="flex flex-col gap-3 md:col-span-2 xl:col-span-4 sm:flex-row sm:items-center">
-        <button type="submit" class="inline-flex w-fit items-center justify-center gap-2 rounded-lg bg-brand-600 px-4 py-2.5 text-theme-sm font-medium text-white shadow-theme-xs hover:bg-brand-700">
-          <Save class="size-4" /> 保存体征
+        <button type="submit" :disabled="submitting" class="inline-flex w-fit items-center justify-center gap-2 rounded-lg bg-brand-600 px-4 py-2.5 text-theme-sm font-medium text-white shadow-theme-xs hover:bg-brand-700 disabled:opacity-60">
+          <Save class="size-4" /> {{ submitting ? '保存中…' : '保存体征' }}
         </button>
         <button type="button" class="inline-flex w-fit items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-white/[0.03]" @click="reset">
           <RotateCcw class="size-4" /> 重置
@@ -103,6 +103,7 @@ const props = defineProps<{
   record: HealthRecordInput
   elders: ElderPreset[]
   elderKey: string
+  submitting?: boolean
 }>()
 
 const emit = defineEmits<{

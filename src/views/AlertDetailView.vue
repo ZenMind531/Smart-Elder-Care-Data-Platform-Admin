@@ -10,7 +10,7 @@
 
     <p
       v-if="detailFeedback"
-      class="mb-5 w-fit rounded-xl bg-green-50 px-4 py-2 text-sm font-medium text-green-700 dark:bg-green-500/15 dark:text-green-400"
+      class="mb-5 w-fit rounded-xl bg-brand-50 px-4 py-2 text-sm font-medium text-brand-700 dark:bg-brand-500/15 dark:text-brand-400"
     >
       {{ detailFeedback }}
     </p>
@@ -49,7 +49,7 @@
           >
           <span
             v-if="alert.escalation"
-            class="rounded-full bg-orange-50 px-2.5 py-1 text-theme-xs font-semibold text-orange-700 dark:bg-orange-500/15 dark:text-orange-400"
+            class="rounded-full bg-brand-50 px-2.5 py-1 text-theme-xs font-semibold text-brand-700 dark:bg-brand-500/15 dark:text-brand-400"
             >已升级</span
           >
         </div>
@@ -62,7 +62,7 @@
       <div class="grid grid-cols-1 gap-6 xl:grid-cols-3">
         <div class="space-y-6 xl:col-span-2">
           <section
-            class="rounded-2xl border border-gray-200 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-white/[0.03]"
+            class="rounded-[18px] border border-gray-200 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-white/[0.03]"
           >
             <h2
               class="text-sm font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500"
@@ -132,7 +132,7 @@
           </section>
 
           <section
-            class="rounded-2xl border border-gray-200 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-white/[0.03]"
+            class="rounded-[18px] border border-gray-200 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-white/[0.03]"
           >
             <h2
               class="text-sm font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500"
@@ -177,7 +177,7 @@
             <button
               v-if="canEscalateAlert"
               type="button"
-              class="inline-flex items-center gap-2 rounded-xl border border-orange-200 bg-orange-50 px-5 py-3 text-sm font-semibold text-orange-700 shadow-sm hover:bg-orange-100 dark:border-orange-500/30 dark:bg-orange-500/10 dark:text-orange-400 transition-colors"
+              class="inline-flex items-center gap-2 rounded-xl border border-brand-200 bg-brand-50 px-5 py-3 text-sm font-semibold text-brand-700 shadow-sm hover:bg-brand-100 dark:border-brand-500/30 dark:bg-brand-500/10 dark:text-brand-400 transition-colors"
               @click="escalateAlert"
             >
               <ArrowUpRight class="size-4" />升级告警
@@ -211,7 +211,7 @@
 
         <aside class="space-y-6">
           <section
-            class="rounded-2xl border border-gray-200 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-white/[0.03]"
+            class="rounded-[18px] border border-gray-200 bg-white p-6 shadow-theme-xs dark:border-gray-800 dark:bg-white/[0.03]"
           >
             <h2
               class="text-sm font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500"
@@ -239,7 +239,7 @@
               </div>
               <div v-if="alert.status === '处理中' || alert.status === '已处理'" class="flex gap-3">
                 <div
-                  class="mt-1 size-2.5 shrink-0 rounded-full bg-amber-400 ring-4 ring-amber-50 dark:ring-amber-500/15"
+                  class="mt-1 size-2.5 shrink-0 rounded-full bg-brand-400 ring-4 ring-brand-50 dark:ring-brand-500/15"
                 />
                 <div class="min-w-0">
                   <p class="text-sm font-medium text-gray-800 dark:text-white/90">处理中</p>
@@ -248,7 +248,7 @@
               </div>
               <div v-if="alert.status === '已处理'" class="flex gap-3">
                 <div
-                  class="mt-1 size-2.5 shrink-0 rounded-full bg-green-500 ring-4 ring-green-50 dark:ring-green-500/15"
+                  class="mt-1 size-2.5 shrink-0 rounded-full bg-brand-500 ring-4 ring-brand-50 dark:ring-brand-500/15"
                 />
                 <div class="min-w-0">
                   <p class="text-sm font-medium text-gray-800 dark:text-white/90">已归档</p>
@@ -260,7 +260,7 @@
             </div>
           </section>
 
-          <section class="rounded-2xl bg-red-50 p-6 dark:bg-red-500/5">
+          <section class="rounded-[18px] bg-red-50 p-6 dark:bg-red-500/5">
             <div class="flex items-start gap-3">
               <ShieldAlert class="mt-0.5 size-5 shrink-0 text-red-600 dark:text-red-400" />
               <div>
@@ -356,14 +356,14 @@ const levelBadge = (l: AlertRecord['level']) =>
   l === '紧急'
     ? 'bg-red-50 text-red-700 dark:bg-red-500/15 dark:text-red-400'
     : l === '关注'
-      ? 'bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400'
+      ? 'bg-brand-50 text-brand-700 dark:bg-brand-500/15 dark:text-brand-400'
       : 'bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-400'
 const statusBadge = (s: AlertRecord['status']) =>
   s === '待处理'
     ? 'bg-red-50 text-red-700 dark:bg-red-500/15 dark:text-red-400'
     : s === '处理中'
-      ? 'bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400'
-      : 'bg-green-50 text-green-700 dark:bg-green-500/15 dark:text-green-400'
+      ? 'bg-brand-50 text-brand-700 dark:bg-brand-500/15 dark:text-brand-400'
+      : 'bg-brand-50 text-brand-700 dark:bg-brand-500/15 dark:text-brand-400'
 
 const slaText = computed(() => {
   if (!alert.value) return ''

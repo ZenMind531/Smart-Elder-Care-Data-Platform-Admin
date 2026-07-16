@@ -13,7 +13,7 @@
 
     <p v-if="error" class="mb-4 w-fit rounded-lg border border-error-200 bg-error-50 px-3 py-2 text-theme-sm text-error-700 dark:border-error-500/30 dark:bg-error-500/10 dark:text-error-300">{{ error }}</p>
 
-    <section class="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-white/[0.03]">
+    <section class="rounded-[18px] border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-white/[0.03]">
       <div class="flex flex-wrap items-center gap-3">
         <input v-model="keyword" type="search" placeholder="搜索标题..." class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-theme-sm text-gray-800 shadow-theme-xs sm:w-[260px] dark:border-gray-700 dark:bg-white/[0.03] dark:text-white/90" />
         <select v-model="riskFilter" class="h-11 rounded-lg border border-gray-300 bg-transparent px-3 py-2.5 text-theme-sm dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"><option value="全部">全部等级</option><option value="low">低风险</option><option value="medium">中风险</option><option value="high">高风险</option></select>
@@ -36,7 +36,7 @@
     </section>
 
     <div v-if="modalOpen" class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 p-4" @click.self="modalOpen = false">
-      <div class="w-full max-w-lg rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-lg dark:border-gray-800 dark:bg-gray-900">
+      <div class="w-full max-w-lg rounded-[18px] border border-gray-200 bg-white p-5 shadow-theme-lg dark:border-gray-800 dark:bg-gray-900">
         <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">{{ form.editing ? '编辑报告' : '新增报告' }}</h3>
         <form class="mt-4 grid gap-4 sm:grid-cols-2" @submit.prevent="submitForm">
           <label class="block sm:col-span-2"><span class="mb-1.5 block text-theme-sm font-medium text-gray-700 dark:text-gray-300">报告标题</span><input v-model="form.reportTitle" type="text" required class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm dark:border-gray-700 dark:bg-white/[0.03] dark:text-white/90" /></label>

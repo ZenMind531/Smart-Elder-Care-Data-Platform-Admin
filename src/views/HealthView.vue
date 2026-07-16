@@ -48,6 +48,7 @@
       :record="newRecord"
       :elders="elderOptions"
       :elder-key="selectedElderKey"
+      :submitting="submitting"
       @submit="submitVitals"
       @reset="resetForm"
       @update:elder-key="selectedElderKey = $event"
@@ -115,7 +116,7 @@
                 :value="elder.elderlyId || ''"
                 :disabled="!elder.elderlyId"
               >
-                {{ elder.room }} {{ elder.name }}
+                {{ elder.name }}
               </option>
             </select>
           </div>
@@ -562,9 +563,11 @@ import { getStoredUser } from '@/api/http'
 import { getHealthRecordTrend, type HealthRecordTrendApi } from '@/api/health'
 import { canUseAction } from '@/config/roles'
 import { useOperationsStore } from '@/stores/operations'
+import { useElderlyStore } from '@/stores/elderly'
 import type { AlertRecord, HealthRecord, HealthRecordInput } from '@/stores/operations'
 
 const operations = useOperationsStore()
+const elderlyStore = useElderlyStore()
 const currentUser = getStoredUser()
 const canCreateHealth = canUseAction(currentUser?.roleName, 'health:create')
 const canResolveHealth = canUseAction(currentUser?.roleName, 'health:resolve')
@@ -584,6 +587,7 @@ const activeRetestAlert = ref<AlertRecord | null>(null)
 const retestSourceId = ref<number | null>(null)
 
 onMounted(() => {
+  void elderlyStore.fetchRecords()
   void operations.fetchHealthRecords()
   void operations.fetchAlerts()
 })
@@ -602,6 +606,7 @@ const createEmptyRecord = (): HealthRecordInput => ({
 })
 
 const newRecord = ref<HealthRecordInput>(createEmptyRecord())
+const submitting = ref(false)
 
 const numericValue = (value: number | string | undefined, fallback: number) => {
   if (typeof value === 'number') return Number.isFinite(value) ? value : fallback
@@ -667,21 +672,12 @@ const createRetestRecord = (record: HealthRecord, alert?: AlertRecord): HealthRe
 }
 
 const elderOptions = computed(() => {
-  const map = new Map<string, { key: string; name: string; room: string; elderlyId?: number }>()
-
-  operations.healthRecords.forEach((record) => {
-    const key = `${record.room}-${record.elderName}`
-    if (!map.has(key)) {
-      map.set(key, {
-        key,
-        name: record.elderName,
-        room: record.room,
-        elderlyId: record.elderlyId,
-      })
-    }
-  })
-
-  return [...map.values()]
+  return elderlyStore.records.map((record) => ({
+    key: `id-${record.id}`,
+    name: record.name,
+    room: record.room,
+    elderlyId: record.id,
+  }))
 })
 
 const evaluatePreviewStatus = (record: HealthRecordInput): HealthRecord['status'] => {
@@ -967,6 +963,8 @@ const submitVitals = async () => {
     feedback.value = '当前角色没有录入体征权限'
     return
   }
+  if (submitting.value) return
+  submitting.value = true
 
   const payload = { ...newRecord.value }
   const isRetestSubmit = Boolean(payload.retestWarningId || payload.remark?.includes('复测'))
@@ -992,6 +990,8 @@ const submitVitals = async () => {
     showForm.value = false
   } catch (error) {
     feedback.value = error instanceof Error ? error.message : '体征保存失败，请稍后重试'
+  } finally {
+    submitting.value = false
   }
 }
 
@@ -1010,7 +1010,7 @@ const markNormal = (record: HealthRecord) => {
   activeRetestAlert.value = alert || null
   retestSourceId.value = record.id
   newRecord.value = createRetestRecord(record, alert)
-  selectedElderKey.value = `${record.room}-${record.elderName}`
+  selectedElderKey.value = `id-${record.elderlyId || record.id}`
   showForm.value = true
   feedback.value = alert
     ? `${record.room} ${record.elderName} 已进入复测录入，请确认复测数据后保存`

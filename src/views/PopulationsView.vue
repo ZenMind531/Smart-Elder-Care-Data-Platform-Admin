@@ -13,7 +13,7 @@
 
     <p v-if="error" class="mb-4 w-fit rounded-lg border border-error-200 bg-error-50 px-3 py-2 text-theme-sm text-error-700 dark:border-error-500/30 dark:bg-error-500/10 dark:text-error-300">{{ error }}</p>
 
-    <section class="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-white/[0.03]">
+    <section class="rounded-[18px] border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-white/[0.03]">
       <div class="flex flex-wrap items-center gap-3">
         <select v-model="typeFilter" aria-label="按重点人群类型筛选" class="h-11 rounded-lg border border-gray-300 bg-transparent px-3 py-2.5 text-theme-sm dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"><option value="全部">全部类型</option><option value="chronic">慢性病</option><option value="disability">残疾</option><option value="solitary">独居</option><option value="empty_nesters">空巢</option></select>
         <select v-model="followFilter" aria-label="按跟进状态筛选" class="h-11 rounded-lg border border-gray-300 bg-transparent px-3 py-2.5 text-theme-sm dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"><option value="全部">全部状态</option><option value="pending">待跟进</option><option value="completed">已完成</option></select>
@@ -41,7 +41,7 @@
     </section>
 
     <div v-if="detailRecord" class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 p-4" role="dialog" aria-modal="true" aria-labelledby="population-detail-title" @click.self="closeDetail">
-      <div class="w-full max-w-lg rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-lg dark:border-gray-800 dark:bg-gray-900">
+      <div class="w-full max-w-lg rounded-[18px] border border-gray-200 bg-white p-5 shadow-theme-lg dark:border-gray-800 dark:bg-gray-900">
         <div class="flex items-start justify-between gap-4">
           <div>
             <h3 id="population-detail-title" class="text-lg font-semibold text-gray-800 dark:text-white/90">重点人群详情</h3>
@@ -88,7 +88,7 @@
     </div>
 
     <div v-if="modalOpen" class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 p-4" role="dialog" aria-modal="true" aria-labelledby="population-form-title" @click.self="closeFormModal">
-      <div class="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-lg dark:border-gray-800 dark:bg-gray-900">
+      <div class="w-full max-w-md rounded-[18px] border border-gray-200 bg-white p-5 shadow-theme-lg dark:border-gray-800 dark:bg-gray-900">
         <h3 id="population-form-title" class="text-lg font-semibold">{{ form.editing ? '编辑' : '新增' }}</h3>
         <form class="mt-4 grid gap-4 sm:grid-cols-2" @submit.prevent="submitForm">
           <label class="block sm:col-span-2"><span class="mb-1.5 block text-theme-sm font-medium text-gray-700 dark:text-gray-300">老人ID</span><input v-model.number="form.elderlyId" type="number" required class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm dark:border-gray-700 dark:bg-white/[0.03] dark:text-white/90" /></label>

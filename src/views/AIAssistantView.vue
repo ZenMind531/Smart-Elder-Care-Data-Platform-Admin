@@ -6,10 +6,10 @@
       <p class="mt-2 max-w-3xl text-theme-sm text-gray-500 dark:text-gray-400">基于平台数据，用自然语言提问，AI 分析并给出决策建议。</p>
     </div>
 
-    <div class="mx-auto flex h-[calc(100vh-260px)] min-h-[500px] flex-col rounded-2xl border border-gray-200 bg-white shadow-theme-xs dark:border-gray-800 dark:bg-white/[0.03]">
+    <div class="mx-auto flex h-[calc(100vh-260px)] min-h-[500px] flex-col rounded-[18px] border border-gray-200 bg-white shadow-theme-xs dark:border-gray-800 dark:bg-white/[0.03]">
       <div ref="msgContainer" class="flex-1 overflow-y-auto px-4 py-4">
         <div v-if="messages.length === 0" class="flex h-full flex-col items-center justify-center text-center">
-          <div class="flex size-16 items-center justify-center rounded-2xl bg-brand-50 dark:bg-brand-500/10">
+          <div class="flex size-16 items-center justify-center rounded-[18px] bg-brand-50 dark:bg-brand-500/10">
             <svg class="size-8 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456z" />
             </svg>
@@ -23,16 +23,16 @@
 
         <div v-for="(msg, i) in messages" :key="i" class="mb-4" :class="msg.role === 'user' ? 'flex justify-end' : 'flex justify-start'">
           <div class="max-w-[80%]">
-            <div v-if="msg.role === 'assistant'" class="rounded-2xl rounded-tl-md border border-gray-100 bg-gray-50 px-4 py-3 dark:border-gray-800 dark:bg-gray-900">
+            <div v-if="msg.role === 'assistant'" class="rounded-[18px] rounded-tl-md border border-gray-100 bg-gray-50 px-4 py-3 dark:border-gray-800 dark:bg-gray-900">
               <!-- eslint-disable-next-line vue/no-v-html -->
               <div class="prose prose-sm max-w-none text-sm text-gray-700 dark:text-gray-300" v-html="renderMarkdown(msg.content)" />
             </div>
-            <div v-else class="rounded-2xl rounded-tr-md bg-brand-600 px-4 py-3 text-sm text-white shadow-sm">{{ msg.content }}</div>
+            <div v-else class="rounded-[18px] rounded-tr-md bg-brand-600 px-4 py-3 text-sm text-white shadow-sm">{{ msg.content }}</div>
           </div>
         </div>
 
         <div v-if="thinking" class="mb-4 flex justify-start">
-          <div class="max-w-[80%] rounded-2xl rounded-tl-md border border-gray-100 bg-gray-50 px-4 py-3 dark:border-gray-800 dark:bg-gray-900">
+          <div class="max-w-[80%] rounded-[18px] rounded-tl-md border border-gray-100 bg-gray-50 px-4 py-3 dark:border-gray-800 dark:bg-gray-900">
             <div class="flex items-center gap-2">
               <span class="flex gap-1">
                 <span class="size-2 animate-bounce rounded-full bg-brand-400" style="animation-delay: 0ms" />

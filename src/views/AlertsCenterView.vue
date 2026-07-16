@@ -20,7 +20,7 @@
 
     <p
       v-if="feedback"
-      class="mb-5 w-fit rounded-xl bg-green-50 px-4 py-2 text-sm font-medium text-green-700 dark:bg-green-500/15 dark:text-green-400"
+      class="mb-5 w-fit rounded-xl bg-brand-50 px-4 py-2 text-sm font-medium text-brand-700 dark:bg-brand-500/15 dark:text-brand-400"
     >
       {{ feedback }}
     </p>
@@ -30,7 +30,7 @@
       class="mb-5 w-fit rounded-xl border px-4 py-2 text-sm font-medium"
       :class="
         operations.error
-          ? 'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-400'
+          ? 'border-brand-200 bg-brand-50 text-brand-700 dark:border-brand-500/30 dark:bg-brand-500/10 dark:text-brand-400'
           : 'border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-400'
       "
     >
@@ -39,7 +39,7 @@
 
     <section
       v-if="showCreateForm && canCreateAlert"
-      class="mb-6 rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-white/[0.03]"
+      class="mb-6 rounded-[18px] border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-white/[0.03]"
     >
       <div class="flex items-start justify-between gap-4">
         <div>
@@ -156,7 +156,7 @@
       <div
         v-for="s in stats"
         :key="s.label"
-        class="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-white/[0.03]"
+        class="rounded-[18px] border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-white/[0.03]"
       >
         <p class="text-theme-xs font-medium uppercase tracking-wider text-gray-400">
           {{ s.label }}
@@ -233,13 +233,13 @@
       <article
         v-for="alert in filteredAlerts"
         :key="alert.id"
-        class="group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-5 transition-all hover:shadow-lg hover:-translate-y-0.5 dark:border-gray-800 dark:bg-white/[0.03]"
+        class="group relative overflow-hidden rounded-[18px] border border-gray-200 bg-white p-5 transition-all hover:shadow-lg hover:-translate-y-0.5 dark:border-gray-800 dark:bg-white/[0.03]"
         :class="
           'border-l-[5px] ' +
           (alert.level === '紧急'
             ? 'border-l-red-500'
             : alert.level === '关注'
-              ? 'border-l-amber-500'
+              ? 'border-l-brand-500'
               : 'border-l-blue-500')
         "
       >
@@ -258,7 +258,7 @@
               >
               <span
                 v-if="alert.escalation"
-                class="rounded-full bg-orange-50 px-2.5 py-0.5 text-xs font-semibold text-orange-700 dark:bg-orange-500/15 dark:text-orange-400"
+                class="rounded-full bg-brand-50 px-2.5 py-0.5 text-xs font-semibold text-brand-700 dark:bg-brand-500/15 dark:text-brand-400"
                 >已升级</span
               >
               <span class="ml-auto text-xs text-gray-400 tabular-nums dark:text-gray-500">{{
@@ -314,7 +314,7 @@
 
       <div
         v-if="filteredAlerts.length === 0 && !operations.loading"
-        class="rounded-2xl border border-dashed border-gray-300 py-16 text-center dark:border-gray-700"
+        class="rounded-[18px] border border-dashed border-gray-300 py-16 text-center dark:border-gray-700"
       >
         <Search class="mx-auto size-10 text-gray-300 dark:text-gray-600" />
         <p class="mt-4 text-base font-semibold text-gray-800 dark:text-white/90">没有匹配的告警</p>
@@ -444,7 +444,7 @@ const stats = computed(() => [
     label: '处理中',
     value: processingCount.value,
     note: '已确认未归档',
-    color: 'text-amber-600 dark:text-amber-400',
+    color: 'text-brand-600 dark:text-brand-400',
   },
   {
     label: '紧急',
@@ -481,14 +481,14 @@ const levelBadge = (l: AlertRecord['level']) =>
   l === '紧急'
     ? 'bg-red-50 text-red-700 dark:bg-red-500/15 dark:text-red-400'
     : l === '关注'
-      ? 'bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400'
+      ? 'bg-brand-50 text-brand-700 dark:bg-brand-500/15 dark:text-brand-400'
       : 'bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-400'
 const statusBadge = (s: AlertRecord['status']) =>
   s === '待处理'
     ? 'bg-red-50 text-red-700 dark:bg-red-500/15 dark:text-red-400'
     : s === '处理中'
-      ? 'bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400'
-      : 'bg-green-50 text-green-700 dark:bg-green-500/15 dark:text-green-400'
+      ? 'bg-brand-50 text-brand-700 dark:bg-brand-500/15 dark:text-brand-400'
+      : 'bg-brand-50 text-brand-700 dark:bg-brand-500/15 dark:text-brand-400'
 
 const slaText = (alert: AlertRecord) => {
   if (alert.status === '已处理') return alert.handledAt ? `归档 ${alert.handledAt}` : '已归档'

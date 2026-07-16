@@ -28,7 +28,7 @@
     </p>
 
     <div class="grid grid-cols-12 gap-4 md:gap-6">
-      <section class="col-span-12 rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-white/[0.03] xl:col-span-5">
+      <section class="col-span-12 rounded-[18px] border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-white/[0.03] xl:col-span-5">
         <h2 class="text-lg font-semibold text-gray-800 text-balance dark:text-white/90">机构资料</h2>
         <div class="mt-5 grid gap-4">
           <label class="block">
@@ -69,7 +69,7 @@
         </div>
       </section>
 
-      <section class="col-span-12 rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-white/[0.03] xl:col-span-7">
+      <section class="col-span-12 rounded-[18px] border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-white/[0.03] xl:col-span-7">
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 class="text-lg font-semibold text-gray-800 text-balance dark:text-white/90">角色权限</h2>
@@ -138,7 +138,7 @@
         </div>
       </section>
 
-      <section class="col-span-12 rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-white/[0.03] xl:col-span-7">
+      <section class="col-span-12 rounded-[18px] border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-white/[0.03] xl:col-span-7">
         <h2 class="text-lg font-semibold text-gray-800 text-balance dark:text-white/90">通知规则</h2>
         <div class="mt-5 space-y-3">
           <article
@@ -174,7 +174,7 @@
         </div>
       </section>
 
-      <section class="col-span-12 rounded-2xl border border-brand-100 bg-brand-25 p-5 dark:border-brand-900 dark:bg-brand-500/[0.08] xl:col-span-5">
+      <section class="col-span-12 rounded-[18px] border border-brand-100 bg-brand-25 p-5 dark:border-brand-900 dark:bg-brand-500/[0.08] xl:col-span-5">
         <h2 class="text-lg font-semibold text-gray-900 text-balance dark:text-white">基础字典</h2>
         <div class="mt-5 grid gap-3">
           <div v-for="dict in dictionaries" :key="dict.name" class="rounded-xl bg-white p-4 dark:bg-white/[0.03]">
@@ -193,7 +193,7 @@
       class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 p-4"
       @click.self="closeRoleModal"
     >
-      <div class="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-lg dark:border-gray-800 dark:bg-gray-900">
+      <div class="w-full max-w-md rounded-[18px] border border-gray-200 bg-white p-5 shadow-theme-lg dark:border-gray-800 dark:bg-gray-900">
         <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">
           {{ roleModal.editing ? '编辑角色' : '新增角色' }}
         </h3>
@@ -259,7 +259,7 @@
 
     <!-- 修改密码弹窗 -->
     <div v-if="pwdModalOpen" class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 p-4" @click.self="pwdModalOpen = false">
-      <div class="w-full max-w-sm rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-lg dark:border-gray-800 dark:bg-gray-900">
+      <div class="w-full max-w-sm rounded-[18px] border border-gray-200 bg-white p-5 shadow-theme-lg dark:border-gray-800 dark:bg-gray-900">
         <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">修改密码</h3>
         <form class="mt-4 space-y-3" @submit.prevent="submitPwd">
           <label class="block">
