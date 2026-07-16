@@ -89,6 +89,7 @@ export const roleAccessMap: Record<StaffRole, string[]> = {
     '/settings',
     '/accounts',
     '/profile',
+    '/screen',
   ],
   护理管理员: [
     '/dashboard/nurse',
@@ -100,6 +101,7 @@ export const roleAccessMap: Record<StaffRole, string[]> = {
     '/populations',
     '/ai-assistant',
     '/profile',
+    '/screen',
   ],
   医生: [
     '/dashboard/doctor',
@@ -110,6 +112,7 @@ export const roleAccessMap: Record<StaffRole, string[]> = {
     '/populations',
     '/ai-assistant',
     '/profile',
+    '/screen',
   ],
 }
 

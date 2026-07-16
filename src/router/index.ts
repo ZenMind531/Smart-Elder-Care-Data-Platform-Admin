@@ -147,6 +147,15 @@ const router = createRouter({
       },
     },
     {
+      path: '/screen',
+      name: 'Screen',
+      component: () => import('../views/ScreenView.vue'),
+      meta: {
+        title: '数据大屏',
+        subtitle: '全屏展示全院核心运营指标',
+      },
+    },
+    {
       path: '/signin',
       name: 'Signin',
       component: () => import('../views/Auth/Signin.vue'),

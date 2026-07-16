@@ -109,7 +109,7 @@
                       :type="showPassword ? 'text' : 'password'"
                       required
                       autocomplete="new-password"
-                      placeholder="至少 6 位"
+                      placeholder="8-20 位，含字母和数字"
                       class="h-11 w-full rounded-lg border border-gray-300 bg-transparent py-2.5 pl-4 pr-12 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
                     />
                     <button
@@ -204,7 +204,9 @@ const validateForm = () => {
   if (!form.username.trim()) return '请输入登录账号'
   if (!form.realName.trim()) return '请输入真实姓名'
   if (!form.phoneNumber.trim()) return '请输入联系电话'
-  if (form.password.length < 6) return '密码至少需要 6 位'
+  if (!/^(?=.*[a-zA-Z])(?=.*\d).{8,20}$/.test(form.password)) {
+    return '密码必须包含字母和数字，长度 8-20 位'
+  }
   if (form.password !== confirmPassword.value) return '两次输入的密码不一致'
   return ''
 }
