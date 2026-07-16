@@ -55,10 +55,9 @@ public class AppointmentController {
     }
 
     @PatchMapping("/{id}/status")
-    public ApiResponse<Void> updateStatus(@PathVariable Long id,
+    public ApiResponse<AppointmentVO> updateStatus(@PathVariable Long id,
                                           @Valid @RequestBody AppointmentStatusDTO dto) {
-        appointmentService.updateAppointmentStatus(id, dto);
-        return ApiResponse.success();
+        return ApiResponse.success(appointmentService.updateAppointmentStatus(id, dto));
     }
 
     @PreAuthorize("hasRole('admin')")

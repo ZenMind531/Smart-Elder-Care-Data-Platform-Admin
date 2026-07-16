@@ -115,12 +115,18 @@ public class FamilyMemberServiceImpl
 
     // ========== 6. 创建预约 ==========
     @Override
-    public void createReservation(ReservationRequest request, Long familyMemberId) {
+    public ReservationVO createReservation(ReservationRequest request, Long familyMemberId) {
         ServiceReservation reservation = new ServiceReservation();
         BeanUtils.copyProperties(request, reservation);
         reservation.setFamilyMemberId(familyMemberId);
         reservation.setStatus("pending");
         serviceReservationMapper.insert(reservation);
+        // 查询老人姓名
+        ElderlyProfile profile = elderlyProfileMapper.selectById(request.getElderlyId());
+        ReservationVO vo = new ReservationVO();
+        BeanUtils.copyProperties(reservation, vo);
+        vo.setElderlyName(profile != null ? profile.getElderlyName() : "未知");
+        return vo;
     }
 
     // ========== 7. 查看我的预约列表 ==========

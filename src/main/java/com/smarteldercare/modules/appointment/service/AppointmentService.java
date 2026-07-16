@@ -17,7 +17,7 @@ public interface AppointmentService extends IService<Appointment> {
 
     AppointmentVO updateAppointment(Long id, AppointmentDTO dto);
 
-    void updateAppointmentStatus(Long id, AppointmentStatusDTO dto);
+    AppointmentVO updateAppointmentStatus(Long id, AppointmentStatusDTO dto);
 
     void deleteAppointment(Long id);
 }

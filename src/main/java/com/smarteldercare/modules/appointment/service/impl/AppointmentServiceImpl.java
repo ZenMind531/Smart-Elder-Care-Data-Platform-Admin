@@ -78,13 +78,14 @@ public class AppointmentServiceImpl
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void updateAppointmentStatus(Long id, AppointmentStatusDTO dto) {
+    public AppointmentVO updateAppointmentStatus(Long id, AppointmentStatusDTO dto) {
         Appointment appointment = getExistingById(id);
         appointment.setStatus(dto.getStatus());
         if (dto.getCancelReason() != null) {
             appointment.setCancelReason(dto.getCancelReason());
         }
         updateById(appointment);
+        return toVO(appointment);
     }
 
     @Override

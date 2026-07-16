@@ -36,7 +36,7 @@ public interface FamilyMemberService extends
                                                     familyMemberId);
 
     // 创建预约
-    void createReservation(ReservationRequest request,
+    ReservationVO createReservation(ReservationRequest request,
                            Long familyMemberId);
 
     // 查看我的预约列表

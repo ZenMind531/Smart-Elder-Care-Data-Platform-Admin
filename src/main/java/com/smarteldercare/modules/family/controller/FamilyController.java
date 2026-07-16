@@ -79,12 +79,11 @@ public class FamilyController {
 
     // ========== 6. 创建预约 ==========
     @PostMapping("/reservation")
-    public ApiResponse<?> createReservation(
+    public ApiResponse<ReservationVO> createReservation(
             @RequestBody ReservationRequest req,
             HttpServletRequest request) {
         Long familyMemberId = getFamilyMemberId(request);
-        familyMemberService.createReservation(req, familyMemberId);
-        return ApiResponse.success();
+        return ApiResponse.success(familyMemberService.createReservation(req, familyMemberId));
     }
 
     // ========== 7. 查看我的预约列表 ==========
