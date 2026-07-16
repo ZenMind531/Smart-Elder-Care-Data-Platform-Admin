@@ -92,6 +92,13 @@
           >
             {{ formattedDate }}
           </span>
+          <a
+            href="/family/"
+            target="_blank"
+            class="rounded-lg bg-brand-50 px-3 py-2 text-theme-xs font-medium text-brand-600 hover:bg-brand-100 transition-colors dark:bg-brand-500/15 dark:text-brand-400"
+          >
+            家属端
+          </a>
           <ThemeToggler />
           <NotificationMenu />
         </div>
