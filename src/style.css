@@ -52,7 +52,11 @@ html {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Mobile viewport */
+/* Mobile viewport — prevent iOS overscroll */
+html, body {
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+}
 body {
   min-height: 100dvh;
   max-width: 480px;

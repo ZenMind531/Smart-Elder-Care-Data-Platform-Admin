@@ -44,3 +44,10 @@ router.beforeEach((to) => {
 const app = createApp(App)
 app.use(router)
 app.mount('#app')
+
+// iOS PWA: prevent rubber-band overscroll
+document.addEventListener('touchmove', (e) => {
+  if (e.target === document.body || e.target === document.documentElement) {
+    e.preventDefault()
+  }
+}, { passive: false })
