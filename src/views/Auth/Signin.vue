@@ -2,7 +2,7 @@
 <template>
   <FullScreenLayout>
     <main class="flex min-h-dvh items-center justify-center bg-gray-50 p-6 dark:bg-gray-950">
-      <div class="w-full max-w-md overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-theme-lg dark:border-gray-800 dark:bg-gray-900">
+      <div class="w-full max-w-md overflow-hidden rounded-[18px] border border-gray-200 bg-white shadow-theme-lg dark:border-gray-800 dark:bg-gray-900">
         <section class="px-6 py-10 sm:px-10">
 
           <div>
@@ -93,6 +93,15 @@
                   去注册
                 </router-link>
               </p>
+
+              <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 text-center">
+                <a
+                  href="/family/"
+                  class="text-theme-sm font-medium text-gray-500 hover:text-brand-600 transition-colors dark:text-gray-400 dark:hover:text-brand-400"
+                >
+                  家属端入口 →
+                </a>
+              </div>
             </form>
           </div>
         </section>
