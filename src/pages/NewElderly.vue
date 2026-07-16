@@ -59,11 +59,12 @@
       </div>
 
       <div>
-        <label class="block text-sm font-medium text-ink mb-1.5">身份证号{{ isEdit ? '' : '' }}</label>
+        <label class="block text-sm font-medium text-ink mb-1.5">身份证号 <span v-if="!isEdit" class="text-error">*</span></label>
         <input
           v-model="form.idCard"
           type="text"
-          :placeholder="isEdit ? '' : '选填'"
+          :required="!isEdit"
+          :placeholder="isEdit ? '' : '请输入身份证号'"
           :readonly="isEdit"
           :class="[
             'w-full h-11 px-4 rounded-lg border bg-white placeholder:text-muted focus:outline-none focus:border-primary transition-colors',
@@ -196,6 +197,13 @@ function populateForm(data) {
 async function handleSubmit() {
   error.value = ''
   success.value = ''
+
+  // ID card required for new registration
+  if (!isEdit.value && !form.idCard?.trim()) {
+    error.value = '请填写身份证号'
+    return
+  }
+
   submitLoading.value = true
   try {
     if (isEdit.value) {
