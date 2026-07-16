@@ -10,6 +10,7 @@ import com.smarteldercare.modules.family.service.FamilyMemberService;
 import com.smarteldercare.modules.family.vo.LoginVO;
 import com.smarteldercare.modules.family.vo.ReservationVO;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -34,7 +35,8 @@ public class FamilyController {
 
     // ========== 1. 家属注册 ==========
     @PostMapping("/register")
-    public ApiResponse<?> register(@RequestBody FamilyRegisterRequest request) {
+    public ApiResponse<?> register(@Valid @RequestBody
+                                   FamilyRegisterRequest request) {
         familyMemberService.register(request);
         return ApiResponse.success();
     }
@@ -49,6 +51,7 @@ public class FamilyController {
     // ========== 3. 注册新老人 + 自动绑定 ==========
     @PostMapping("/elderly/register")
     public ApiResponse<ElderlyProfileVO> registerElderly(
+            @Valid
             @RequestBody ElderlyProfileDTO dto,
             HttpServletRequest request) {
         Long familyMemberId = getFamilyMemberId(request);
@@ -59,7 +62,7 @@ public class FamilyController {
     // ========== 修改老人信息 ==========
     @PutMapping("/elderly/update")
     public ApiResponse<?> updateElderly(
-            @RequestBody ElderlyProfileDTO dto,
+            @Valid    @RequestBody ElderlyProfileDTO dto,
             HttpServletRequest request) {
         Long familyMemberId = getFamilyMemberId(request);
         familyMemberService.updateElderly(dto, familyMemberId);
