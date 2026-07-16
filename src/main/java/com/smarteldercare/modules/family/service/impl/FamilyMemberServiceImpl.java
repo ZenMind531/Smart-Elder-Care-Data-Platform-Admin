@@ -34,7 +34,7 @@ public class FamilyMemberServiceImpl
         implements FamilyMemberService {
 
     private final ElderlyProfileMapper elderlyProfileMapper;
-    private final ServiceReservationMapper serviceReservationMapper;
+
     private final JwtUtil jwtUtil;
     private final AppointmentMapper appointmentMapper;
     @Override
@@ -143,39 +143,51 @@ public class FamilyMemberServiceImpl
 
     // ========== 6. 创建预约 ==========
     @Override
-    public void createReservation(ReservationRequest request, Long
+    public void
+    createReservation(ReservationRequest request, Long
             familyMemberId) {
-        // 家属端自己的表
-        ServiceReservation reservation = new ServiceReservation();
-        BeanUtils.copyProperties(request, reservation);
-        reservation.setFamilyMemberId(familyMemberId);
-        reservation.setStatus("pending");
-        serviceReservationMapper.insert(reservation);
+        Appointment appointment = new
+                Appointment();
 
-        // 管理端/医生端的表
-        Appointment appointment = new Appointment();
         appointment.setElderlyId(request.getElderlyId());
         appointment.setServiceType(request.getServiceType());
 
-        appointment.setAppointmentTime(LocalDateTime.of(request.getServiceDate(),
-                "上午".equals(request.getServiceTime()) ? LocalTime.of(9, 0) :
-                        LocalTime.of(14, 0)));
+        appointment.setAppointmentTime(LocalDateTime.of(
+                request.getServiceDate(),
+
+                "上午".equals(request.getServiceTime()) ?
+                        LocalTime.of(9, 0) : LocalTime.of(14, 0)
+        ));
+
         appointment.setDescription(request.getRemark());
         appointment.setStatus("pending");
+
+        appointment.setFamilyMemberId(familyMemberId);
         appointmentMapper.insert(appointment);
     }
     // ========== 7. 查看我的预约列表 ==========
     @Override
-    public List<ReservationVO> getMyReservationList(Long familyMemberId) {
-        LambdaQueryWrapper<ServiceReservation> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(ServiceReservation::getFamilyMemberId, familyMemberId)
-                .orderByDesc(ServiceReservation::getCreateTime);
-        return serviceReservationMapper.selectList(wrapper).stream().map(r -> {
+    public List<ReservationVO>
+    getMyReservationList(Long familyMemberId) {
+        LambdaQueryWrapper<Appointment> wrapper =
+                new LambdaQueryWrapper<>();
+        wrapper.eq(Appointment::getFamilyMemberId, familyMemberId)
+
+                .orderByDesc(Appointment::getAppointmentTime);
+        return appointmentMapper.selectList(wrapper
+        ).stream().map(a -> {
             ReservationVO vo = new ReservationVO();
-            BeanUtils.copyProperties(r, vo);
-            ElderlyProfile profile =
-                    elderlyProfileMapper.selectById(r.getElderlyId());
-            vo.setElderlyName(profile != null ? profile.getElderlyName() : "未知");
+            vo.setId(a.getId());
+            vo.setElderlyId(a.getElderlyId());
+            vo.setServiceType(a.getServiceType());
+            vo.setRemark(a.getDescription());
+            vo.setStatus(a.getStatus());
+            if (a.getElderlyId() != null) {
+                ElderlyProfile profile =
+                        elderlyProfileMapper.selectById(a.getElderlyId());
+                vo.setElderlyName(profile != null ?
+                        profile.getElderlyName() : "未知");
+            }
             return vo;
         }).toList();
     }

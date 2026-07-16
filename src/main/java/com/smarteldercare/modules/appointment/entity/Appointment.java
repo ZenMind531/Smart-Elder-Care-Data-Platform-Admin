@@ -25,4 +25,7 @@ public class Appointment extends BaseEntity {
     private String description;
 
     private String cancelReason;
+    private Long FamilyMemberId;
+
+
 }
