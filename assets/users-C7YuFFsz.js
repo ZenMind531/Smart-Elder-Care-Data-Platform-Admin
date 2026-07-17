@@ -1,0 +1,1 @@
+import{r as e,d as r}from"./index-XyNO8uaV.js";const a=(s={})=>e(`/users${r({page:1,size:50,...s})}`),u=s=>e(`/users/${s}`),d=s=>e("/users",{method:"POST",body:s}),c=(s,t)=>e(`/users/${s}`,{method:"PUT",body:t}),U=(s,t)=>e(`/users/${s}/status`,{method:"PATCH",body:{status:t}}),m=s=>e(`/users/${s}`,{method:"DELETE"});export{U as a,d as c,m as d,u as g,a as l,c as u};

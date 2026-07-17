@@ -1,0 +1,1 @@
+import{r as o}from"./index-XyNO8uaV.js";const a=t=>o("/auth/login",{method:"POST",body:t,auth:!1}),e=()=>o("/auth/logout",{method:"POST"}),r=()=>o("/auth/me"),u=t=>o("/auth/password",{method:"PUT",body:t}),d=t=>o("/auth/register",{method:"POST",body:t});export{a,r as g,e as l,d as r,u};
